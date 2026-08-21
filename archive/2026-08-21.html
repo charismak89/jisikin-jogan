@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0E1420; --panel:#141C29; --panel2:#171F2E; --line:#232C3D;
+  --tx:#E8EDF5; --tx2:#9BAAC1; --tx3:#6C7A93;
+  --up:#FF5A4E; --down:#4D8CF5; --warn:#F0C45A; --accent:#E8453C;
+}
+body{background:var(--bg);color:var(--tx);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;padding:0 0 48px}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--tx3)}
+
+/* brand */
+.brand{padding:26px 0 18px;border-bottom:2px solid var(--accent)}
+.bn{font-size:30px;font-weight:900;letter-spacing:-.04em;line-height:1}
+.bd{font-size:11.5px;color:var(--tx3);margin-top:9px;letter-spacing:.02em;font-weight:600}
+
+/* header */
+header{padding:20px 0 20px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:700}
+h1{font-size:26px;font-weight:900;margin-top:8px;letter-spacing:-.02em}
+.sub{font-size:13px;color:var(--tx2);margin-top:6px}
+.badge{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:#1B2233;border:1px solid #2E3A50;
+  border-radius:999px;padding:9px 16px;font-size:14px;font-weight:700}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.badge b{color:var(--warn)}
+
+/* kpi */
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:26px}
+@media(min-width:600px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel2);border-radius:12px;padding:14px 15px}
+.k .n{font-size:12px;color:var(--tx3);font-weight:700}
+.k .v{font-size:21px;font-weight:900;margin-top:6px;letter-spacing:-.02em}
+.k .c{font-size:14px;font-weight:800;margin-top:2px}
+
+h2{font-size:15px;font-weight:900;letter-spacing:-.01em;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+h2:before{content:"";width:3px;height:14px;background:var(--accent);border-radius:2px}
+section{margin-bottom:30px}
+
+/* table */
+.row{border-top:1px solid var(--line);padding:13px 0}
+.row:first-of-type{border-top:none}
+.rt{display:flex;align-items:baseline;gap:8px}
+.nm{font-size:16px;font-weight:800}
+.cd{font-size:11px;color:var(--tx3);font-weight:700}
+.pr{margin-left:auto;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.pc{font-size:15px;font-weight:900;min-width:74px;text-align:right;font-variant-numeric:tabular-nums}
+.cm{font-size:12.5px;color:var(--tx2);margin-top:5px}
+.flow{background:var(--panel);border-radius:12px;padding:13px 15px;margin-top:14px;font-size:12.5px;color:var(--tx2);line-height:1.6}
+.flow b{color:var(--tx)}
+
+/* two col */
+.split{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:600px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border-radius:14px;padding:16px 17px}
+.col h3{font-size:13px;font-weight:900;margin-bottom:11px}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;font-size:13px;line-height:1.55;color:#CFD8E6;margin-bottom:11px;padding-left:14px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:#3E4C63}
+.col li b{color:#fff;font-weight:800}
+
+/* scenario */
+.trg{border-left:3px solid var(--accent);padding:2px 0 2px 14px;margin-bottom:16px}
+.trg:last-child{margin-bottom:0}
+.trg .c{font-size:14.5px;font-weight:800}
+.trg .a{font-size:13px;color:var(--tx2);margin-top:4px;line-height:1.55}
+
+/* score strip */
+.score{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.s{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{background:rgba(255,90,78,.14);border-color:rgba(255,90,78,.4);color:var(--up)}
+.s.miss{background:rgba(77,140,245,.12);border-color:rgba(77,140,245,.35);color:var(--down)}
+.s.wait{border-style:dashed}
+.note{font-size:12.5px;color:var(--tx2);line-height:1.6}
+
+/* warn */
+.chk{background:#2A2113;border:1px solid #5C4718;border-radius:12px;padding:13px 15px;
+  font-size:13px;color:var(--warn);line-height:1.6;font-weight:600;margin-top:14px}
+
+/* archive */
+.arch{display:flex;gap:8px;flex-wrap:wrap}
+.arch a{font-size:12.5px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:7px 12px;text-decoration:none}
+footer{border-top:1px solid var(--line);padding-top:18px;font-size:11.5px;color:var(--tx3);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="brand">
+  <div class="bn">지식인 조간</div>
+  <div class="bd">국내외 시장 경제를 분석하는 지식인들 모임 · 반도체 · 메모리 데일리</div>
+</div>
+
+<header>
+  <div class="kick">제 1 호 · 개장 전 브리핑</div>
+  <h1>2026년 8월 21일 (금)</h1>
+  <div class="sub">08:00 KST 기준 · 전일 정규장 종가 &amp; 간밤 미국장 마감 반영</div>
+  <div class="badge"><span class="dot"></span>시초가 전망 <b>보합 ~ 약보합 출발</b></div>
+</header>
+
+<div class="kpi">
+  <div class="k"><div class="n">KOSPI</div><div class="v">6,852.58</div><div class="c up">+5.89%</div></div>
+  <div class="k"><div class="n">SOX 필라델피아</div><div class="v">11,800.0</div><div class="c up">+0.53%</div></div>
+  <div class="k"><div class="n">삼성전자</div><div class="v">271,000</div><div class="c up">+9.49%</div></div>
+  <div class="k"><div class="n">SK하이닉스</div><div class="v">1,691,000</div><div class="c up">+12.73%</div></div>
+</div>
+
+<section>
+  <h2>간밤 글로벌 증시</h2>
+  <div class="row"><div class="rt"><span class="nm">마이크론</span><span class="cd">MU</span><span class="pr">$949.83</span><span class="pc up">+4.23%</span></div>
+    <div class="cm">장중 $978까지. HBM 공급 부족 수혜 부각 — 미국 메모리 단독 강세</div></div>
+  <div class="row"><div class="rt"><span class="nm">엔비디아</span><span class="cd">NVDA</span><span class="pr">$217.53</span><span class="pc down">−1.01%</span></div>
+    <div class="cm">8/26 실적 발표 대기. 반도체 지수 상승에도 홀로 하락</div></div>
+  <div class="row"><div class="rt"><span class="nm">MSCI 한국 ETF</span><span class="cd">EWY</span><span class="pr">$174.43</span><span class="pc up">+2.58%</span></div>
+    <div class="cm">※ 8/19 종가 기준 — 8/20 데이터가 소스 2곳 모두 미갱신</div></div>
+  <div class="row"><div class="rt"><span class="nm">원/달러</span><span class="cd"></span><span class="pr">1,392.50</span><span class="pc up">+2.50</span></div>
+    <div class="cm">8/20 서울 외환시장 종가 기준</div></div>
+  <div class="chk">⚠ SOX는 +0.53%에 그쳤고 엔비디아는 하락. 국내 반도체 +9~13% 급등을 간밤 미국장이 뒷받침하지 못했다 — 국내 수급 단독 이벤트일 가능성.</div>
+</section>
+
+<section>
+  <h2>국내 주요 종목 &amp; 관심 ETF</h2>
+  <div class="row"><div class="rt"><span class="nm">SK하이닉스</span><span class="cd">000660</span><span class="pr">1,691,000</span><span class="pc up">+12.73%</span></div>
+    <div class="cm">40조 자사주 매입·소각 확정(8/19 공시) — 국내 상장사 최대 규모</div></div>
+  <div class="row"><div class="rt"><span class="nm">SK스퀘어</span><span class="cd">402340</span><span class="pr">1,123,000</span><span class="pc up">+11.85%</span></div>
+    <div class="cm">하이닉스 지분가치 연동 상승. NAV 할인율 축소 기대</div></div>
+  <div class="row"><div class="rt"><span class="nm">삼성전자</span><span class="cd">005930</span><span class="pr">271,000</span><span class="pc up">+9.49%</span></div>
+    <div class="cm">직접 공시 없이 주주환원 기대감 전이 — 재료 없는 동반 상승</div></div>
+  <div class="row"><div class="rt"><span class="nm">삼성전기</span><span class="cd">009150</span><span class="pr">1,396,000</span><span class="pc up">+0.65%</span></div>
+    <div class="cm">8/18 −7.57%, 8/19 −3.68% 뒤 겨우 보합. 메모리 랠리에서 소외</div></div>
+  <div class="row"><div class="rt"><span class="nm">SOL AI반도체TOP2플러스</span><span class="cd">0167A0</span><span class="pr">17,645</span><span class="pc up">+6.42%</span></div>
+    <div class="cm">※ 8/20 11:18 장중값 — 종가 미확인. 1개월 수익률은 −10.80%</div></div>
+  <div class="row"><div class="rt"><span class="nm">PLUS 글로벌HBM반도체</span><span class="cd">442580</span><span class="pr">100,840</span><span class="pc up">+4.56%</span></div>
+    <div class="cm">기초자산 해외 비중 높아 국내 급등 반영 제한. 1개월 −8.83%</div></div>
+  <div class="flow"><b>수급</b> — 외국인 <span class="up">+1조 7,092억</span> 순매수 / 개인 −2조 2,758억 / 기관 −4,882억<br>
+    단 전일(8/19) 외국인은 <b>3.5조 순매도</b>. 이틀 합산으로는 약 1.8조가 여전히 빠져나간 상태다.</div>
+</section>
+
+<section>
+  <h2>글로벌 메모리 이슈 · 강세 4 / 약세 4</h2>
+  <div class="split">
+    <div class="col bull"><h3>▲ 강세 재료</h3><ul>
+      <li><b>SK하이닉스 40조 자사주 소각</b> 확정. FCF 50% 이상 주주환원 명문화 — 국내 상장사 최대</li>
+      <li><b>마이크론 +4.23%</b> 미국 메모리 단독 강세. HBM 공급 부족이 가격 결정력으로 연결</li>
+      <li><b>범용 DRAM 상승 압력</b> — HBM 캐파 잠식으로 DDR5 등 레거시 공급도 타이트</li>
+      <li><b>삼성 DRAM 점유율 39%</b> 2026년 2분기 1위 유지</li>
+    </ul></div>
+    <div class="col bear"><h3>▼ 약세 재료</h3><ul>
+      <li><b>8/20은 반등이지 신고가가 아니다.</b> 전일 8/19 코스피 −5.80%, 미 금리 쇼크로 사이드카 발동</li>
+      <li><b>외국인 이틀 합산 순매도.</b> −3.5조 → +1.7조, 순유출 약 1.8조 잔존</li>
+      <li><b>반도체 ETF 1개월 마이너스</b> (SOL −10.80%, PLUS HBM −8.83%). 급등은 낙폭 회복 국면</li>
+      <li><b>마이크론이 SK하이닉스를 1%p 차로 추격</b> — 2위 지위 자체가 흔들리는 중</li>
+    </ul></div>
+  </div>
+  <div class="chk">⚠ 8/26 엔비디아 실적이 최대 변수. 8/19 급락의 원인이던 미 금리 부담은 해소되지 않았고, 주주환원은 실적이 아니라 자본정책 재료다 — 밸류에이션 리레이팅으로 확대 해석하기엔 이르다.</div>
+</section>
+
+<section>
+  <h2>장중 시나리오</h2>
+  <div class="trg"><div class="c">기본 — 숨고르기 속 차별화</div>
+    <div class="a">자사주 소각 직접 수혜(SK하이닉스·SK스퀘어)와 기대감으로 따라 오른 종목(삼성전자·삼성전기) 간 온도차 확대. 지수는 6,800선 공방 예상</div></div>
+  <div class="trg"><div class="c">대안 — 외국인 재이탈</div>
+    <div class="a">개장 30분 내 외국인이 순매도로 돌아서면 8/19(−5.80%) 흐름 재개 경계. 6,700선 이탈 여부가 분기점</div></div>
+  <div class="trg"><div class="c">장중 확인 포인트 3</div>
+    <div class="a">① 외국인 수급 방향 전환 시점 ② 삼성전자의 SK하이닉스 대비 상대강도 ③ 8/26 엔비디아 실적을 앞둔 관망 물량 출회</div></div>
+  <div class="chk">⚠ 지수 레벨(6,800·6,700)은 전일 종가 6,852.58 기준 참고선일 뿐 지지·저항의 근거가 아니다. 3거래일간 사이드카가 양방향으로 발동한 장이라 시나리오 신뢰도 자체가 낮다.</div>
+</section>
+
+<section>
+  <h2>예측 채점 이력</h2>
+  <div class="score">
+    <div class="s wait">오늘</div>
+    <div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div>
+    <div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div>
+  </div>
+  <div class="note">최근 10회차의 시초가 전망 적중 여부가 여기에 쌓입니다. <span class="up">■ 적중</span> · <span class="down">■ 빗나감</span><br>
+  매일 전망만 새로 쓰고 결과를 기록하지 않으면 맞은 날만 기억에 남습니다. 이 줄이 대시보드로 옮기는 가장 큰 이유입니다.</div>
+</section>
+
+<section>
+  <h2>지난 회차</h2>
+  <div class="arch">
+    <a href="#">8/20 (목)</a><a href="#">8/19 (수)</a><a href="#">8/18 (화)</a><a href="#">전체 보기</a>
+  </div>
+</section>
+
+<footer>
+  출처 — 코스피·수급: EBN·아시아경제 8/20 마감시황 / 미국장·개별 종목: Investing.com 일별 시세 / ETF: FunETF·AlphaSquare / 공시: 뉴스핌·헤럴드경제 8/19 / DRAM 점유율: 카운터포인트 2026 2Q<br>
+  개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+</footer>
+
+</div>
+</body>
+</html>
