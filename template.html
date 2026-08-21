@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="{{GENERATED}}">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<div class="brand">
+  <div class="bn">지식인 조간</div>
+  <div class="bd">국내외 시장 경제를 분석하는 지식인들 모임 · 반도체 · 메모리 데일리</div>
+</div>
+
+<header>
+  <div class="kick">제 {{ISSUE}} 호 · 개장 전 브리핑</div>
+  <h1>{{DATE_LABEL}}</h1>
+  <div class="sub">{{SUBTITLE}}</div>
+  <div class="badge"><span class="dot"></span>시초가 전망 <b>{{OPEN_FORECAST}}</b></div>
+</header>
+
+<div class="kpi">
+{{KPI}}
+</div>
+
+<section>
+  <h2>간밤 글로벌 증시</h2>
+  {{GLOBAL_ROWS}}
+  <div class="chk">⚠ {{GLOBAL_CHK}}</div>
+</section>
+
+<section>
+  <h2>국내 주요 종목 &amp; 관심 ETF</h2>
+  {{DOMESTIC_ROWS}}
+  <div class="flow">{{FLOW}}</div>
+  <div class="chk">⚠ {{DOMESTIC_CHK}}</div>
+</section>
+
+<section>
+  <h2>글로벌 메모리 이슈 · 강세 {{N_BULL}} / 약세 {{N_BEAR}}</h2>
+  <div class="split">
+    <div class="col bull"><h3>▲ 강세 재료</h3><ul>{{BULL_ITEMS}}</ul></div>
+    <div class="col bear"><h3>▼ 약세 재료</h3><ul>{{BEAR_ITEMS}}</ul></div>
+  </div>
+  <div class="chk">⚠ {{ISSUE_CHK}}</div>
+</section>
+
+<section>
+  <h2>장중 시나리오</h2>
+  {{SCENARIO}}
+  <div class="chk">⚠ {{SCENARIO_CHK}}</div>
+</section>
+
+<section>
+  <h2>예측 채점 이력</h2>
+  <div class="score">
+{{SCORE_STRIP}}
+  </div>
+  <div class="note">{{SCORE_NOTE}}</div>
+</section>
+
+<section>
+  <h2>지난 회차</h2>
+  <div class="arch">{{ARCHIVE_LINKS}}</div>
+</section>
+
+<footer>
+  {{SOURCES}}<br>
+  개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+</footer>
+
+</div>
+</body>
+</html>
