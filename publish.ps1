@@ -19,6 +19,7 @@ function GenDate($path) {
 Say "`n=== 지식인 조간 발행 ===`n" Cyan
 
 # 1) 다운로드 폴더에서 새 index.html 찾기
+<<<<<<< HEAD
 #    (OneDrive 등으로 위치를 옮긴 경우까지 고려해 레지스트리에서 실제 경로를 읽음)
 $dl = $null
 try {
@@ -27,6 +28,9 @@ try {
     if ($raw) { $dl = [Environment]::ExpandEnvironmentVariables($raw) }
 } catch { }
 if (-not $dl -or -not (Test-Path $dl)) { $dl = Join-Path $env:USERPROFILE "Downloads" }
+=======
+$dl  = Join-Path $env:USERPROFILE "Downloads"
+>>>>>>> fc27f1903d9efe66d7b67740adbed02bc9f0689b
 $new = Get-ChildItem -Path $dl -Filter "index*.html" -File -ErrorAction SilentlyContinue |
        Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
@@ -35,7 +39,10 @@ if (-not $new) {
     Say "       Claude가 보낸 파일을 먼저 다운로드해 주세요: $dl" Gray
     Read-Host "`nEnter 키를 누르면 닫힙니다"; exit 1
 }
+<<<<<<< HEAD
 Say "다운로드   : $dl" DarkGray
+=======
+>>>>>>> fc27f1903d9efe66d7b67740adbed02bc9f0689b
 Say "새 파일   : $($new.Name)  ($($new.LastWriteTime.ToString('MM-dd HH:mm')))" Gray
 
 $newDate = GenDate $new.FullName
