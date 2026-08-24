@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="2026-08-24T08:00+09:00">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* 지식인 조간 v2 — 2026-08 */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0B111B; --panel:#161F2E; --panel2:#1C2637; --line:#2A3548; --line2:#3A4863;
+  --tx:#FFFFFF; --tx2:#C7D2E2; --tx3:#94A2B8;
+  --up:#FF6B5C; --down:#63A0FF; --warn:#FFD470; --accent:#F0524A; --ok:#5BDB98;
+}
+body{background:var(--bg);color:var(--tx);
+  font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;padding:0 0 56px;
+  word-break:keep-all;overflow-wrap:break-word;font-size:16px}
+.wrap{max-width:780px;margin:0 auto;padding:0 18px}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--tx3)}
+
+/* 브랜드 */
+.brand{padding:26px 0 16px;border-bottom:2px solid var(--accent)}
+.bn{font-size:31px;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff}
+.bd{font-size:12px;color:var(--tx3);margin-top:9px;font-weight:600}
+
+/* 헤더 */
+header{padding:22px 0 24px;border-bottom:1px solid var(--line);margin-bottom:26px}
+header .kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:800}
+header h1{font-size:30px;font-weight:900;margin-top:8px;letter-spacing:-.03em;color:#fff}
+header .sub{font-size:13.5px;color:var(--tx2);margin-top:7px;font-weight:500}
+.hbadge{display:flex;align-items:center;gap:11px;margin-top:18px;
+  background:#241E12;border:1px solid #6B5320;border-left:5px solid var(--warn);
+  border-radius:13px;padding:14px 17px;flex-wrap:wrap}
+.hbadge .hl{font-size:12.5px;font-weight:800;color:var(--tx3);letter-spacing:.04em}
+.hbadge .hv{font-size:20px;font-weight:900;color:var(--warn);letter-spacing:-.02em}
+.hbadge .hr{font-size:13.5px;font-weight:800;color:var(--tx2);width:100%;
+  font-variant-numeric:tabular-nums}
+
+/* 오늘 한눈에 */
+.tldr{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:19px 20px;margin-bottom:26px}
+.tldr .tt{font-size:12px;font-weight:900;color:var(--accent);letter-spacing:.1em;margin-bottom:14px}
+.tldr p{font-size:15.5px;line-height:1.7;color:var(--tx2);margin-bottom:13px;padding-left:28px;position:relative}
+.tldr p:last-child{margin-bottom:0}
+.tldr p b{color:#fff;font-weight:800}
+.tldr p:before{content:attr(data-n);position:absolute;left:0;top:4px;width:19px;height:19px;border-radius:6px;
+  background:var(--line2);color:#fff;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center}
+
+/* KPI */
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px}
+@media(min-width:620px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel2);border-radius:14px;padding:15px 16px}
+.k .n{font-size:12.5px;color:var(--tx3);font-weight:800}
+.k .v{font-size:23px;font-weight:900;margin-top:6px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:#fff}
+.k .c{font-size:15px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}
+
+/* 섹션 */
+h2{font-size:18px;font-weight:900;letter-spacing:-.02em;margin:0 0 6px;
+  display:flex;align-items:center;gap:9px;color:#fff}
+h2:before{content:"";width:4px;height:17px;background:var(--accent);border-radius:2px;flex:none}
+.lead{font-size:13px;color:var(--tx3);margin:0 0 16px;padding-left:13px;font-weight:600}
+section{margin-bottom:38px}
+
+/* 시세 행 */
+.row{border-top:1px solid var(--line);padding:14px 0}
+.row:first-of-type{border-top:none}
+.rt{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.nm{font-size:16.5px;font-weight:800;color:#fff}
+.cd{font-size:11px;color:var(--tx3);font-weight:700}
+.pr{margin-left:auto;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#fff}
+.pc{font-size:15.5px;font-weight:900;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}
+.pc.na{color:var(--tx3);font-size:13px}
+.cm{font-size:13.5px;color:var(--tx2);margin-top:6px;line-height:1.6}
+.flow{background:var(--panel);border-radius:14px;padding:16px 17px;margin-top:16px;
+  font-size:13.5px;color:var(--tx2);line-height:1.75}
+.flow b{color:#fff}
+.flow .fnum{font-variant-numeric:tabular-nums;font-weight:800}
+
+/* 강세 / 약세 */
+.split{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border-radius:16px;padding:17px 18px}
+.col h3{font-size:14.5px;font-weight:900;margin-bottom:14px}
+.col.bull{border-top:3px solid var(--up)} .col.bear{border-top:3px solid var(--down)}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;font-size:14px;line-height:1.65;color:var(--tx2);
+  margin-bottom:14px;padding-left:15px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line2)}
+.col li b{color:#fff;font-weight:800;display:block;margin-bottom:3px;font-size:14.5px}
+
+/* 시초가 전망 박스 */
+.fcast{background:#1B2434;border:1px solid var(--line2);border-radius:18px;padding:21px;margin-bottom:18px}
+.fcast .fl{font-size:12px;font-weight:900;color:var(--tx3);letter-spacing:.08em}
+.fcast .fv{font-size:29px;font-weight:900;letter-spacing:-.035em;margin-top:9px;color:var(--warn);line-height:1.2}
+.fcast .fr{font-size:15.5px;font-weight:800;color:#fff;margin-top:9px;font-variant-numeric:tabular-nums}
+.fcast .fw{font-size:14px;color:var(--tx2);margin-top:14px;padding-top:14px;border-top:1px solid var(--line);line-height:1.7}
+
+/* 지수 레벨 사다리 */
+.ladder{margin-bottom:18px}
+.lv{display:flex;align-items:center;gap:13px;padding:12px 15px;border-radius:11px;margin-bottom:7px;
+  background:var(--panel);border-left:5px solid var(--line2);flex-wrap:wrap}
+.lv:last-child{margin-bottom:0}
+.lv .lvl{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;min-width:92px}
+.lv .lvd{font-size:13px;color:var(--tx2);font-weight:600}
+.lv.res{border-left-color:var(--up)} .lv.res .lvl{color:var(--up)}
+.lv.now{border-left-color:var(--warn);background:#2A3446} .lv.now .lvl{color:var(--warn)}
+.lv.now .lvd{color:#fff;font-weight:800}
+.lv.sup{border-left-color:var(--down)} .lv.sup .lvl{color:var(--down)}
+.lv.sup2{border-left-color:#34609F} .lv.sup2 .lvl{color:#8FBBFF}
+
+/* 시나리오 2카드 */
+.scen{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
+@media(min-width:620px){.scen{grid-template-columns:1fr 1fr}}
+.sc{background:var(--panel);border-radius:16px;padding:18px 19px;border-top:3px solid var(--line2)}
+.sc.base{border-top-color:var(--ok)}
+.sc.alt{border-top-color:var(--warn)}
+.sc .st{font-size:11.5px;font-weight:900;letter-spacing:.07em;color:var(--tx3)}
+.sc.base .st{color:var(--ok)} .sc.alt .st{color:var(--warn)}
+.sc .sh{font-size:16.5px;font-weight:900;margin-top:7px;letter-spacing:-.02em;line-height:1.35;color:#fff}
+.sc .sb{font-size:13.5px;color:var(--tx2);margin-top:10px;line-height:1.7}
+.sc .sb b{color:#fff}
+.sc .sif{font-size:12.5px;color:var(--tx3);margin-top:12px;padding-top:11px;border-top:1px solid var(--line);font-weight:700}
+
+/* 확인 포인트 */
+.pts{background:var(--panel2);border-radius:16px;padding:18px 19px}
+.pts .pth{font-size:14px;font-weight:900;margin-bottom:15px;color:#fff}
+.pt{display:flex;gap:12px;margin-bottom:14px}
+.pt:last-child{margin-bottom:0}
+.pt .pn{flex:none;width:24px;height:24px;border-radius:7px;background:var(--accent);color:#fff;
+  font-size:12.5px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.pt .pb{font-size:13.5px;color:var(--tx2);line-height:1.6}
+.pt .pb b{color:#fff;display:block;font-size:14.5px;margin-bottom:2px}
+
+/* 채점 */
+.score{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.s{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:900;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{background:rgba(255,107,92,.18);border-color:rgba(255,107,92,.5);color:var(--up)}
+.s.miss{background:rgba(99,160,255,.16);border-color:rgba(99,160,255,.45);color:var(--down)}
+.s.wait{border-style:dashed;border-color:var(--line2);color:var(--tx2)}
+.note{font-size:13.5px;color:var(--tx2);line-height:1.75}
+.note b{color:#fff}
+
+/* 하방 체크 */
+.chk{background:#2E2415;border:1px solid #6B5320;border-left:5px solid var(--warn);border-radius:13px;
+  padding:15px 17px;font-size:13.5px;color:#FFE9B8;line-height:1.7;font-weight:600;margin-top:16px}
+.chk b{color:var(--warn)}
+
+/* 아카이브 / 푸터 */
+.arch{display:flex;gap:8px;flex-wrap:wrap}
+.arch a{font-size:13px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:9px;padding:9px 14px;text-decoration:none;font-weight:700}
+footer{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:var(--tx3);line-height:1.8}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="brand">
+  <div class="bn">지식인 조간</div>
+  <div class="bd">국내외 시장 경제를 분석하는 지식인들 모임 · 반도체 · 메모리 데일리</div>
+</div>
+
+<header>
+  <div class="kick">제 2 호 · 개장 전 브리핑</div>
+  <h1>2026년 8월 24일 (월)</h1>
+  <div class="sub">08:00 KST 기준 · 전일 정규장 종가 &amp; 간밤 미국장 마감 반영</div>
+  <div class="hbadge">
+    <span class="hl">09:00 시초가 전망</span>
+    <span class="hv">보합 ~ 약보합 출발</span>
+    <span class="hr">코스피 6,850 ~ 6,930 예상 (-0.9% ~ +0.2%)</span>
+  </div>
+</header>
+
+<div class="tldr">
+  <div class="tt">오늘 한눈에</div>
+  <p data-n="1"><b>미국 반도체는 또 빠졌습니다.</b> 다우·나스닥은 올랐지만 SOX·엔비디아·마이크론은 나란히 하락. 우리 반도체가 위로 갈 힘을 미국에서 못 받는 아침입니다.</p>
+  <p data-n="2"><b>버팀목은 주주환원 하나뿐입니다.</b> 삼성전자 최대 110조, SK하이닉스 40조. 다만 이건 실적이 좋아졌다는 뜻이 아니라 회사가 자기 주식을 사주겠다는 약속입니다.</p>
+  <p data-n="3"><b>진짜 위험은 미국 금리입니다.</b> 30년물이 5.27%로 2007년 이후 최고. 지난 19일 코스피 −5.8% 폭락을 만든 원인이 아직 그대로 있습니다.</p>
+</div>
+
+<div class="kpi">
+<div class="k"><div class="n">KOSPI</div><div class="v">6,912.95</div><div class="c up">+0.88%</div></div>
+<div class="k"><div class="n">SOX</div><div class="v">11,740.40</div><div class="c down">-0.51%</div></div>
+<div class="k"><div class="n">삼성전자</div><div class="v">281,500</div><div class="c up">+3.87%</div></div>
+<div class="k"><div class="n">SK하이닉스</div><div class="v">1,730,000</div><div class="c up">+2.31%</div></div>
+</div>
+
+<section>
+  <h2>간밤 글로벌 증시</h2>
+  <div class="lead">8월 21일(금) 미국장 마감 · 한국시간 22일 새벽 종료</div>
+  <div class="row"><div class="rt"><span class="nm">필라델피아 반도체</span><span class="cd">SOX</span><span class="pr">11,740.40</span><span class="pc down">-0.51%</span></div><div class="cm">6거래일 연속 조정. 8/16 12,417에서 나흘 만에 5.5% 빠졌습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">엔비디아</span><span class="cd">NVDA</span><span class="pr">214.72</span><span class="pc down">-0.98%</span></div><div class="cm">3거래일 연속 하락. 현지 26일(한국 27일 새벽) 실적 발표를 앞둔 몸사리기입니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">마이크론</span><span class="cd">MU</span><span class="pr">966.78</span><span class="pc down">-0.77%</span></div><div class="cm">전날 +3.97% 급등분을 하루 만에 일부 반납. 1,000달러 문턱에서 막혔습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">MSCI 한국 ETF</span><span class="cd">EWY</span><span class="pr">178.34</span><span class="pc up">+0.10%</span></div><div class="cm">3일 연속 올랐지만 상승폭이 +2.58% → +2.14% → +0.10%로 급격히 줄었습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">코스피200 선물</span><span class="cd">KS200 F</span><span class="pr">1,074.55</span><span class="pc down">-2.29%</span></div><div class="cm">겉보기엔 갭하락 신호지만, 8/20 선물(1,099.70)이 현물(1,062.80)보다 37p나 높았던 비정상이 제자리를 찾은 것에 가깝습니다 [검증필요]</div></div>
+  <div class="row"><div class="rt"><span class="nm">원/달러</span><span class="cd">USD/KRW</span><span class="pr">1,386.00</span><span class="pc down">-0.60%</span></div><div class="cm">원화가 3일 연속 강세. 외국인이 들어오기 좋은 환경은 만들어졌습니다.</div></div>
+  <div class="chk"><b>하방 체크</b> — 미국 지수는 올랐지만 주간으로는 3대 지수 모두 하락(-0.9~-2.0%)했고, 반도체만 6일째 밀리는 중입니다. 우리 반도체의 최근 3일 강세는 미국과 따로 노는 자사주 재료 힘이라, 재료가 식으면 SOX 수준으로 되돌아올 수 있습니다.</div>
+</section>
+
+<section>
+  <h2>국내 주요 종목 &amp; 관심 ETF</h2>
+  <div class="lead">8월 21일(금) 정규장 종가 · 코스피 6,912.95 (+0.88%) / 코스닥 801.94 (-4.63%)</div>
+  <div class="row"><div class="rt"><span class="nm">삼성전자</span><span class="cd">005930</span><span class="pr">281,500</span><span class="pc up">+3.87%</span></div><div class="cm">21일 이사회에서 90~110조 주주환원 결의. 다만 시가 267,000원으로 밀려서 출발한 뒤 되돌린 것이라 장중 출렁임이 컸습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">SK하이닉스</span><span class="cd">000660</span><span class="pr">1,730,000</span><span class="pc up">+2.31%</span></div><div class="cm">40조 자사주 재료 3일차. 상승폭이 +12.73% → +2.31%로 확 줄었습니다. 힘이 빠지는 중입니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">SK스퀘어</span><span class="cd">402340</span><span class="pr">1,123,000</span><span class="pc">0.00%</span></div><div class="cm">보합. 장중 1,078,000까지 밀렸다 회복 — 아직 출렁임이 가라앉지 않았습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">삼성전기</span><span class="cd">009150</span><span class="pr">1,316,000</span><span class="pc down">-5.73%</span></div><div class="cm">자사주 재료가 없는 종목은 그냥 팔렸습니다. 반도체 강세가 섹터 전체가 아니라는 증거입니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">PLUS 글로벌HBM반도체</span><span class="cd">442580</span><span class="pr">103,600</span><span class="pc up">+1.60%</span></div><div class="cm">해외 HBM 종목을 담고 있어 국내 ETF 중 유일하게 올랐습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">SOL AI반도체TOP2플러스</span><span class="cd">0167A0</span><span class="pr">17,585</span><span class="pc down">-1.04%</span></div><div class="cm">삼성전자·하이닉스가 다 올랐는데도 하락. 함께 담긴 소부장 종목이 코스닥과 같이 무너진 탓입니다.</div></div>
+  <div class="flow"><b>수급 (코스피)</b><br>
+  외국인 <span class="down fnum">−1,760억</span> · 기관 <span class="up fnum">+2,485억</span> · 개인 <span class="down fnum">−1조 1,657억</span> · 기타법인 <span class="up fnum">+1조 932억</span><br>
+  지수를 실제로 밀어올린 건 기타법인 +1조 932억입니다. 회사가 자기 주식을 사면 이 항목으로 잡히니, 삼성전자·SK하이닉스의 자사주 매입 집행분일 가능성이 큽니다 [가정]. <b>외국인은 3일 반등 내내 한 번도 사지 않았습니다.</b></div>
+  <div class="chk"><b>하방 체크</b> — 코스피는 +0.88% 올랐는데 683개 종목이 내렸고, 코스닥은 -4.63%로 올해 14번째 매도 사이드카가 걸렸습니다. 지수 상승은 반도체 두 종목이 만든 착시입니다. 6,912.95도 신고가가 아니라 8/19 폭락 직전 자리를 겨우 되찾은 수준입니다.</div>
+</section>
+
+<section>
+  <h2>글로벌 메모리 이슈 · 강세 4 / 약세 4</h2>
+  <div class="lead">07~08시 사이 새로 나온 재료는 없었습니다</div>
+  <div class="split">
+    <div class="col bull"><h3>▲ 올릴 힘</h3><ul>
+      <li><b>삼성전자 90~110조 주주환원</b> 21일 이사회 결의. 3분기에 약 30조 배당, 나머지는 자사주 매입·소각. 국내 기업 사상 최대입니다.</li>
+      <li><b>SK하이닉스 40조 자사주 소각</b> 11월까지 사들여 2주 안에 소각. 상장사 최대 규모입니다.</li>
+      <li><b>원화 강세</b> 1,386원으로 3일 연속 하락. 외국인이 들어올 조건은 갖춰졌습니다.</li>
+      <li><b>미 3대 지수 반등 마감</b> 다우 +0.98%, S&amp;P500 +0.43%, 나스닥 +0.43%. 8월 합성 PMI 56.0으로 전월(54.5) 상회.</li>
+    </ul></div>
+    <div class="col bear"><h3>▼ 누를 힘</h3><ul>
+      <li><b>미 30년물 5.273%</b> 2007년 이후 최고. 금리가 오르면 미래 이익으로 평가받는 주식이 먼저 맞습니다. 코스닥 -4.63%가 그 결과입니다.</li>
+      <li><b>미국 반도체 6일째 조정</b> SOX·NVDA·MU 동반 하락. 국내 반도체만 따로 오르는 구간이 길어지고 있습니다.</li>
+      <li><b>D램 가격 상승률 둔화</b> 트렌드포스 기준 3분기 인상률 13~18%, 2분기(58~63%)의 3분의 1 수준 [7/6 기준]</li>
+      <li><b>재료가 실적이 아닌 자본정책</b> 두 회사 상승분은 주주환원 발표 덕입니다. 자사주 재료는 보통 2~3일이면 힘이 빠지고, 하이닉스는 이미 3일이 지났습니다 [가정]</li>
+    </ul></div>
+  </div>
+  <div class="chk"><b>하방 체크</b> — 삼성전자 110조 안은 20일에 이미 '임박' 보도가 나왔고 21일 주가가 +3.87%로 반응했습니다. 오늘 새로 반영될 몫을 크게 잡으면 안 됩니다 [검증필요]</div>
+</section>
+
+<section>
+  <h2>장중 시나리오</h2>
+  <div class="lead">09:00 개장부터 15:30 마감까지, 어디를 보면 되는가</div>
+
+  <div class="fcast">
+    <div class="fl">09:00 시초가 전망</div>
+    <div class="fv">보합 ~ 약보합 출발</div>
+    <div class="fr">코스피 6,850 ~ 6,930 예상 (-0.9% ~ +0.2%)</div>
+    <div class="fw">간밤 미국 반도체가 모두 빠져 위로 갈 동력이 없고, 3일 연속 오른 뒤라 차익 매물이 나올 자리입니다. 다만 삼성전자 주주환원 확정과 원화 강세가 아래를 받쳐, 크게 밀리기도 어렵다고 봅니다.</div>
+  </div>
+
+  <div class="ladder">
+    <div class="lv res"><span class="lvl">7,000</span><span class="lvd">1차 저항 — 심리적 라운드 넘버 (참고선)</span></div>
+    <div class="lv now"><span class="lvl">6,912.95</span><span class="lvd">여기서 출발 — 8/21 종가</span></div>
+    <div class="lv sup"><span class="lvl">6,850</span><span class="lvd">1차 지지 — 여기 지키면 기본 시나리오 유지</span></div>
+    <div class="lv sup2"><span class="lvl">6,742</span><span class="lvd">2차 지지 — 8/21 장중 저가 (실제로 매수가 들어온 자리)</span></div>
+  </div>
+
+  <div class="scen">
+    <div class="sc base">
+      <div class="st">기본 시나리오 · 확률 우위</div>
+      <div class="sh">지수는 쉬고, 삼성전자만 남는 장</div>
+      <div class="sb">6,850~6,930 좁은 박스에서 오르내립니다. 종목은 주주환원 발표가 최근인 순서대로 갈립니다 — 삼성전자(21일 결의) &gt; SK하이닉스(19일) &gt; SK스퀘어 &gt; 삼성전기. 코스닥은 금리 부담이 남아 코스피보다 약합니다.</div>
+      <div class="sif">유지 조건 — 6,850 지지 &amp; 외국인 순매도폭 축소</div>
+    </div>
+    <div class="sc alt">
+      <div class="st">대안 시나리오 · 깨질 때</div>
+      <div class="sh">금리가 또 뛰면 8/19가 반복된다</div>
+      <div class="sb">미 30년물이 5.3%를 넘으면 8/19 패턴(코스피 -5.80%, 하이닉스 -9.75%)이 재현될 수 있습니다. 그날 하이닉스는 40조 발표 직전이었는데도 두 자릿수로 빠졌습니다 — <b>자사주 재료는 금리 앞에서 방패가 못 됩니다.</b> 반대로 외국인이 현·선물 동반 매수로 돌아서면 7,000선을 시도합니다.</div>
+      <div class="sif">전환 신호 — 6,742 이탈 또는 외국인 순매수 전환</div>
+    </div>
+  </div>
+
+  <div class="pts">
+    <div class="pth">장중 확인 포인트 3</div>
+    <div class="pt"><div class="pn">1</div><div class="pb"><b>기타법인 순매수가 계속 들어오는가</b>8/21의 +1조 932억이 자사주 집행분이라면, 이게 멈추는 순간 지수를 밀어올릴 주체가 사라집니다.</div></div>
+    <div class="pt"><div class="pn">2</div><div class="pb"><b>외국인이 드디어 사는가</b>3일 반등 내내 순매도였습니다. 오늘 순매수로 돌아서야 진짜 추세로 볼 수 있습니다.</div></div>
+    <div class="pt"><div class="pn">3</div><div class="pb"><b>코스닥이 800선을 지키는가</b>8/21 801.94로 겨우 버텼습니다. 무너지면 반도체 쏠림이 착시였다는 게 확인됩니다.</div></div>
+  </div>
+
+  <div class="chk"><b>하방 체크</b> — 이 전망은 미 금리가 지금(30년 5.273%)에서 더 오르지 않는다는 전제입니다. 이번 주엔 잭슨홀(현지 24~28일, 워시 의장 28일 연설)·엔비디아 실적(한국 27일 새벽)·7월 근원 PCE가 몰려 있어 <b>주 후반 변동성이 월요일과 비교가 안 됩니다.</b> 오늘 흐름을 이번 주 방향으로 넓혀 읽지 마세요.</div>
+</section>
+
+<section>
+  <h2>예측 채점 이력</h2>
+  <div class="lead">최근 10회차 · 왼쪽이 최신</div>
+  <div class="score">
+<div class="s wait">오늘</div><div class="s miss">8/21</div><div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div><div class="s">—</div>
+  </div>
+  <div class="note"><b>8/21 회차 — 빗나감.</b> '보합~약보합 출발'로 봤는데 실제 시가는 6,759.95로 전일 대비 −1.35% 갭하락이었습니다. 시나리오의 '6,800선 중심'도 종가 6,912.95로 어긋났고, 'SK하이닉스·SK스퀘어가 삼성전자보다 강할 것'도 삼성전자(+3.87%)가 1등을 하며 반대로 나왔습니다. 맞춘 건 삼성전기 약세뿐입니다. 8/20 이전 회차는 이전 페이지에 채점 기록이 없어 미채점으로 둡니다.<br>
+  <span class="up">■ 적중</span> · <span class="down">■ 빗나감</span> · <span class="muted">■ 미채점</span></div>
+</section>
+
+<section>
+  <h2>지난 회차</h2>
+  <div class="arch"><a href="./archive/2026-08-21.html">8/21 (금)</a> <a href="./archive/2026-08-20.html">8/20 (목)</a> <a href="./archive/2026-08-19.html">8/19 (수)</a> <a href="./archive/">전체 보기</a></div>
+</section>
+
+<footer>
+  출처 — 지수·수급·코스닥 사이드카: 디지털데일리·MTN·Businesskorea 8/21 마감시황 / 개별 종목·지수 시가·SOX·MU·NVDA·EWY·원달러·코스피200 선물: Investing.com 일별 시세(8/21) / ETF 종가: 한국경제 마켓 8/21 장마감 / 미국장·국채금리: US Market Wrap 8/21 / 주주환원: 아주경제 8/21, SK hynix Newsroom / 주간전망·잭슨홀: 아주경제 8/22, 한국경제 8/23 / D램 가격: 시사저널 7/6 (트렌드포스 인용)<br>
+  개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+</footer>
+
+</div>
+</body>
+</html>
