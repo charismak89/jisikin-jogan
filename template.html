@@ -7,6 +7,142 @@
 <meta name="generated" content="{{GENERATED}}">
 <title>지식인 조간 · 반도체 모닝 대시보드</title>
 <link rel="stylesheet" href="style.css">
+<style>
+/* 지식인 조간 v2 */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0B111B; --panel:#161F2E; --panel2:#1C2637; --line:#2A3548; --line2:#3A4863;
+  --tx:#FFFFFF; --tx2:#C7D2E2; --tx3:#94A2B8;
+  --up:#FF6B5C; --down:#63A0FF; --warn:#FFD470; --accent:#F0524A; --ok:#5BDB98;
+}
+body{background:var(--bg);color:var(--tx);
+  font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;padding:0 0 56px;
+  word-break:keep-all;overflow-wrap:break-word;font-size:16px}
+.wrap{max-width:780px;margin:0 auto;padding:0 18px}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--tx3)}
+
+.brand{padding:26px 0 16px;border-bottom:2px solid var(--accent)}
+.bn{font-size:31px;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff}
+.bd{font-size:12px;color:var(--tx3);margin-top:9px;font-weight:600}
+
+header{padding:22px 0 24px;border-bottom:1px solid var(--line);margin-bottom:26px}
+header .kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:800}
+header h1{font-size:30px;font-weight:900;margin-top:8px;letter-spacing:-.03em;color:#fff}
+header .sub{font-size:13.5px;color:var(--tx2);margin-top:7px;font-weight:500}
+.hbadge{display:flex;align-items:center;gap:11px;margin-top:18px;
+  background:#241E12;border:1px solid #6B5320;border-left:5px solid var(--warn);
+  border-radius:13px;padding:14px 17px;flex-wrap:wrap}
+.hbadge .hl{font-size:12.5px;font-weight:800;color:var(--tx3);letter-spacing:.04em}
+.hbadge .hv{font-size:20px;font-weight:900;color:var(--warn);letter-spacing:-.02em}
+.hbadge .hr{font-size:13.5px;font-weight:800;color:var(--tx2);width:100%;
+  font-variant-numeric:tabular-nums}
+
+.tldr{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:19px 20px;margin-bottom:26px}
+.tldr .tt{font-size:12px;font-weight:900;color:var(--accent);letter-spacing:.1em;margin-bottom:14px}
+.tldr p{font-size:15.5px;line-height:1.7;color:var(--tx2);margin-bottom:13px;padding-left:28px;position:relative}
+.tldr p:last-child{margin-bottom:0}
+.tldr p b{color:#fff;font-weight:800}
+.tldr p:before{content:attr(data-n);position:absolute;left:0;top:4px;width:19px;height:19px;border-radius:6px;
+  background:var(--line2);color:#fff;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center}
+
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px}
+@media(min-width:620px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel2);border-radius:14px;padding:15px 16px}
+.k .n{font-size:12.5px;color:var(--tx3);font-weight:800}
+.k .v{font-size:23px;font-weight:900;margin-top:6px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:#fff}
+.k .c{font-size:15px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}
+
+h2{font-size:18px;font-weight:900;letter-spacing:-.02em;margin:0 0 6px;
+  display:flex;align-items:center;gap:9px;color:#fff}
+h2:before{content:"";width:4px;height:17px;background:var(--accent);border-radius:2px;flex:none}
+.lead{font-size:13px;color:var(--tx3);margin:0 0 16px;padding-left:13px;font-weight:600}
+section{margin-bottom:38px}
+
+.row{border-top:1px solid var(--line);padding:14px 0}
+.row:first-of-type{border-top:none}
+.rt{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.nm{font-size:16.5px;font-weight:800;color:#fff}
+.cd{font-size:11px;color:var(--tx3);font-weight:700}
+.pr{margin-left:auto;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#fff}
+.pc{font-size:15.5px;font-weight:900;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}
+.pc.na{color:var(--tx3);font-size:13px}
+.cm{font-size:13.5px;color:var(--tx2);margin-top:6px;line-height:1.6}
+.flow{background:var(--panel);border-radius:14px;padding:16px 17px;margin-top:16px;
+  font-size:13.5px;color:var(--tx2);line-height:1.75}
+.flow b{color:#fff}
+.flow .fnum{font-variant-numeric:tabular-nums;font-weight:800}
+
+.split{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border-radius:16px;padding:17px 18px}
+.col h3{font-size:14.5px;font-weight:900;margin-bottom:14px}
+.col.bull{border-top:3px solid var(--up)} .col.bear{border-top:3px solid var(--down)}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;font-size:14px;line-height:1.65;color:var(--tx2);
+  margin-bottom:14px;padding-left:15px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line2)}
+.col li b{color:#fff;font-weight:800;display:block;margin-bottom:3px;font-size:14.5px}
+
+.fcast{background:#1B2434;border:1px solid var(--line2);border-radius:18px;padding:21px;margin-bottom:18px}
+.fcast .fl{font-size:12px;font-weight:900;color:var(--tx3);letter-spacing:.08em}
+.fcast .fv{font-size:29px;font-weight:900;letter-spacing:-.035em;margin-top:9px;color:var(--warn);line-height:1.2}
+.fcast .fr{font-size:15.5px;font-weight:800;color:#fff;margin-top:9px;font-variant-numeric:tabular-nums}
+.fcast .fw{font-size:14px;color:var(--tx2);margin-top:14px;padding-top:14px;border-top:1px solid var(--line);line-height:1.7}
+
+.ladder{margin-bottom:18px}
+.lv{display:flex;align-items:center;gap:13px;padding:12px 15px;border-radius:11px;margin-bottom:7px;
+  background:var(--panel);border-left:5px solid var(--line2);flex-wrap:wrap}
+.lv:last-child{margin-bottom:0}
+.lv .lvl{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;min-width:92px}
+.lv .lvd{font-size:13px;color:var(--tx2);font-weight:600}
+.lv.res{border-left-color:var(--up)} .lv.res .lvl{color:var(--up)}
+.lv.now{border-left-color:var(--warn);background:#2A3446} .lv.now .lvl{color:var(--warn)}
+.lv.now .lvd{color:#fff;font-weight:800}
+.lv.sup{border-left-color:var(--down)} .lv.sup .lvl{color:var(--down)}
+.lv.sup2{border-left-color:#34609F} .lv.sup2 .lvl{color:#8FBBFF}
+
+.scen{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
+@media(min-width:620px){.scen{grid-template-columns:1fr 1fr}}
+.sc{background:var(--panel);border-radius:16px;padding:18px 19px;border-top:3px solid var(--line2)}
+.sc.base{border-top-color:var(--ok)}
+.sc.alt{border-top-color:var(--warn)}
+.sc .st{font-size:11.5px;font-weight:900;letter-spacing:.07em;color:var(--tx3)}
+.sc.base .st{color:var(--ok)} .sc.alt .st{color:var(--warn)}
+.sc .sh{font-size:16.5px;font-weight:900;margin-top:7px;letter-spacing:-.02em;line-height:1.35;color:#fff}
+.sc .sb{font-size:13.5px;color:var(--tx2);margin-top:10px;line-height:1.7}
+.sc .sb b{color:#fff}
+.sc .sif{font-size:12.5px;color:var(--tx3);margin-top:12px;padding-top:11px;border-top:1px solid var(--line);font-weight:700}
+
+.pts{background:var(--panel2);border-radius:16px;padding:18px 19px}
+.pts .pth{font-size:14px;font-weight:900;margin-bottom:15px;color:#fff}
+.pt{display:flex;gap:12px;margin-bottom:14px}
+.pt:last-child{margin-bottom:0}
+.pt .pn{flex:none;width:24px;height:24px;border-radius:7px;background:var(--accent);color:#fff;
+  font-size:12.5px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.pt .pb{font-size:13.5px;color:var(--tx2);line-height:1.6}
+.pt .pb b{color:#fff;display:block;font-size:14.5px;margin-bottom:2px}
+
+.score{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.s{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:900;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{background:rgba(255,107,92,.18);border-color:rgba(255,107,92,.5);color:var(--up)}
+.s.miss{background:rgba(99,160,255,.16);border-color:rgba(99,160,255,.45);color:var(--down)}
+.s.wait{border-style:dashed;border-color:var(--line2);color:var(--tx2)}
+.note{font-size:13.5px;color:var(--tx2);line-height:1.75}
+.note b{color:#fff}
+
+.chk{background:#2E2415;border:1px solid #6B5320;border-left:5px solid var(--warn);border-radius:13px;
+  padding:15px 17px;font-size:13.5px;color:#FFE9B8;line-height:1.7;font-weight:600;margin-top:16px}
+.chk b{color:var(--warn)}
+
+.arch{display:flex;gap:8px;flex-wrap:wrap}
+.arch a{font-size:13px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:9px;padding:9px 14px;text-decoration:none;font-weight:700}
+footer{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:var(--tx3);line-height:1.8}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -20,8 +156,17 @@
   <div class="kick">제 {{ISSUE}} 호 · 개장 전 브리핑</div>
   <h1>{{DATE_LABEL}}</h1>
   <div class="sub">{{SUBTITLE}}</div>
-  <div class="badge"><span class="dot"></span>시초가 전망 <b>{{OPEN_FORECAST}}</b></div>
+  <div class="hbadge">
+    <span class="hl">09:00 시초가 전망</span>
+    <span class="hv">{{OPEN_FORECAST}}</span>
+    <span class="hr">{{OPEN_RANGE}}</span>
+  </div>
 </header>
+
+<div class="tldr">
+  <div class="tt">오늘 한눈에</div>
+{{TLDR}}
+</div>
 
 <div class="kpi">
 {{KPI}}
@@ -29,34 +174,59 @@
 
 <section>
   <h2>간밤 글로벌 증시</h2>
-  {{GLOBAL_ROWS}}
-  <div class="chk">⚠ {{GLOBAL_CHK}}</div>
+  <div class="lead">{{GLOBAL_LEAD}}</div>
+{{GLOBAL_ROWS}}
+  <div class="chk">{{GLOBAL_CHK}}</div>
 </section>
 
 <section>
   <h2>국내 주요 종목 &amp; 관심 ETF</h2>
-  {{DOMESTIC_ROWS}}
+  <div class="lead">{{DOMESTIC_LEAD}}</div>
+{{DOMESTIC_ROWS}}
   <div class="flow">{{FLOW}}</div>
-  <div class="chk">⚠ {{DOMESTIC_CHK}}</div>
+  <div class="chk">{{DOMESTIC_CHK}}</div>
 </section>
 
 <section>
   <h2>글로벌 메모리 이슈 · 강세 {{N_BULL}} / 약세 {{N_BEAR}}</h2>
+  <div class="lead">{{ISSUE_LEAD}}</div>
   <div class="split">
-    <div class="col bull"><h3>▲ 강세 재료</h3><ul>{{BULL_ITEMS}}</ul></div>
-    <div class="col bear"><h3>▼ 약세 재료</h3><ul>{{BEAR_ITEMS}}</ul></div>
+    <div class="col bull"><h3>▲ 올릴 힘</h3><ul>{{BULL_ITEMS}}</ul></div>
+    <div class="col bear"><h3>▼ 누를 힘</h3><ul>{{BEAR_ITEMS}}</ul></div>
   </div>
-  <div class="chk">⚠ {{ISSUE_CHK}}</div>
+  <div class="chk">{{ISSUE_CHK}}</div>
 </section>
 
 <section>
   <h2>장중 시나리오</h2>
-  {{SCENARIO}}
-  <div class="chk">⚠ {{SCENARIO_CHK}}</div>
+  <div class="lead">{{SCEN_LEAD}}</div>
+
+  <div class="fcast">
+    <div class="fl">09:00 시초가 전망</div>
+    <div class="fv">{{OPEN_FORECAST}}</div>
+    <div class="fr">{{OPEN_RANGE}}</div>
+    <div class="fw">{{FCAST_WHY}}</div>
+  </div>
+
+  <div class="ladder">
+{{LADDER}}
+  </div>
+
+  <div class="scen">
+    {{SCENARIOS}}
+  </div>
+
+  <div class="pts">
+    <div class="pth">장중 확인 포인트 3</div>
+{{POINTS}}
+  </div>
+
+  <div class="chk">{{SCENARIO_CHK}}</div>
 </section>
 
 <section>
   <h2>예측 채점 이력</h2>
+  <div class="lead">{{SCORE_LEAD}}</div>
   <div class="score">
 {{SCORE_STRIP}}
   </div>
@@ -70,6 +240,7 @@
 
 <footer>
   {{SOURCES}}<br>
+  {{DATA_NOTE}}<br>
   개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
 </footer>
 
