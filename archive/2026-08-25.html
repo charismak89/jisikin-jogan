@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="2026-08-25T08:00+09:00">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+/* 지식인 조간 v2 */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0B111B; --panel:#161F2E; --panel2:#1C2637; --line:#2A3548; --line2:#3A4863;
+  --tx:#FFFFFF; --tx2:#C7D2E2; --tx3:#94A2B8;
+  --up:#FF6B5C; --down:#63A0FF; --warn:#FFD470; --accent:#F0524A; --ok:#5BDB98;
+}
+body{background:var(--bg);color:var(--tx);
+  font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;padding:0 0 56px;
+  word-break:keep-all;overflow-wrap:break-word;font-size:16px}
+.wrap{max-width:780px;margin:0 auto;padding:0 18px}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--tx3)}
+
+.brand{padding:26px 0 16px;border-bottom:2px solid var(--accent)}
+.bn{font-size:31px;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff}
+.bd{font-size:12px;color:var(--tx3);margin-top:9px;font-weight:600}
+
+header{padding:22px 0 24px;border-bottom:1px solid var(--line);margin-bottom:26px}
+header .kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:800}
+header h1{font-size:30px;font-weight:900;margin-top:8px;letter-spacing:-.03em;color:#fff}
+header .sub{font-size:13.5px;color:var(--tx2);margin-top:7px;font-weight:500}
+.hbadge{display:flex;align-items:center;gap:11px;margin-top:18px;
+  background:#241E12;border:1px solid #6B5320;border-left:5px solid var(--warn);
+  border-radius:13px;padding:14px 17px;flex-wrap:wrap}
+.hbadge .hl{font-size:12.5px;font-weight:800;color:var(--tx3);letter-spacing:.04em}
+.hbadge .hv{font-size:20px;font-weight:900;color:var(--warn);letter-spacing:-.02em}
+.hbadge .hr{font-size:13.5px;font-weight:800;color:var(--tx2);width:100%;
+  font-variant-numeric:tabular-nums}
+
+.tldr{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:19px 20px;margin-bottom:26px}
+.tldr .tt{font-size:12px;font-weight:900;color:var(--accent);letter-spacing:.1em;margin-bottom:14px}
+.tldr p{font-size:15.5px;line-height:1.7;color:var(--tx2);margin-bottom:13px;padding-left:28px;position:relative}
+.tldr p:last-child{margin-bottom:0}
+.tldr p b{color:#fff;font-weight:800}
+.tldr p:before{content:attr(data-n);position:absolute;left:0;top:4px;width:19px;height:19px;border-radius:6px;
+  background:var(--line2);color:#fff;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center}
+
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px}
+@media(min-width:620px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel2);border-radius:14px;padding:15px 16px}
+.k .n{font-size:12.5px;color:var(--tx3);font-weight:800}
+.k .v{font-size:23px;font-weight:900;margin-top:6px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:#fff}
+.k .c{font-size:15px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}
+
+h2{font-size:18px;font-weight:900;letter-spacing:-.02em;margin:0 0 6px;
+  display:flex;align-items:center;gap:9px;color:#fff}
+h2:before{content:"";width:4px;height:17px;background:var(--accent);border-radius:2px;flex:none}
+.lead{font-size:13px;color:var(--tx3);margin:0 0 16px;padding-left:13px;font-weight:600}
+section{margin-bottom:38px}
+
+.row{border-top:1px solid var(--line);padding:14px 0}
+.row:first-of-type{border-top:none}
+.rt{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.nm{font-size:16.5px;font-weight:800;color:#fff}
+.cd{font-size:11px;color:var(--tx3);font-weight:700}
+.pr{margin-left:auto;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#fff}
+.pc{font-size:15.5px;font-weight:900;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}
+.pc.na{color:var(--tx3);font-size:13px}
+.cm{font-size:13.5px;color:var(--tx2);margin-top:6px;line-height:1.6}
+.flow{background:var(--panel);border-radius:14px;padding:16px 17px;margin-top:16px;
+  font-size:13.5px;color:var(--tx2);line-height:1.75}
+.flow b{color:#fff}
+.flow .fnum{font-variant-numeric:tabular-nums;font-weight:800}
+
+.split{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border-radius:16px;padding:17px 18px}
+.col h3{font-size:14.5px;font-weight:900;margin-bottom:14px}
+.col.bull{border-top:3px solid var(--up)} .col.bear{border-top:3px solid var(--down)}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;font-size:14px;line-height:1.65;color:var(--tx2);
+  margin-bottom:14px;padding-left:15px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line2)}
+.col li b{color:#fff;font-weight:800;display:block;margin-bottom:3px;font-size:14.5px}
+
+.fcast{background:#1B2434;border:1px solid var(--line2);border-radius:18px;padding:21px;margin-bottom:18px}
+.fcast .fl{font-size:12px;font-weight:900;color:var(--tx3);letter-spacing:.08em}
+.fcast .fv{font-size:29px;font-weight:900;letter-spacing:-.035em;margin-top:9px;color:var(--warn);line-height:1.2}
+.fcast .fr{font-size:15.5px;font-weight:800;color:#fff;margin-top:9px;font-variant-numeric:tabular-nums}
+.fcast .fw{font-size:14px;color:var(--tx2);margin-top:14px;padding-top:14px;border-top:1px solid var(--line);line-height:1.7}
+
+.ladder{margin-bottom:18px}
+.lv{display:flex;align-items:center;gap:13px;padding:12px 15px;border-radius:11px;margin-bottom:7px;
+  background:var(--panel);border-left:5px solid var(--line2);flex-wrap:wrap}
+.lv:last-child{margin-bottom:0}
+.lv .lvl{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;min-width:92px}
+.lv .lvd{font-size:13px;color:var(--tx2);font-weight:600}
+.lv.res{border-left-color:var(--up)} .lv.res .lvl{color:var(--up)}
+.lv.now{border-left-color:var(--warn);background:#2A3446} .lv.now .lvl{color:var(--warn)}
+.lv.now .lvd{color:#fff;font-weight:800}
+.lv.sup{border-left-color:var(--down)} .lv.sup .lvl{color:var(--down)}
+.lv.sup2{border-left-color:#34609F} .lv.sup2 .lvl{color:#8FBBFF}
+
+.scen{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
+@media(min-width:620px){.scen{grid-template-columns:1fr 1fr}}
+.sc{background:var(--panel);border-radius:16px;padding:18px 19px;border-top:3px solid var(--line2)}
+.sc.base{border-top-color:var(--ok)}
+.sc.alt{border-top-color:var(--warn)}
+.sc .st{font-size:11.5px;font-weight:900;letter-spacing:.07em;color:var(--tx3)}
+.sc.base .st{color:var(--ok)} .sc.alt .st{color:var(--warn)}
+.sc .sh{font-size:16.5px;font-weight:900;margin-top:7px;letter-spacing:-.02em;line-height:1.35;color:#fff}
+.sc .sb{font-size:13.5px;color:var(--tx2);margin-top:10px;line-height:1.7}
+.sc .sb b{color:#fff}
+.sc .sif{font-size:12.5px;color:var(--tx3);margin-top:12px;padding-top:11px;border-top:1px solid var(--line);font-weight:700}
+
+.pts{background:var(--panel2);border-radius:16px;padding:18px 19px}
+.pts .pth{font-size:14px;font-weight:900;margin-bottom:15px;color:#fff}
+.pt{display:flex;gap:12px;margin-bottom:14px}
+.pt:last-child{margin-bottom:0}
+.pt .pn{flex:none;width:24px;height:24px;border-radius:7px;background:var(--accent);color:#fff;
+  font-size:12.5px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.pt .pb{font-size:13.5px;color:var(--tx2);line-height:1.6}
+.pt .pb b{color:#fff;display:block;font-size:14.5px;margin-bottom:2px}
+
+.score{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.s{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:900;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{background:rgba(255,107,92,.18);border-color:rgba(255,107,92,.5);color:var(--up)}
+.s.miss{background:rgba(99,160,255,.16);border-color:rgba(99,160,255,.45);color:var(--down)}
+.s.wait{border-style:dashed;border-color:var(--line2);color:var(--tx2)}
+.note{font-size:13.5px;color:var(--tx2);line-height:1.75}
+.note b{color:#fff}
+
+.chk{background:#2E2415;border:1px solid #6B5320;border-left:5px solid var(--warn);border-radius:13px;
+  padding:15px 17px;font-size:13.5px;color:#FFE9B8;line-height:1.7;font-weight:600;margin-top:16px}
+.chk b{color:var(--warn)}
+
+.arch{display:flex;gap:8px;flex-wrap:wrap}
+.arch a{font-size:13px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:9px;padding:9px 14px;text-decoration:none;font-weight:700}
+footer{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:var(--tx3);line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="brand">
+  <div class="bn">지식인 조간</div>
+  <div class="bd">국내외 시장 경제를 분석하는 지식인들 모임 · 반도체 · 메모리 데일리</div>
+</div>
+
+<header>
+  <div class="kick">제 3 호 · 개장 전 브리핑</div>
+  <h1>2026년 8월 25일 (화)</h1>
+  <div class="sub">08:00 KST 기준 · 전일 정규장 종가 &amp; 간밤 미국장 마감 반영</div>
+  <div class="hbadge">
+    <span class="hl">09:00 시초가 전망</span>
+    <span class="hv">갭하락 출발</span>
+    <span class="hr">코스피 6,600 ~ 6,680 예상 (-1.45% ~ -0.25%)</span>
+  </div>
+</header>
+
+<div class="tldr">
+  <div class="tt">오늘 한눈에</div>
+<p data-n="1"><b>삼성전자가 하루에 8.7% 빠졌습니다.</b> 역대 최대인 110조 원 주주환원을 발표하고도 자기 주식을 얼마나 태워 없앨지(소각) 정하지 못해 실망 매물이 쏟아졌습니다.</p>
+<p data-n="2"><b>간밤 미국에서 메모리가 한 번 더 빠졌습니다.</b> 마이크론이 7.1% 내려 900달러가 깨졌고, SK하이닉스 미국 예탁증서는 4.92% 하락해 국내 종가보다 1.5%포인트 더 내려앉았습니다.</p>
+<p data-n="3"><b>오늘은 갭하락 출발로 봅니다.</b> 다만 8월 24일 개인이 혼자 3조 8,400억 원을 받아냈고 원화도 강세로 돌아서, 낙폭 자체는 제한될 가능성이 큽니다.</p>
+</div>
+
+<div class="kpi">
+<div class="k"><div class="n">KOSPI</div><div class="v">6,696.96</div><div class="c down">-3.12%</div></div>
+<div class="k"><div class="n">SOX</div><div class="v">11,423.2</div><div class="c down">-2.70%</div></div>
+<div class="k"><div class="n">삼성전자</div><div class="v">257,000</div><div class="c down">-8.70%</div></div>
+<div class="k"><div class="n">SK하이닉스</div><div class="v">1,671,000</div><div class="c down">-3.41%</div></div>
+</div>
+
+<section>
+  <h2>간밤 글로벌 증시</h2>
+  <div class="lead">8월 24일(월) 미국장 마감 · 한국시간 25일 새벽 종료</div>
+<div class="row"><div class="rt"><span class="nm">필라델피아 반도체지수</span><span class="cd">SOX</span><span class="pr">11,423.2</span><span class="pc down">-2.70%</span></div><div class="cm">사흘 연속 약세입니다. 다우지수는 올랐는데 반도체만 빠진 날이라, 돈이 시장을 떠난 게 아니라 반도체에서 나가고 있다는 뜻입니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">엔비디아</span><span class="cd">NVDA</span><span class="pr">210.16</span><span class="pc down">-2.12%</span></div><div class="cm">26일(수) 실적 발표를 앞두고 미리 비중을 줄이는 매물이 나왔습니다. 실적이 나오기 전까지는 새 매수가 붙기 어려운 자리입니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">마이크론</span><span class="cd">MU</span><span class="pr">897.77</span><span class="pc down">-7.10%</span></div><div class="cm">2026년 생산분을 이미 다 계약해 놓고도 7% 넘게 빠졌습니다. 수요가 꺾인 게 아니라 메모리에 몰려 있던 자금이 한꺼번에 빠져나간 것으로 보입니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">MSCI 한국 ETF</span><span class="cd">EWY</span><span class="pr">173.64</span><span class="pc down">-2.64%</span></div><div class="cm">국내 코스피 낙폭(-3.12%)보다는 덜 빠졌습니다. 원화가 강세로 돌아선 몫을 빼면 사실상 국내 하락을 그대로 따라간 수준이라, 추가 악재 신호로 보기는 어렵습니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">코스피200 선물</span><span class="cd">8/24 정규장</span><span class="pr">1,051.65</span><span class="pc down">-4.37%</span></div><div class="cm">현물 코스피200(장중 저가 1,048.08)과 거의 붙어서 끝났습니다. 선물이 현물보다 먼저 더 빠져 있는 상태가 아니므로, 이 -4.37%를 오늘 갭하락률로 그대로 옮기면 안 됩니다. 야간 세션 종가는 확보하지 못했습니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">원/달러</span><span class="cd">서울 종가</span><span class="pr">1,382.4</span><span class="pc down">-4.1원</span></div><div class="cm">환율이 내렸다는 건 원화가 강해졌다는 뜻입니다. 외국인이 팔고 나갈 때 생기는 환차손 부담이 줄어 수급에는 우호적인 방향입니다.</div></div>
+  <div class="chk"><b>하방 체크</b> — 다우는 오르고 나스닥과 반도체지수는 내린 혼조장이었습니다. 지수 평균만 보면 무난해 보이지만 반도체만 떼어보면 사흘 연속 약세입니다. 26일 엔비디아 실적 전까지 이 흐름이 바뀔 이유가 마땅치 않습니다.</div>
+</section>
+
+<section>
+  <h2>국내 주요 종목 &amp; 관심 ETF</h2>
+  <div class="lead">8월 24일(월) 정규장 종가 · 코스피 6,696.96 (-3.12%) / 코스닥 813.33 (+1.42%)</div>
+<div class="row"><div class="rt"><span class="nm">삼성전자</span><span class="cd">005930</span><span class="pr">257,000</span><span class="pc down">-8.70%</span></div><div class="cm">시가 27만 2,000원에서 시작해 저가 25만 5,000원까지 밀렸습니다. 110조 원 주주환원은 규모로는 역대 최대지만, 60~80조 원의 배분 방식이 내년 1월까지 미정이라 실망 매물이 몰렸습니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">SK하이닉스</span><span class="cd">000660</span><span class="pr">1,671,000</span><span class="pc down">-3.41%</span></div><div class="cm">장중 179만 2,000원까지 올랐다가 167만 원선으로 밀려 저가 마감했습니다. 삼성전자 급락에 뒤늦게 끌려 내려간 모습입니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">SK스퀘어</span><span class="cd">402340</span><span class="pr">1,076,000</span><span class="pc down">-4.90%</span></div><div class="cm">SK하이닉스보다 더 빠졌습니다. 지주회사 성격이라 하이닉스가 흔들릴 때 낙폭이 더 크게 나오는 구조가 이번에도 반복됐습니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">삼성전기</span><span class="cd">009150</span><span class="pr">1,318,000</span><span class="pc up">+0.15%</span></div><div class="cm">코스피가 3% 넘게 빠진 날 홀로 보합을 지켰습니다. 이번 하락이 메모리 두 종목에 몰린 것이지 전자부품 전체로 번진 게 아니라는 근거입니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">SOL AI반도체TOP2플러스</span><span class="cd">0167A0</span><span class="pr">17,260</span><span class="pc down">-1.85%</span></div><div class="cm">구성 종목인 삼성전자가 8.7% 빠진 것에 비하면 낙폭이 작습니다. 다만 이 값은 한국경제 기준일시가 장중 지연 시세로 표기돼 있어 확정 종가와 다를 수 있습니다.</div></div>
+<div class="row"><div class="rt"><span class="nm">PLUS 글로벌HBM반도체</span><span class="cd">442580</span><span class="pr">98,240</span><span class="pc down">-5.17%</span></div><div class="cm">10만 원선이 깨졌습니다. 국내외 메모리를 함께 담고 있어 삼성전자 급락과 미국 마이크론 약세를 양쪽에서 맞은 결과입니다.</div></div>
+  <div class="flow"><b>수급 (코스피)</b><br>외국인 <span class="down fnum">−3조 8,974억</span> · 기관 <span class="down fnum">−1조 6,649억</span> · 개인 <span class="up fnum">+3조 8,400억</span> · 기타법인 <span class="muted fnum">미확보</span><br>외국인과 기관이 합쳐 5조 5,000억 원 넘게 던진 물량을 개인이 거의 그대로 받아냈습니다. 개인이 하루에 이만큼 받아낸 다음 날은 지수가 조금만 더 밀려도 그 물량이 손실 구간에 들어가기 때문에, 오늘 오전 개인 수급이 유지되는지가 가장 먼저 볼 지점입니다.</div>
+  <div class="chk"><b>하방 체크</b> — 코스피는 3.12% 빠졌는데 코스닥은 1.42% 올랐습니다. 돈이 시장을 떠난 게 아니라 반도체에서 2차전지로 옮겨간 쪽에 가깝습니다. 그 돈이 반도체로 다시 돌아온다는 보장은 없습니다.</div>
+</section>
+
+<section>
+  <h2>글로벌 메모리 이슈 · 강세 4 / 약세 4</h2>
+  <div class="lead">07~08시 사이 새로 나온 재료는 없었습니다. 아래는 전일~새벽 사이 확인된 내용입니다.</div>
+  <div class="split">
+    <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>삼성전자 110조 원 주주환원 확정</b> 3분기 말 30조 원 현금배당은 이미 확정된 금액입니다. 규모 자체는 역대 최대이고, 잉여현금흐름의 50%를 돌려주겠다는 약속을 지킨 것입니다.</li><li><b>2026년 메모리 물량은 이미 완판</b> 마이크론이 올해 고대역폭메모리 생산분의 가격과 물량을 모두 계약해 놓은 상태입니다. 수요가 꺾여서 주가가 빠진 것은 아닙니다.</li><li><b>원화 강세 전환</b> 원/달러가 1,382.4원으로 4.1원 내렸습니다. 외국인이 한국 주식을 들고 있을 때 생기는 환손실 부담이 줄어드는 방향입니다.</li><li><b>개인의 3조 8,400억 원 순매수</b> 8월 24일 하락분을 개인이 사실상 혼자 받아냈습니다. 저가에서 사겠다는 수요 자체는 아직 살아 있습니다.</li></ul></div>
+    <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>SK하이닉스 예탁증서 -4.92%</b> 미국에서 거래되는 SK하이닉스 증서가 155.37달러로 마감했습니다. 국내 종가(-3.41%)보다 1.5%포인트 더 내려, 오늘 따라 내려갈 몫이 남아 있습니다.</li><li><b>마이크론 900달러 붕괴</b> 897.77달러로 7.1% 급락했습니다. 실적이 아니라 메모리에 몰려 있던 자금이 한꺼번에 빠지면서 나온 하락이라 바닥을 가늠하기 어렵습니다.</li><li><b>자사주 소각 규모 미정</b> 110조 원 중 60~80조 원을 배당으로 줄지 주식을 태워 없앨지가 내년 1월까지 정해지지 않습니다. 그때까지 같은 실망이 되풀이될 수 있습니다.</li><li><b>미국 장기금리 동반 상승</b> 10년물 4.734%, 30년물 5.273%로 함께 올랐습니다. 금리가 오르면 먼 미래 이익을 당겨서 값을 매기는 성장주가 먼저 눌립니다.</li></ul></div>
+  </div>
+  <div class="chk"><b>하방 체크</b> — 삼성전자 주주환원은 회사가 벌어둔 돈을 나눠주겠다는 자본정책이지, 메모리를 더 팔았다는 실적 재료가 아닙니다. 8월 24일 급락은 그 둘을 섞어 본 기대가 과했음을 보여줬습니다. 소각 규모가 확정되는 내년 1월까지는 같은 실망이 반복될 수 있습니다.</div>
+</section>
+
+<section>
+  <h2>장중 시나리오</h2>
+  <div class="lead">09:00 개장부터 15:30 마감까지, 어디를 보면 되는가</div>
+
+  <div class="fcast">
+    <div class="fl">09:00 시초가 전망</div>
+    <div class="fv">갭하락 출발</div>
+    <div class="fr">코스피 6,600 ~ 6,680 예상 (-1.45% ~ -0.25%)</div>
+    <div class="fw">아래로 미는 힘이 더 큽니다. SK하이닉스 미국 예탁증서가 국내 종가보다 1.5%포인트 더 빠졌고 마이크론은 7% 넘게 내려, 메모리 두 종목에 따라 내려갈 몫이 남아 있습니다. 위로 받치는 힘도 있습니다. 삼성전자는 이미 하루에 8.7%를 반납했고 개인이 3조 8,400억 원을 받아냈으며 원화까지 강세로 돌아섰습니다. 무엇보다 코스피200 선물이 현물과 거의 붙어서 끝나 선물이 추가 하락을 예고하는 상태는 아니어서, 갭하락 폭 자체는 1%대 초반에서 막힐 가능성이 큽니다.</div>
+  </div>
+
+  <div class="ladder">
+<div class="lv res"><span class="lvl">6,800</span><span class="lvd">1차 저항 — 8/24 시가(6,881)와 종가 사이 되돌림의 중간 지점, 참고선</span></div>
+<div class="lv now"><span class="lvl">6,696.96</span><span class="lvd">여기서 출발 — 8/24 종가</span></div>
+<div class="lv sup"><span class="lvl">6,600</span><span class="lvd">1차 지지 — 8/20 장중 저가 6,600.09와 겹치는 실제 지지선</span></div>
+<div class="lv sup2"><span class="lvl">6,500</span><span class="lvd">2차 지지 — 심리적 라운드 넘버, 참고선</span></div>
+  </div>
+
+  <div class="scen">
+    <div class="sc base">
+      <div class="st">기본 시나리오 · 확률 우위</div>
+      <div class="sh">메모리는 더 빠지고, 지수는 덜 빠지는 날</div>
+      <div class="sb">갭하락으로 출발하되 <b>6,600</b> 위에서 버티는 흐름을 봅니다. 오전에는 SK하이닉스가 미국 예탁증서 낙폭을 따라잡는 과정에서 165만 원선까지 눌릴 수 있습니다. 삼성전자는 25만 원 초반에서 저가 매수와 차익실현이 부딪히는 공방이 이어질 가능성이 큽니다. 반면 삼성전기처럼 메모리가 아닌 종목과 코스닥 2차전지는 어제처럼 상대적으로 버티며, 지수 낙폭은 개별 종목 낙폭보다 작게 나올 것으로 봅니다.</div>
+      <div class="sif">유지 조건 — 6,600 지지 &amp; SK하이닉스 165만 원선 방어</div>
+    </div>
+    <div class="sc alt">
+      <div class="st">대안 시나리오 · 깨질 때</div>
+      <div class="sh">6,600이 밀리고 어제 산 물량이 흔들리는 날</div>
+      <div class="sb">6,600이 장중에 깨지면 8월 20일 저가 지지가 무너진 것이라 <b>6,500 아래</b>까지 길이 열립니다. 문제는 8월 24일 개인이 받아낸 3조 8,400억 원입니다. 여기서 더 내려가면 그 물량이 통째로 손실 구간에 들어가, 저가 매수 주체가 매도 주체로 돌아설 수 있습니다. 그렇게 되면 외국인·기관·개인이 동시에 파는 구간이 나오고, 반등은 26일 엔비디아 실적 이후로 미뤄집니다.</div>
+      <div class="sif">전환 신호 — 6,600 이탈 &amp; 오전 중 외국인 순매도 2조 원 초과</div>
+    </div>
+  </div>
+
+  <div class="pts">
+    <div class="pth">장중 확인 포인트 3</div>
+<div class="pt"><div class="pn">1</div><div class="pb"><b>SK하이닉스가 예탁증서 낙폭을 얼마나 따라가는가</b>미국 예탁증서는 8월 21일 대비 4.92% 내렸는데 국내 주식은 3.41%만 내렸습니다. 시초가가 163만 원 아래면 따라잡기가 진행 중이라는 뜻이고, 167만 원 근처를 지키면 국내 수급이 방어하고 있다는 신호입니다.</div></div>
+<div class="pt"><div class="pn">2</div><div class="pb"><b>어제 산 개인 물량이 버티는가</b>8월 24일 개인 순매수 3조 8,400억 원은 오늘 지수가 밀리면 곧바로 손실 구간에 들어갑니다. 오전에 개인이 순매도로 돌아서는지가 대안 시나리오의 방아쇠입니다.</div></div>
+<div class="pt"><div class="pn">3</div><div class="pb"><b>삼성전자 자사주 소각 규모에 대한 새 추정치가 나오는가</b>110조 원 중 60~80조 원의 배분이 내년 1월까지 미정입니다. 증권사에서 소각분 추정치(현재 10~20조 원부터 40조 원까지 편차)가 새로 나오면 그 숫자가 오늘 주가를 흔듭니다.</div></div>
+  </div>
+
+  <div class="chk"><b>하방 체크</b> — 오늘 전망은 SK하이닉스 예탁증서와 마이크론 낙폭에 크게 기대고 있습니다. 코스피200 야간 선물 종가를 확보하지 못해 실제 갭 방향을 직접 확인하지 못한 것이 이 전망의 가장 약한 고리입니다. 개장 직후 5분 흐름으로 먼저 검증하시기 바랍니다.</div>
+</section>
+
+<section>
+  <h2>예측 채점 이력</h2>
+  <div class="lead">최근 10회차 · 왼쪽이 최신</div>
+  <div class="score">
+<div class="s wait">오늘</div>
+<div class="s hit">8/24</div>
+<div class="s miss">8/21</div>
+<div class="s">—</div>
+<div class="s">—</div>
+<div class="s">—</div>
+<div class="s">—</div>
+<div class="s">—</div>
+<div class="s">—</div>
+<div class="s">—</div>
+  </div>
+  <div class="note"><b>8/24 회차 — 적중.</b> 전망 구간은 6,850~6,930이었고 실제 시가는 6,881.07로 구간 한가운데였습니다. "보합 ~ 약보합 출발"이라는 방향도 맞았습니다. 다만 맞춘 건 시초가뿐입니다. 종가는 6,696.96으로 3.12% 폭락했고, 삼성전자가 하루에 8.7% 빠질 것은 전혀 담아내지 못했습니다. 채점 기준이 시초가이므로 적중으로 올리지만, 하루 전체의 방향은 놓친 회차였습니다.<br><span class="up">■ 적중</span> · <span class="down">■ 빗나감</span> · <span class="muted">■ 미채점</span></div>
+</section>
+
+<section>
+  <h2>지난 회차</h2>
+  <div class="arch"><a href="./archive/2026-08-24.html">8/24 (월)</a><a href="./archive/2026-08-21.html">8/21 (금)</a><a href="./archive/2026-08-20.html">8/20 (목)</a><a href="./archive/">전체 보기</a></div>
+</section>
+
+<footer>
+  출처 — Investing.com 일별 시세(SOX·NVDA·EWY·SK하이닉스 ADR·코스피200, 8/25 조회) · 한국경제 마켓(삼성전자·SK하이닉스·SK스퀘어·삼성전기·ETF 2종·코스피200 선물, 2026.08.24 장마감 기준) · Businesskorea 「코스피, 3.12% 폭락해 6700선 붕괴」(2026.08.24) · Businesskorea 「개장 시황」(2026.08.24) · 한국경제(2026.08.24) · 서울신문 코스닥 마감시황(2026.08.24) · Eastern Herald MU(2026.08.24) · ts2.tech 삼성 주주환원·메모리주 반응(2026.08.24) · 마이데일리 「110조 주주환원에도 삼성전자 8% 급락」(2026.08.24) · AP/InsuranceNewsNet 「How major US stock indexes fared Monday 8/24/2026」 · Yahoo Finance 미 국채금리(2026.08.24)<br>
+  수급 수치는 매체 간 차이가 있습니다. 베타뉴스는 외국인 −3조 6,691억, 기관 −1조 2,901억, 개인 +3조 3,217억으로 보도했으나, 장마감 확정치를 명시한 Businesskorea 수치를 채택했습니다. 코스피 지수는 Investing.com 일별 시세가 8/24 종가를 6,879.07로 표시하고 있으나 이는 개장 직후 스냅샷으로 판단해, 복수 국내 매체가 일치하는 6,696.96을 채택했습니다.<br>
+  개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+</footer>
+
+</div>
+</body>
+</html>
