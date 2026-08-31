@@ -26,7 +26,7 @@ function Label($iso) {
     return "{0}년 {1}월 {2}일 ({3})" -f $d.Year, $d.Month, $d.Day, $DOW[[int]$d.DayOfWeek]
 }
 
-Say "`n=== 지식인 조간 발행 v4 ===`n" Cyan
+Say "`n=== 지식인 조간 발행 v5 ===`n" Cyan
 
 # ── 0) 사전 점검 ────────────────────────────────────────────────
 if (-not (Test-Path (Join-Path $repo ".git"))) {
@@ -181,6 +181,30 @@ if ($files.Count -ge 2) {
         Say "       공휴일이면 정상입니다. 아니라면 그날 index.html 을 다시 받아" Gray
         Say "       archive\<날짜>.html 로 저장한 뒤 이 스크립트를 다시 돌리세요." Gray
     }
+}
+
+# ── 4-b) index.html 의 "지난 회차" 링크를 실제 파일 기준으로 다시 씀 ──
+#     08:00 브리핑이 만들어질 때는 어제자 아카이브가 아직 없어서 링크가 빠진다.
+#     아카이브를 만든 지금 시점에는 정확히 알 수 있으므로 여기서 바로잡는다.
+$idxPath = Join-Path $repo "index.html"
+$idx = Read-Utf8 $idxPath
+if ($idx -match '(?s)<div class="arch">.*?</div>') {
+    $recent = @($files | Sort-Object Name -Descending | Select-Object -First 3)
+    $links = @()
+    foreach ($f in $recent) {
+        $d = [datetime]::ParseExact($f.BaseName, "yyyy-MM-dd", $null)
+        $lbl = "{0}/{1} ({2})" -f $d.Month, $d.Day, $DOW[[int]$d.DayOfWeek]
+        $links += "<a href=""./archive/$($f.BaseName).html"">$lbl</a>"
+    }
+    $links += '<a href="./archive/">전체 보기</a>'
+    $newArch = '<div class="arch">' + ($links -join ' ') + '</div>'
+    $idx2 = [regex]::Replace($idx, '(?s)<div class="arch">.*?</div>', { param($m) $newArch })
+    if ($idx2 -ne $idx) {
+        Write-Utf8 $idxPath $idx2
+        Say "지난 회차 : $($recent.Count)개 링크 재작성" Gray
+    }
+} else {
+    Say "지난 회차 : arch 블록을 찾지 못해 건너뜀" Yellow
 }
 
 # ── 5) 푸시 ─────────────────────────────────────────────────────
