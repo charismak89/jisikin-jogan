@@ -26,13 +26,38 @@ function Label($iso) {
     return "{0}년 {1}월 {2}일 ({3})" -f $d.Year, $d.Month, $d.Day, $DOW[[int]$d.DayOfWeek]
 }
 
-Say "`n=== 지식인 조간 발행 v3 ===`n" Cyan
+Say "`n=== 지식인 조간 발행 v4 ===`n" Cyan
 
 # ── 0) 사전 점검 ────────────────────────────────────────────────
 if (-not (Test-Path (Join-Path $repo ".git"))) {
     Say "[중단] 이 폴더는 git 저장소가 아닙니다: $repo" Red
     Say "       publish.bat 이 jisikin-jogan 폴더 안에 있는지 확인해 주세요." Gray
     Read-Host "`nEnter 키를 누르면 닫힙니다"; exit 1
+}
+
+# ── 0-b) 원격 최신 내용 먼저 받아오기 (노트북 여러 대를 쓸 때 필수) ──
+Say "원격 확인 중..." Gray
+git fetch --quiet 2>$null
+$behind = $null
+try { $behind = git rev-list --count "HEAD..@{u}" 2>$null } catch { }
+if ($behind -and [int]$behind -gt 0) {
+    Say "  원격에 새 커밋 ${behind}개가 있습니다. 먼저 받아옵니다." Yellow
+    $dirty = git status --porcelain
+    if ($dirty) {
+        Say "`n[중단] 로컬에 저장 안 된 변경이 있어 안전하게 받아올 수 없습니다." Red
+        Say "       아래 파일을 먼저 정리하거나 되돌린 뒤 다시 실행해 주세요:" Gray
+        $dirty | ForEach-Object { Say "         $_" DarkGray }
+        Read-Host "`nEnter 키를 누르면 닫힙니다"; exit 1
+    }
+    git pull --rebase
+    if ($LASTEXITCODE -ne 0) {
+        Say "`n[중단] 원격 내용을 받아오지 못했습니다. 위 메시지를 확인해 주세요." Red
+        Say "       충돌이 났다면 다른 노트북에서 올린 내용과 겹친 것입니다." Gray
+        Read-Host "`nEnter 키를 누르면 닫힙니다"; exit 1
+    }
+    Say "  받아오기 완료" Green
+} else {
+    Say "  최신 상태입니다" Gray
 }
 
 # ── 1) 다운로드 폴더에서 새 index.html 찾기 ──────────────────────
