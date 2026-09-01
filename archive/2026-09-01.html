@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="2026-09-01T08:00+09:00">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+/* 지식인 조간 v2 */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0B111B; --panel:#161F2E; --panel2:#1C2637; --line:#2A3548; --line2:#3A4863;
+  --tx:#FFFFFF; --tx2:#C7D2E2; --tx3:#94A2B8;
+  --up:#FF6B5C; --down:#63A0FF; --warn:#FFD470; --accent:#F0524A; --ok:#5BDB98;
+}
+body{background:var(--bg);color:var(--tx);
+  font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;padding:0 0 56px;
+  word-break:keep-all;overflow-wrap:break-word;font-size:16px}
+.wrap{max-width:780px;margin:0 auto;padding:0 18px}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--tx3)}
+
+.brand{padding:26px 0 16px;border-bottom:2px solid var(--accent)}
+.bn{font-size:31px;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff}
+.bd{font-size:12px;color:var(--tx3);margin-top:9px;font-weight:600}
+
+header{padding:22px 0 24px;border-bottom:1px solid var(--line);margin-bottom:26px}
+header .kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:800}
+header h1{font-size:30px;font-weight:900;margin-top:8px;letter-spacing:-.03em;color:#fff}
+header .sub{font-size:13.5px;color:var(--tx2);margin-top:7px;font-weight:500}
+.hbadge{display:flex;align-items:center;gap:11px;margin-top:18px;
+  background:#241E12;border:1px solid #6B5320;border-left:5px solid var(--warn);
+  border-radius:13px;padding:14px 17px;flex-wrap:wrap}
+.hbadge .hl{font-size:12.5px;font-weight:800;color:var(--tx3);letter-spacing:.04em}
+.hbadge .hv{font-size:20px;font-weight:900;color:var(--warn);letter-spacing:-.02em}
+.hbadge .hr{font-size:13.5px;font-weight:800;color:var(--tx2);width:100%;
+  font-variant-numeric:tabular-nums}
+
+.tldr{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:19px 20px;margin-bottom:26px}
+.tldr .tt{font-size:12px;font-weight:900;color:var(--accent);letter-spacing:.1em;margin-bottom:14px}
+.tldr p{font-size:15.5px;line-height:1.7;color:var(--tx2);margin-bottom:13px;padding-left:28px;position:relative}
+.tldr p:last-child{margin-bottom:0}
+.tldr p b{color:#fff;font-weight:800}
+.tldr p:before{content:attr(data-n);position:absolute;left:0;top:4px;width:19px;height:19px;border-radius:6px;
+  background:var(--line2);color:#fff;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center}
+
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px}
+@media(min-width:620px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel2);border-radius:14px;padding:15px 16px}
+.k .n{font-size:12.5px;color:var(--tx3);font-weight:800}
+.k .v{font-size:23px;font-weight:900;margin-top:6px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:#fff}
+.k .c{font-size:15px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}
+
+h2{font-size:18px;font-weight:900;letter-spacing:-.02em;margin:0 0 6px;
+  display:flex;align-items:center;gap:9px;color:#fff}
+h2:before{content:"";width:4px;height:17px;background:var(--accent);border-radius:2px;flex:none}
+.lead{font-size:13px;color:var(--tx3);margin:0 0 16px;padding-left:13px;font-weight:600}
+section{margin-bottom:38px}
+
+.row{border-top:1px solid var(--line);padding:14px 0}
+.row:first-of-type{border-top:none}
+.rt{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.nm{font-size:16.5px;font-weight:800;color:#fff}
+.cd{font-size:11px;color:var(--tx3);font-weight:700}
+.pr{margin-left:auto;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#fff}
+.pc{font-size:15.5px;font-weight:900;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}
+.pc.na{color:var(--tx3);font-size:13px}
+.cm{font-size:13.5px;color:var(--tx2);margin-top:6px;line-height:1.6}
+.flow{background:var(--panel);border-radius:14px;padding:16px 17px;margin-top:16px;
+  font-size:13.5px;color:var(--tx2);line-height:1.75}
+.flow b{color:#fff}
+.flow .fnum{font-variant-numeric:tabular-nums;font-weight:800}
+
+.split{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:620px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border-radius:16px;padding:17px 18px}
+.col h3{font-size:14.5px;font-weight:900;margin-bottom:14px}
+.col.bull{border-top:3px solid var(--up)} .col.bear{border-top:3px solid var(--down)}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;font-size:14px;line-height:1.65;color:var(--tx2);
+  margin-bottom:14px;padding-left:15px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line2)}
+.col li b{color:#fff;font-weight:800;display:block;margin-bottom:3px;font-size:14.5px}
+
+.fcast{background:#1B2434;border:1px solid var(--line2);border-radius:18px;padding:21px;margin-bottom:18px}
+.fcast .fl{font-size:12px;font-weight:900;color:var(--tx3);letter-spacing:.08em}
+.fcast .fv{font-size:29px;font-weight:900;letter-spacing:-.035em;margin-top:9px;color:var(--warn);line-height:1.2}
+.fcast .fr{font-size:15.5px;font-weight:800;color:#fff;margin-top:9px;font-variant-numeric:tabular-nums}
+.fcast .fw{font-size:14px;color:var(--tx2);margin-top:14px;padding-top:14px;border-top:1px solid var(--line);line-height:1.7}
+
+.ladder{margin-bottom:18px}
+.lv{display:flex;align-items:center;gap:13px;padding:12px 15px;border-radius:11px;margin-bottom:7px;
+  background:var(--panel);border-left:5px solid var(--line2);flex-wrap:wrap}
+.lv:last-child{margin-bottom:0}
+.lv .lvl{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;min-width:92px}
+.lv .lvd{font-size:13px;color:var(--tx2);font-weight:600}
+.lv.res{border-left-color:var(--up)} .lv.res .lvl{color:var(--up)}
+.lv.now{border-left-color:var(--warn);background:#2A3446} .lv.now .lvl{color:var(--warn)}
+.lv.now .lvd{color:#fff;font-weight:800}
+.lv.sup{border-left-color:var(--down)} .lv.sup .lvl{color:var(--down)}
+.lv.sup2{border-left-color:#34609F} .lv.sup2 .lvl{color:#8FBBFF}
+
+.scen{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
+@media(min-width:620px){.scen{grid-template-columns:1fr 1fr}}
+.sc{background:var(--panel);border-radius:16px;padding:18px 19px;border-top:3px solid var(--line2)}
+.sc.base{border-top-color:var(--ok)}
+.sc.alt{border-top-color:var(--warn)}
+.sc .st{font-size:11.5px;font-weight:900;letter-spacing:.07em;color:var(--tx3)}
+.sc.base .st{color:var(--ok)} .sc.alt .st{color:var(--warn)}
+.sc .sh{font-size:16.5px;font-weight:900;margin-top:7px;letter-spacing:-.02em;line-height:1.35;color:#fff}
+.sc .sb{font-size:13.5px;color:var(--tx2);margin-top:10px;line-height:1.7}
+.sc .sb b{color:#fff}
+.sc .sif{font-size:12.5px;color:var(--tx3);margin-top:12px;padding-top:11px;border-top:1px solid var(--line);font-weight:700}
+
+.pts{background:var(--panel2);border-radius:16px;padding:18px 19px}
+.pts .pth{font-size:14px;font-weight:900;margin-bottom:15px;color:#fff}
+.pt{display:flex;gap:12px;margin-bottom:14px}
+.pt:last-child{margin-bottom:0}
+.pt .pn{flex:none;width:24px;height:24px;border-radius:7px;background:var(--accent);color:#fff;
+  font-size:12.5px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.pt .pb{font-size:13.5px;color:var(--tx2);line-height:1.6}
+.pt .pb b{color:#fff;display:block;font-size:14.5px;margin-bottom:2px}
+
+.score{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.s{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:900;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{background:rgba(255,107,92,.18);border-color:rgba(255,107,92,.5);color:var(--up)}
+.s.miss{background:rgba(99,160,255,.16);border-color:rgba(99,160,255,.45);color:var(--down)}
+.s.wait{border-style:dashed;border-color:var(--line2);color:var(--tx2)}
+.note{font-size:13.5px;color:var(--tx2);line-height:1.75}
+.note b{color:#fff}
+
+.chk{background:#2E2415;border:1px solid #6B5320;border-left:5px solid var(--warn);border-radius:13px;
+  padding:15px 17px;font-size:13.5px;color:#FFE9B8;line-height:1.7;font-weight:600;margin-top:16px}
+.chk b{color:var(--warn)}
+
+.arch{display:flex;gap:8px;flex-wrap:wrap}
+.arch a{font-size:13px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:9px;padding:9px 14px;text-decoration:none;font-weight:700}
+footer{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:var(--tx3);line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="brand">
+  <div class="bn">지식인 조간</div>
+  <div class="bd">국내외 시장 경제를 분석하는 지식인들 모임 · 반도체 · 메모리 데일리</div>
+</div>
+
+<header>
+  <div class="kick">제 8 호 · 개장 전 브리핑</div>
+  <h1>2026년 9월 1일 (화)</h1>
+  <div class="sub">08:00 KST 기준 · 전일 정규장 종가 &amp; 간밤 미국장 마감 반영</div>
+  <div class="hbadge">
+    <span class="hl">09:00 시초가 전망</span>
+    <span class="hv">보합 출발</span>
+    <span class="hr">코스피 6,740 ~ 6,850 예상 (-1.17% ~ +0.44%)</span>
+  </div>
+</header>
+
+<div class="tldr">
+  <div class="tt">오늘 한눈에</div>
+  <p data-n="1"><b>어제 코스피는 3.55% 급락에서 시작해 0.46% 상승으로 뒤집었습니다.</b> 6,613.58로 열려 6,547.76까지 밀린 뒤 6,820.02에 끝났습니다. 저점에서 4.16%를 되돌린 것인데, 되돌린 힘은 삼성전자와 SK하이닉스의 자사주 매입이었습니다. 두 회사가 어제 하루에만 삼성전자 200만 주, SK하이닉스 65만 주를 장내에서 사들였고 금액으로는 1조 6천억 원 규모입니다. 기타법인 순매수 1조 5,787억 원과 크기가 맞습니다.</p>
+  <p data-n="2"><b>간밤 미국은 지수와 반도체가 서로 다른 방향으로 갔습니다.</b> 미국과 이란의 군사 충돌이 재개되면서 국제유가가 3% 가까이 뛰었고 다우는 0.70%, 나스닥은 0.12% 내렸습니다. 그런데 필라델피아 반도체지수는 0.57% 올랐고 마이크론은 2.77%, SK하이닉스 미국 예탁증서(ADR)는 2.20% 올랐습니다. 유가와 금리가 누르는 시장에서 반도체만 따로 움직인 하루입니다.</p>
+  <p data-n="3"><b>다만 어제 종가가 얼마나 믿을 만한 값인지는 따져 봐야 합니다.</b> 코스피가 0.46% 오른 날 코스피200 선물은 0.64% 내려 끝났습니다. 1.1%포인트 차이입니다. 어제는 MSCI 지수 정기변경이 종가로 반영되는 날이었고 자사주 매입도 마감 무렵에 몰렸습니다. 현물 종가에만 힘이 실리고 선물은 따라가지 못한 모양인데, 그 힘 가운데 MSCI 몫은 어제로 끝났습니다.</p>
+</div>
+
+<div class="kpi">
+  <div class="k"><div class="n">KOSPI</div><div class="v">6,820.02</div><div class="c up">+0.46%</div></div>
+  <div class="k"><div class="n">SOX</div><div class="v">11,535.05</div><div class="c up">+0.57%</div></div>
+  <div class="k"><div class="n">삼성전자</div><div class="v">260,000</div><div class="c up">+1.17%</div></div>
+  <div class="k"><div class="n">SK하이닉스</div><div class="v">1,674,000</div><div class="c up">+1.27%</div></div>
+</div>
+
+<section>
+  <h2>간밤 글로벌 증시</h2>
+  <div class="lead">8월 31일(월) 미국장 마감 · 한국시간 9월 1일 새벽 종료</div>
+  <div class="row"><div class="rt"><span class="nm">필라델피아 반도체지수</span><span class="cd">SOX</span><span class="pr">11,535.05</span><span class="pc up">+0.57%</span></div><div class="cm">금요일에 3.47% 내린 것을 어제 0.57% 되찾았습니다. 되돌린 몫은 6분의 1이 채 안 됩니다. 지수 수준으로 보면 11,535.05는 8월 27일 종가 11,882.2보다 여전히 2.92% 아래이고, 어제 장중 범위는 11,444.20에서 11,587.26이었습니다. 반등이라 부르기보다 덜 내린 하루에 가깝습니다. 다만 같은 날 나스닥이 0.12% 내렸다는 점을 나란히 놓으면, 반도체가 시장 전체보다 나은 취급을 받은 것은 분명합니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">엔비디아</span><span class="cd">NVDA</span><span class="pr">220.78</span><span class="pc up">+1.48%</span></div><div class="cm">금요일에 4.57% 내린 뒤 1.48% 올랐습니다. 218.87달러에 열려 216.21달러까지 밀렸다가 221.30달러를 찍고 끝났으니, 하루 안에서 방향을 바꾼 모양입니다. 8월 27일 종가 227.97달러와 견주면 아직 3.15% 아래에 있습니다. 목요일 실적으로 8.74% 올랐던 자리를 아직 회복하지 못한 상태이고, 금요일 하락분의 3분의 1만 되찾았다는 점을 오늘 국내 반도체주를 볼 때 함께 놓아야 합니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">마이크론</span><span class="cd">MU</span><span class="pr">958.73</span><span class="pc up">+2.77%</span></div><div class="cm">어제 간밤 글로벌 종목 가운데 가장 많이 올랐고, 931.39달러에 열려 959.97달러까지 갔다가 958.73달러에 끝났습니다. 사실상 하루 중 가장 비싼 값 근처에서 마감했습니다. 지난주 내내 관찰해 온 대로 메모리는 인공지능 가속기와 다른 자금으로 움직이고 있는데, 이번에는 그 구분이 상승 쪽에서 다시 확인됐습니다. 반도체지수가 0.57% 오를 때 5배 가까이 오른 셈입니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">MSCI 한국 ETF</span><span class="cd">EWY</span><span class="pr">180.86</span><span class="pc up">+0.37%</span></div><div class="cm">어제 코스피가 0.46% 오르고 원화가 0.28% 강해졌으니 달러로 환산한 한국 지수는 0.74% 오른 셈인데, 이 상품은 0.37% 오르는 데 그쳤습니다. 0.37%포인트 낮게 매겨진 것입니다. 미국 투자자들이 어제 국내 종가 상승을 전부 인정하지는 않았다는 뜻이고, 뒤에 나오는 SK하이닉스 ADR과는 방향이 반대입니다. 이 상품은 장 마감 뒤 시간외에서 0.14% 더 내렸습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">SK하이닉스 ADR</span><span class="cd">SKHY</span><span class="pr">164.58</span><span class="pc up">+2.20%</span></div><div class="cm">국내에서 1.27% 오른 날 미국에서는 2.20% 올랐습니다. 환율까지 넣어 어제 국내 종가를 달러로 환산하면 1.56% 상승에 해당하므로, 미국 종가는 그보다 0.65%포인트 높습니다. 미국 시장이 어제 국내 상승을 조금 더 밀어 준 셈입니다. 다만 이 상품은 장외(OTC)에서 거래되는 얇은 종목이라 160.50~165.07달러를 오갔고, 바로 위 MSCI 한국 ETF가 정반대로 0.37%포인트 낮게 매겼다는 점과 반드시 함께 읽어야 합니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">코스피200 선물</span><span class="cd">8/31 정규장</span><span class="pr">1,061.20</span><span class="pc down">-0.64%</span></div><div class="cm">오늘 가장 눈여겨볼 숫자입니다. 코스피가 0.46% 오른 날 선물은 0.64% 내렸습니다. 1.10%포인트가 벌어졌는데, 보통 선물과 현물은 이 정도로 갈리지 않습니다. 어제는 MSCI 지수 정기변경이 종가에 반영되는 날이었고 자사주 매입 물량도 마감 무렵에 몰렸습니다. 현물 종가에만 매수가 실리고 선물은 그 힘을 받지 못했다면, 어제 코스피 종가에는 오늘 아침 사라질 몫이 섞여 있을 수 있습니다. 야간 세션 종가는 이번에도 확보하지 못해 갭 판단에 쓰지 않았습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">원/달러</span><span class="cd">서울 주간 종가</span><span class="pr">1,368.6</span><span class="pc down">-3.9원</span></div><div class="cm">어제는 1,379.5원에 열려 1,368.6원에 끝났습니다. 장중에 10.9원을 되돌린 것이고, 환율이 내렸다는 건 원화가 강해졌다는 뜻입니다. 직전 회차는 역외 시장을 근거로 3.75원가량 오른 값에서 열릴 것으로 봤는데 실제로는 7.0원 오른 값에 열렸고, 종가는 오히려 3.9원 내렸습니다. 방향 판단은 반나절만 맞았습니다. 오늘은 유가가 3% 가까이 뛰고 미 국채금리가 4.76%까지 올라 달러가 다시 강해질 조건이 갖춰졌지만, 오늘 아침 역외 값은 확보하지 못했습니다.</div></div>
+  <div class="chk"><b>하방 체크</b> — "반도체만 따로 올랐다"는 관찰을 오늘 상승 근거로 그대로 옮기면 안 됩니다. 반도체지수 0.57%는 금요일 낙폭 3.47%의 6분의 1이고, 엔비디아 1.48%는 금요일 4.57%의 3분의 1입니다. 지수 수준으로 보면 반도체지수는 8월 27일 종가보다 2.92% 아래에 그대로 있습니다. 더 중요한 것은 어제 미국 시장을 움직인 재료가 반도체 업황이 아니라는 점입니다. 미국과 이란의 군사 충돌로 유가가 뛰었고, 그 때문에 물가 우려가 되살아나 10년물 국채금리가 4.76%로 지난해 1월 이후 최고 수준까지 올랐습니다. 9월 금리 인상 확률은 하루 만에 57.5%에서 66%로 올라갔습니다. 금리가 오르면 먼 미래의 이익을 크게 반영해 값이 매겨지는 반도체가 불리해지는데, 어제는 그 부담이 아직 반도체 값에 붙지 않았을 뿐입니다. 유가가 더 오르면 순서가 바뀝니다.</div>
+</section>
+
+<section>
+  <h2>국내 주요 종목 &amp; 관심 ETF</h2>
+  <div class="lead">8월 31일(월) 정규장 종가 · 코스피 6,820.02 (+0.46%) / 코스닥 834.29 (-0.49%)</div>
+  <div class="row"><div class="rt"><span class="nm">삼성전자</span><span class="cd">005930</span><span class="pr">260,000</span><span class="pc up">+1.17%</span></div><div class="cm">3% 안팎 내린 값에 열려 24만 6,000원까지 밀렸다가 26만 원에 끝났습니다. 저가는 전일 종가보다 4.28% 아래였고, 종가가 곧 그날 고가입니다. 하루 중 가장 비싼 값에 장이 끝났다는 것은 마감 직전까지 사는 손이 남아 있었다는 뜻이고, 금요일과 정반대 모양입니다. 다만 그 손의 정체가 회사 자신의 자사주 매입 200만 주라는 점을 함께 놓아야 합니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">SK하이닉스</span><span class="cd">000660</span><span class="pr">1,674,000</span><span class="pc up">+1.27%</span></div><div class="cm">3.15% 내린 값에 열려 157만 7,000원까지 밀렸다가 167만 4,000원에 끝났습니다. 저가에서 종가까지 6.15%를 되돌렸고, 종가가 곧 고가입니다. 어제 국내 관심 종목 가운데 되돌림 폭이 가장 컸습니다. 회사는 어제 하루에만 65만 주, 금액으로 1조 원가량을 장내에서 사들였습니다. 미국 예탁증서가 밤사이 2.20% 올라 국내 종가의 달러 환산값보다 0.65%포인트 높게 끝난 것도 이 종목에는 우호적입니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">SK스퀘어</span><span class="cd">402340</span><span class="pr">1,037,000</span><span class="pc up">+0.88%</span></div><div class="cm">99만 3,000원에 열려 97만 4,000원까지 밀렸다가 103만 7,000원에 끝났습니다. SK하이닉스가 1.27% 오를 때 0.88% 올랐으니 상승분의 69%를 따라간 셈인데, 금요일에는 하락분의 84%를 따라갔습니다. 오를 때 덜 따라가고 내릴 때 더 따라가는 구조가 이번 조정 내내 이어지고 있습니다. 지주회사에는 자회사 주가만큼의 자사주 매입 방어가 없다는 점이 차이를 만드는 것으로 보입니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">삼성전기</span><span class="cd">009150</span><span class="pr">1,458,000</span><span class="pc up">+2.60%</span></div><div class="cm">137만 원에 열려 133만 1,000원까지 밀렸다가 145만 8,000원에 끝났습니다. 저가는 전일 대비 6.33% 아래였는데 종가는 2.60% 위입니다. 하루 안에서 9%포인트 가까이 방향을 되돌린 셈이고, 사흘 연속 상승입니다. 어제 국내 관심 종목 가운데 가장 많이 올랐습니다. 다만 이 종목에는 자사주 매입이라는 방어막이 없으므로, 어제 상승은 회사 재료가 아니라 시장 전체의 되돌림을 그대로 받은 결과로 보는 편이 안전합니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">SOL AI반도체TOP2플러스</span><span class="cd">0167A0</span><span class="pr">17,430</span><span class="pc up">+1.04%</span></div><div class="cm">1만 6,600원에 열려 1만 6,380원까지 밀렸다가 1만 7,430원에 끝났습니다. 하루 진폭이 6.6%입니다. 삼성전자와 SK하이닉스에 집중하는 상품인데 두 종목 상승률의 평균(1.22%)보다 0.18%포인트 덜 올랐으니, 나머지 편입 종목이 이번에는 발목을 잡은 셈입니다. 금요일에는 같은 구조가 완충 역할을 했습니다. 이 값은 Google Finance 한 곳에서만 확인했습니다.</div></div>
+  <div class="row"><div class="rt"><span class="nm">PLUS 글로벌HBM반도체</span><span class="cd">442580</span><span class="pr">97,450</span><span class="pc up">+0.04%</span></div><div class="cm">국내 두 종목이 1% 넘게 오른 날 사실상 제자리였습니다. 9만 3,855원까지 밀렸다가 종가가 곧 고가입니다. 이 상품은 삼성전자·SK하이닉스와 함께 마이크론·샌디스크를 담고 있는데, 어제 국내 장중에 반영된 미국 종목 값은 금요일 미국장 마감분입니다. 마이크론의 2.77% 상승은 어제 국내 장이 끝난 뒤에 나왔으므로 오늘 반영될 차례입니다. 이 값도 Google Finance 단일 소스입니다.</div></div>
+  <div class="flow"><b>수급</b> — 외국인 <span class="fnum down">−6,407억</span> · 기관 <span class="fnum down">−7,920억</span> · 개인 <span class="fnum down">−1,462억</span> · 기타법인 <span class="fnum up">+1조 5,787억</span><br>어제는 개인·기관·외국인 세 주체가 모두 판 날입니다. 그런데도 지수가 올랐습니다. 세 주체 순매도 합계 1조 5,789억 원을 기타법인 순매수 1조 5,787억 원이 거의 정확히 받아 냈기 때문입니다. 지난주 회차들이 "정체를 모르는 1조 6천억 원의 공백"이라고 적어 온 그 금액이 어제는 정체와 함께 드러났습니다. 삼성전자 200만 주(약 5,200억 원)와 SK하이닉스 65만 주(약 1조 881억 원)의 자사주 매입입니다. 외국인 흐름은 8월 24일 −3조 8,974억, 25일 −3조 8,152억, 26일 −1,161억, 27일 +1,456억, 28일 −1조 7,564억, 31일 −6,407억입니다. 어제 매도 규모는 금요일의 3분의 1로 줄었습니다.</div>
+  <div class="chk"><b>하방 체크</b> — 자사주 매입이 지수를 받쳤다는 사실이 확인된 것은 지난주 내내 비어 있던 칸이 채워진 것이지, 오늘 지수가 오를 근거가 생긴 것이 아닙니다. 두 회사가 신고한 총 규모는 삼성전자 15조 원(11월 21일까지), SK하이닉스 40조 원(11월 19일까지)이고, 8월 28일까지 집행한 금액은 각각 2조 5,494억 원과 7조 7,283억 원입니다. 합쳐서 55조 원 가운데 10조 3천억 원가량을 썼고 44조 7천억 원이 남았습니다. 숫자만 보면 여유가 커 보이지만 두 가지를 함께 봐야 합니다. 첫째, 자사주 매입은 자본정책 재료이지 실적 재료가 아닙니다. 회사가 사서 소각하면 주당 가치는 올라가지만 메모리가 얼마에 팔리는지는 달라지지 않습니다. 둘째, 이 매수는 회사가 정한 기간과 신고 한도 안에서만, 그리고 하루 매수 수량 제한 안에서만 이뤄집니다. 어제처럼 세 주체가 모두 파는 날이 이어지면 이 손 하나로 계속 받아 낼 수 있는지가 문제가 되고, 그 한계는 잔여 금액이 아니라 하루 한도에서 먼저 드러납니다.</div>
+</section>
+
+<section>
+  <h2>글로벌 메모리 이슈 · 강세 4 / 약세 4</h2>
+  <div class="lead">07~08시 사이 새로 나온 재료는 확인되지 않았고, 가장 최근 것은 06:07에 보도된 트럼프 대통령 발언입니다</div>
+  <div class="split">
+    <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>미국에서 반도체가 지수와 따로 움직였습니다</b>다우가 0.70%, 나스닥이 0.12% 내린 날 필라델피아 반도체지수는 0.57% 올랐고 마이크론은 2.77%, 엔비디아는 1.48% 올랐습니다. 유가와 금리가 시장 전체를 누르는 와중에 반도체만 매수가 들어왔다는 뜻이고, 오늘 국내 메모리 두 종목에 직접 연결되는 관찰입니다.</li><li><b>SK하이닉스 미국 예탁증서가 국내 종가보다 높게 매겨졌습니다</b>국내 1.27% 상승은 환율까지 넣으면 달러 기준 1.56% 상승인데, ADR은 2.20% 올랐습니다. 0.65%포인트 위입니다. 미국 시장이 어제 국내 상승을 인정하고 조금 더 얹어 준 셈입니다.</li><li><b>지수를 받친 손의 정체와 크기가 숫자로 맞아떨어졌습니다</b>어제 기타법인 순매수 1조 5,787억 원은 삼성전자 200만 주와 SK하이닉스 65만 주 자사주 매입 금액과 크기가 맞습니다. 지난주부터 "정체를 모른다"고 적어 온 매수 주체가 무엇인지, 그리고 어제도 실재했는지가 함께 확인됐습니다.</li><li><b>어제 마감 모양이 좋았습니다</b>코스피는 장중 저점 6,547.76에서 4.16%를 되돌려 6,820.02에 끝났고, 삼성전자·SK하이닉스·PLUS 글로벌HBM반도체는 종가가 곧 그날 고가였습니다. 마감 직전까지 사는 손이 남아 있었다는 뜻이고, 금요일과 정확히 반대입니다.</li></ul></div>
+    <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>미국과 이란의 군사 충돌이 재개돼 유가가 뛰었습니다</b>미군이 호르무즈 해협의 이란 라라크섬 로켓 발사대를 공격했고 이란이 요르단 내 미군 기지를 보복 공격했습니다. 서부텍사스산원유는 배럴당 85.76달러로 2.83%, 브렌트유는 90.49달러로 2.71% 올랐습니다. 어제 국내 종가에는 이 재료가 전혀 들어 있지 않습니다.</li><li><b>금리가 다시 올라갔습니다</b>유가 급등으로 물가 우려가 되살아나면서 미 10년물 국채금리가 4.76%까지 올라 지난해 1월 이후 최고 수준을 기록했습니다. 9월 금리 인상 확률은 금요일 57.5%에서 66%로 다시 올라갔습니다. 한국은행도 지난주 2.75%에서 3.00%로 올린 참이라 양쪽에서 같은 방향의 무게가 걸려 있습니다.</li><li><b>선물이 현물과 1.1%포인트 벌어진 채 끝났습니다</b>코스피가 0.46% 오른 날 코스피200 선물은 0.64% 내렸습니다. 이 정도 괴리는 흔하지 않습니다. 선물 시장은 어제 현물 종가의 상승을 인정하지 않은 셈이고, 오늘 아침 어느 쪽이 맞았는지가 시초가에서 판가름납니다.</li><li><b>MSCI 지수 정기변경 수급이 어제 종가로 끝났습니다</b>어제는 MSCI 지수 변경이 종가 기준으로 시행되고 오늘부터 적용되는 날이었습니다. 증권가는 지수 전체로 약 3,000억 원 순매수를 추산했는데, 그 수급은 어제 마감 동시호가로 소멸했습니다. 어제 종가를 만든 힘 가운데 오늘은 없는 몫입니다.</li></ul></div>
+  </div>
+  <div class="chk"><b>하방 체크</b> — 오늘 강세 근거 네 가지 가운데 세 번째와 네 번째는 사실상 같은 이야기입니다. 자사주 매입이 지수를 받쳤다는 것과 어제 마감 모양이 좋았다는 것은 원인과 결과이지 서로 독립된 근거가 아닙니다. 따라서 실질적인 강세 근거는 두 개로 줄어듭니다. 그런데 그 둘 가운데 하나인 SK하이닉스 ADR의 0.65%포인트는 같은 성격의 다른 지표인 MSCI 한국 ETF가 정반대로 0.37%포인트 낮게 매겼다는 사실과 정면으로 부딪칩니다. 지난주 금요일 회차는 두 값이 3.5%포인트와 0.12%포인트로 30배 갈렸을 때 거래가 두터운 ETF 쪽을 택했고, 그 판단 자체는 방향이 맞았습니다. 같은 기준을 오늘도 적용하면 ETF가 매긴 −0.37%포인트가 우선이고, 이는 강세가 아니라 약세 쪽 숫자입니다. 남는 진짜 강세 근거는 "미국에서 반도체가 지수와 따로 올랐다" 하나뿐인데, 그 상승폭은 금요일 하락폭의 6분의 1입니다.</div>
+</section>
+
+<section>
+  <h2>장중 시나리오</h2>
+  <div class="lead">09:00 개장부터 15:30 마감까지, 어디를 보면 되는가</div>
+
+  <div class="fcast">
+    <div class="fl">09:00 시초가 전망</div>
+    <div class="fv">보합 출발</div>
+    <div class="fr">코스피 6,740 ~ 6,850 예상 (-1.17% ~ +0.44%)</div>
+    <div class="fw">아래로 미는 힘부터 봅니다. 어제 한국 시장이 문을 닫은 뒤 미국과 이란의 군사 충돌이 재개돼 서부텍사스산원유가 2.83% 올랐고, 물가 우려로 미 10년물 국채금리가 4.76%까지 올라 지난해 1월 이후 최고 수준을 찍었습니다. 9월 금리 인상 확률은 57.5%에서 66%로 올라갔고 다우는 0.70%, 나스닥은 0.12% 내렸습니다. 국내 쪽에는 두 가지가 더 있습니다. 코스피200 선물이 현물과 1.10%포인트 벌어진 채 0.64% 내려 끝났고, 어제 종가를 만든 힘의 일부였던 MSCI 지수 정기변경 수급이 마감 동시호가로 소멸했습니다. MSCI 한국 ETF도 어제 국내 상승의 달러 환산값보다 0.37%포인트 낮게 끝났습니다. 위로 받치는 힘도 분명합니다. 유가와 금리가 시장 전체를 누른 밤에 반도체만 따로 올랐습니다. 필라델피아 반도체지수 0.57%, 마이크론 2.77%, 엔비디아 1.48%이고, SK하이닉스 미국 예탁증서는 국내 종가의 달러 환산값보다 0.65%포인트 높게 끝났습니다. 어제 국내 마감 모양도 좋았습니다. 코스피는 장중 저점에서 4.16%를 되돌렸고 삼성전자와 SK하이닉스는 종가가 곧 그날 고가였습니다. 자사주 매입이라는 받침도 44조 7천억 원어치가 남아 있습니다. 두 힘을 견주면 어느 쪽도 확실히 우세하지 않다고 봅니다. 그래서 보합 출발로 놓았습니다. 다만 무게중심은 아래쪽에 조금 더 가깝습니다. 근거는 성격 차이입니다. 위로 받치는 힘은 이미 어제 국내 종가에 상당 부분 반영된 것들이고, 아래로 미는 힘은 유가와 금리라는 어제 국내 종가에 전혀 들어 있지 않은 새 재료입니다. 구간을 6,740에서 6,850까지 110포인트로 넓게 잡은 것은, 최근 네 회차가 모두 시장 움직임의 크기를 실제보다 작게 잡아 구간을 벗어났기 때문입니다. 어제만 해도 방향은 맞혔지만 실제 시초가가 예상 구간 하단보다 86포인트 아래에서 열렸습니다.</div>
+  </div>
+
+  <div class="ladder">
+    <div class="lv res"><span class="lvl">6,846.54</span><span class="lvd">1차 저항 — 8월 28일 시가. 실제 거래된 값이며, 금요일과 어제 이틀 연속 한 번도 되찾지 못한 자리입니다</span></div>
+    <div class="lv now"><span class="lvl">6,820.02</span><span class="lvd">여기서 출발 — 8/31 종가. 그날 고가와 사실상 같은 값이고, 저점 6,547.76에서 4.16%를 되돌린 자리입니다</span></div>
+    <div class="lv sup"><span class="lvl">6,788.88</span><span class="lvd">1차 지지 — 8월 28일 종가. 어제 오후 이 값을 되찾으면서 상승 전환한 자리이고, 종가에서 31.14포인트밖에 떨어져 있지 않아 개장 직후 바로 시험받습니다</span></div>
+    <div class="lv sup2"><span class="lvl">6,613.58</span><span class="lvd">2차 지지 — 8월 31일 시가. 실제 거래값이지만 현재가에서 3.03% 아래로 멀리 떨어져 있습니다. 1차 지지가 깨지면 그 사이에 실제 거래로 만들어진 받침이 거의 없다는 뜻입니다</span></div>
+  </div>
+
+  <div class="scen">
+        <div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div>
+    <div class="sh">새 재료와 헌 재료가 상쇄돼 어제 종가 부근에서 좁게 여는 날</div>
+    <div class="sb">간밤 반도체 강세와 유가·금리 부담이 서로를 지우면서 <b>6,788.88~6,850</b> 사이에서 출발하는 흐름을 봅니다. 어제 저점에서 4.16%를 되돌린 뒤라 위로 더 밀 힘은 크지 않고, 자사주 매입이라는 받침이 남아 있어 아래로 크게 벌릴 힘도 제한적입니다. 지수보다 종목이 갈릴 가능성을 더 높게 봅니다. 마이크론이 2.77% 오른 몫은 아직 국내에 반영되지 않았으므로 메모리 두 종목과 나머지 반도체가 다른 폭으로 움직일 수 있습니다.</div>
+    <div class="sif">유지 조건 — 시초가 6,788.88 이상 &amp; SK하이닉스 167만 원 유지 &amp; 오전 11시까지 외국인 순매도 4,000억 원 미만(어제 하루 전체가 −6,407억)</div></div>
+    <div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div>
+    <div class="sh">어제 종가에 붙었던 프리미엄이 빠지며 선물이 매긴 값을 현물이 따라가는 날</div>
+    <div class="sb">어제 코스피 종가에는 MSCI 지수 정기변경과 마감 무렵 자사주 매입이 만든 몫이 섞여 있을 수 있습니다. 코스피200 선물이 1.10%포인트 아래에서 끝난 것이 그 근거입니다. MSCI 몫은 오늘 없고, 유가와 금리라는 새 부담은 어제 종가에 들어 있지 않습니다. 이 경우 시초가는 선물이 매긴 −0.64%에 가까운 자리에서 열리고, 1차 지지 6,788.88이 깨지면 그 아래로는 실제 거래로 만들어진 받침이 6,613.58까지 사실상 비어 있습니다.</div>
+    <div class="sif">전환 신호 — 시초가 6,788.88 하회 &amp; 삼성전자 25만 7,000원 이탈 &amp; 개장 30분 내 외국인 순매도 3,000억 원 초과</div></div>
+  </div>
+
+  <div class="pts">
+    <div class="pth">장중 확인 포인트 3</div>
+    <div class="pt"><div class="pn">1</div><div class="pb"><b>시초가가 6,788.88을 지키는가</b>금요일 종가이자 어제 오후 상승 전환의 기준이 된 값입니다. 이 위에서 열리면 어제 종가가 진짜였다는 뜻이고, 아래에서 열리면 종가 동시호가에 붙었던 몫이 빠진 것입니다. 후자라면 다음 실제 거래 받침이 6,613.58까지 멀어서 낙폭이 빨라질 수 있습니다.</div></div>
+    <div class="pt"><div class="pn">2</div><div class="pb"><b>자사주 매입이 오늘도 들어오는가</b>어제 지수를 뒤집은 힘의 정체입니다. SK하이닉스는 매입 예정을 사전에 공시해 왔으므로 장 시작 전 공시에서 오늘 물량을 확인할 수 있고, 실제 집행 여부는 마감 뒤 투자자별 매매 동향의 기타법인 항목에서 확인됩니다. 세 주체가 어제처럼 모두 파는 날이 이어지면 이 손 하나가 버티는지가 그날의 전부가 됩니다.</div></div>
+    <div class="pt"><div class="pn">3</div><div class="pb"><b>유가와 금리가 국내 반도체까지 끌어내리는가</b>간밤 미국에서는 지수가 내리고 반도체가 올랐습니다. 이 분리가 국내에서도 유지되는지가 오늘의 핵심입니다. 삼성전기나 코스닥이 반도체 두 종목보다 크게 밀리면 분리가 유지되는 것이고, 반도체가 함께 밀리면 시장이 유가·금리를 업황보다 위에 놓기 시작한 것입니다. 후자는 하루로 끝나지 않습니다.</div></div>
+  </div>
+
+  <div class="chk"><b>하방 체크</b> — 오늘 전망에서 가장 약한 고리는 SK하이닉스 미국 예탁증서와 MSCI 한국 ETF가 정반대를 가리키는데도 이를 "상쇄"로 처리하고 보합을 택한 대목입니다. ADR은 국내 종가보다 0.65%포인트 위, ETF는 0.37%포인트 아래를 매겼습니다. 부호가 반대라는 것은 둘 중 하나가 잡음이라는 뜻이지 평균을 내라는 뜻이 아닙니다. 거래가 두터운 쪽은 ETF이므로 같은 기준을 일관되게 적용하면 오늘 결론은 보합이 아니라 소폭 갭하락이어야 합니다. 그럼에도 보합으로 놓은 것은 간밤 반도체의 상대 강세와 자사주 매입 잔여 물량을 함께 얹었기 때문인데, 이 두 가지는 지수가 아니라 개별 종목에 작용하는 힘입니다. 지수 전망에 종목 근거를 섞은 셈이고, 이것이 오늘 회차가 틀린다면 그 이유가 될 자리입니다. 어제 회차도 성격이 다른 두 재료를 하나로 묶어 상쇄시켰다가 구간을 86포인트 벗어났습니다. 구조는 다르지만 같은 종류의 위험입니다.</div>
+</section>
+
+<section>
+  <h2>예측 채점 이력</h2>
+  <div class="lead">최근 10회차 · 왼쪽이 최신</div>
+  <div class="score">
+    <div class="s wait">오늘</div>
+    <div class="s miss">8/31</div>
+    <div class="s miss">8/28</div>
+    <div class="s hit">8/27</div>
+    <div class="s miss">8/26</div>
+    <div class="s miss">8/25</div>
+    <div class="s hit">8/24</div>
+    <div class="s miss">8/21</div>
+    <div class="s">—</div>
+    <div class="s">—</div>
+  </div>
+  <div class="note"><b>8/31 회차 — 빗나감.</b> 전망은 "갭하락 출발, 코스피 6,700~6,780(−1.31%~−0.13%)"이었는데 실제 시초가는 6,613.58로 전일 종가보다 175.30포인트(−2.58%) 낮았습니다. 방향은 맞혔습니다. 갭하락으로 열린다고 봤고 실제로 갭하락으로 열렸습니다. 그러나 예상 구간 하단 6,700보다 86.42포인트 아래에서 열려 구간을 벗어났으므로 빗나감으로 기록합니다. 맞은 부분이 더 있습니다. 대안 시나리오의 전환 신호로 걸었던 "시초가 6,700 하회"와 "SK하이닉스 160만 원 이탈"이 둘 다 발생했고(SK하이닉스 장중 저가 157만 7,000원), 기본 시나리오의 유지 조건이었던 6,780.13 지지도 예고한 대로 깨졌습니다. 확인 포인트 3번으로 걸었던 "기타법인 순매수가 오늘도 이어지는가"는 1조 5,787억 원 순매수로 이어졌고, 그것이 지수를 뒤집은 힘이었습니다. 회차가 "정체를 모른다"고 적었던 그 주체가 삼성전자·SK하이닉스의 자사주 매입이라는 것도 함께 확인됐습니다. 놓친 것은 두 가지입니다. 첫째, 갭하락 폭을 절반으로 과소평가했습니다. 회차 스스로 하방 체크에 "갭하락 폭은 이 회차가 잡은 구간보다 깊어집니다"라고 적어 두고도 구간을 고치지 않았습니다. 위험을 알아본 것과 전망에 반영하는 것은 다른 일입니다. 둘째, 하루 전체의 방향을 완전히 놓쳤습니다. 대안 시나리오는 "6,700을 시험하는 날"까지만 봤는데 실제로는 6,547.76까지 밀린 뒤 6,820.02로 상승 마감했습니다. 저점에서 4.16%를 되돌리는 전개는 두 시나리오 어디에도 없었습니다. 폭 판단이 흔들리는 것은 닷새째입니다. 8/25 낙폭 과소, 8/26 상승폭 과대, 8/27 상승폭 과소, 8/28 낙폭 과소, 8/31 낙폭 과소 순입니다. 다섯 번 모두 시장 움직임을 실제보다 작게 잡았고, 이번 회차가 예상 구간을 110포인트로 넓힌 이유가 여기에 있습니다.<br><span class="up">■ 적중</span> · <span class="down">■ 빗나감</span> · <span class="muted">■ 미채점</span></div>
+</section>
+
+<section>
+  <h2>지난 회차</h2>
+  <div class="arch"><a href="./archive/2026-08-31.html">8/31 (월)</a> <a href="./archive/2026-08-28.html">8/28 (금)</a> <a href="./archive/2026-08-27.html">8/27 (목)</a> <a href="./archive/">전체 보기</a></div>
+</section>
+
+<footer>
+  출처 — 코스피 종가·시가·저점, 코스닥: 머니투데이 마감 스팟(8/31)과 중앙이코노미뉴스 마감시황(8/31) 대조, 한국경제(8/31)로 3차 확인 · 코스피 시가 6,613.58: 머니투데이 개장 스팟(8/31 08:49)과 아시아경제(8/31 09:01), Businesskorea 개장시황 3중 확인 · 삼성전자·SK하이닉스: 한국경제 장마감(2026.08.31)과 인포스탁데일리 0831마감체크, 머니투데이(8/31 16:03) 대조 · SK스퀘어·삼성전기: Google Finance(8/31 15:30 KST) 단일 소스 · ETF 2종: Google Finance(8/31 15:30 KST) 단일 소스 · 수급: 인포스탁데일리 0831마감체크와 중앙이코노미뉴스 마감시황 대조 · 코스피200 선물·국고채 금리: 인포스탁데일리 0831마감체크 단일 소스 · 원/달러: 인포스탁데일리(1,368.6원)와 Businesskorea 마감시황 대조, 개장가 1,379.5원은 Businesskorea 개장시황 · SOX: Google Finance 베타 한국어 페이지(8/31 17:15 ET) 단일 소스 · NVDA·MU: Google Finance(8/31 16:00 ET)와 아시아경제 뉴욕증시 마감(9/1 05:57) 대조 · EWY: Google Finance(8/31) 단일 소스 · SK하이닉스 ADR: Google Finance(8/31 16:00 ET)와 아시아경제 뉴욕증시 마감 대조 · 다우·S&amp;P500·나스닥·러셀2000: 아시아경제(9/1 05:57)와 Leader-Telegram(AP) 대조 · 유가·국채금리·금리 인상 확률·미이란 충돌: 이데일리 마켓무버(9/1)와 아시아경제 뉴욕증시 마감(9/1 05:57), 블록미디어(9/1 06:07) 대조 · 자사주 매입 규모: EBN(8/31)과 머니투데이(8/31 16:03) 대조 · MSCI 정기변경: EBN(8/31) · 전일 회차 채점: 본 사이트 8/31 회차 및 위 시가 3중 확인 값<br>
+  데이터 메모 — 종가 대조 결과입니다. 코스피(6,820.02), 코스닥(834.29), 삼성전자(260,000), SK하이닉스(1,674,000), 원/달러(1,368.6), NVDA(220.78), MU(958.73), SK하이닉스 ADR(164.58)은 두 소스 이상에서 값이 일치했습니다. 오늘 실은 15개 항목 전부에 대해 직전 회차에 기록된 8월 28일 종가로 등락률을 직접 계산했고, 화면에서 읽은 등락률과의 차이는 모두 0.05%포인트 이내였습니다. 갈린 항목은 두 가지입니다. 첫째, 개별 종목 등락률에서 Businesskorea 마감시황이 삼성전자 +0.78%, SK하이닉스 +0.48%, 삼성전기 +1.90%로 표기했는데, 한국경제 "2026.08.31 장마감" 페이지와 인포스탁데일리·머니투데이는 각각 +1.17%, +1.27%, Google Finance(8/31 15:30:15)는 삼성전기 +2.60%였습니다. Businesskorea 값은 장중 시점 스냅숏으로 보고 채택하지 않았습니다. 종가 260,000원·1,674,000원·1,458,000원으로 계산하면 각각 +1.1673%, +1.2704%, +2.6038%로 후자와 맞습니다. 둘째, 수급에서 한국경제(8/31)는 외국인 −4,394억·기관 −8,694억·개인 −2,350억·기타법인 +1조 5,429억으로, 인포스탁데일리는 −6,407억·−7,920억·−1,462억·+1조 5,787억으로 제시했습니다. 중앙이코노미뉴스(−6,399억·−7,931억·−1,443억)가 인포스탁데일리와 10억 원대 차이로 맞았으므로 두 소스가 일치하는 후자를 채택했습니다. 단일 소스로만 확인한 항목은 SOX(Google Finance), SK스퀘어·삼성전기·ETF 2종·EWY(Google Finance), 코스피200 선물(인포스탁데일리)이며 그렇게 밝혀 둡니다. Google Finance는 코스피(12월 24일), 삼성전자(5월 20일), SK하이닉스(6월 10일) 페이지에서 과거 시점의 값을 반환해 쓸 수 없었고 세 항목 모두 다른 소스로 대체했습니다. Investing.com 필라델피아 반도체지수 페이지는 8월 28일 값에서 갱신되지 않아 Google Finance 베타 한국어 페이지로 대체했습니다. 미확보 — 코스피200 선물 야간 세션 종가, 오늘 아침 역외 차액결제선물환(NDF)과 달러인덱스, 삼성전자·SK하이닉스의 8월 31일 정확한 시가(개장 등락률만 각각 약 −3%, −3.15%로 확인), 프로그램 매매 순매수, 그리고 오늘 07~08시 사이의 장전 신규 재료입니다. 같은 시간대에 확인된 것이 없어 가장 최근 재료는 06:07 블록미디어의 트럼프 발언 보도였습니다. 지난 회차 링크는 아카이브에 실제로 존재하는 8/28·8/27·8/26만 걸었습니다. 8/31 회차는 발행 시점에 아직 아카이브에 올라가 있지 않아 제외했습니다.<br>
+  개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+</footer>
+
+</div>
+</body>
+</html>
