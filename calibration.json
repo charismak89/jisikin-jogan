@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "note": "지식인 조간 예측 캘리브레이션 기록. 매 회차가 1건씩 append 한다. 회차 안에서 이 파일의 규칙을 고치지 말 것.",
+  "metric": {
+    "primary": "coverage",
+    "coverage_target": 0.80,
+    "definition": "실제 시초가가 그날 예상 구간 [low, high] 안에 들어온 비율. 100%는 성공이 아니라 구간이 헐렁하다는 뜻이다. 평균 구간폭과 반드시 함께 본다."
+  },
+  "rule": {
+    "applied": false,
+    "activate_after_records": 20,
+    "planned": "구간 반폭(%) = 최근 10회 abs(gap_pct)의 80퍼센타일. 활성화 전까지는 기존 방식대로 판단하고 기록만 쌓는다.",
+    "change_policy": "규칙 변경은 금요일 마감 후에만, 한 번에 한 변수만. 변경 시 history에 남긴다.",
+    "rollback": "규칙 변경 후 10회차 coverage가 직전 10회차보다 낮아지면 직전 규칙으로 되돌린다.",
+    "history": []
+  },
+  "records": [
+    {"date":"2026-08-21","forecast_dir":"보합~약보합","low":null,"high":null,"band_width_pct":null,
+     "prev_close":6852.40,"actual_open":6759.95,"gap_pct":-1.35,
+     "in_range":null,"dir_hit":false,"verdict":"miss",
+     "source":"archive/2026-08-21.html + 2026-08-24 회차 채점","flag":"구간 미기재 회차. prev_close는 갭률에서 역산"},
+
+    {"date":"2026-08-24","forecast_dir":"보합~약보합","low":6850,"high":6930,"band_width_pct":1.16,
+     "prev_close":6912.95,"actual_open":6881.07,"gap_pct":-0.46,
+     "in_range":true,"dir_hit":true,"verdict":"hit","source":"2026-08-25 회차 채점"},
+
+    {"date":"2026-08-25","forecast_dir":"갭하락","low":6600,"high":6680,"band_width_pct":1.20,
+     "prev_close":6696.96,"actual_open":6535.93,"gap_pct":-2.40,
+     "in_range":false,"dir_hit":true,"verdict":"miss","source":"2026-08-26 회차 채점"},
+
+    {"date":"2026-08-26","forecast_dir":"갭상승","low":6800,"high":6900,"band_width_pct":1.48,
+     "prev_close":6742.74,"actual_open":6727.25,"gap_pct":-0.23,
+     "in_range":false,"dir_hit":false,"verdict":"miss","source":"2026-08-27 회차 채점"},
+
+    {"date":"2026-08-27","forecast_dir":"갭상승","low":6880,"high":6980,"band_width_pct":1.47,
+     "prev_close":6808.21,"actual_open":6996.12,"gap_pct":2.76,
+     "in_range":false,"dir_hit":true,"verdict":"miss","source":"2026-08-28 회차 채점",
+     "flag":"당시 기록은 '적중'이었으나 방향+구간 규칙으로는 miss. 규칙 적용을 통일해 miss로 정정"},
+
+    {"date":"2026-08-28","forecast_dir":"보합","low":6860,"high":6960,"band_width_pct":1.45,
+     "prev_close":6912.37,"actual_open":6846.54,"gap_pct":-0.95,
+     "in_range":false,"dir_hit":false,"verdict":"miss","source":"2026-08-31 회차 채점"},
+
+    {"date":"2026-08-31","forecast_dir":"갭하락","low":6700,"high":6780,"band_width_pct":1.18,
+     "prev_close":6788.88,"actual_open":6613.58,"gap_pct":-2.58,
+     "in_range":false,"dir_hit":true,"verdict":"miss","source":"2026-09-01 회차 채점"}
+  ]
+}

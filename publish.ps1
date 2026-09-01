@@ -105,6 +105,31 @@ if (-not $repairOnly) {
     if ($curDate) { Say "현재 게시 : $curDate" Gray } else { Say "현재 게시 : (발행일 불명)" Yellow }
 
     Write-Utf8 (Join-Path $repo "index.html") $newText
+
+    # ── 2-b) calibration.json 도 함께 받아온다 (예약 세션이 만들어 준 최신본) ──
+    $cal = Get-ChildItem -Path $dl -Filter "calibration*.json" -File -ErrorAction SilentlyContinue |
+           Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($cal) {
+        try {
+            $calText = Read-Utf8 $cal.FullName
+            $parsed  = $calText | ConvertFrom-Json          # 깨진 JSON 이면 여기서 멈춘다
+            $cnt     = @($parsed.records).Count
+            $old     = Read-Utf8 (Join-Path $repo "calibration.json")
+            $oldCnt  = 0
+            if ($old) { try { $oldCnt = @(($old | ConvertFrom-Json).records).Count } catch { } }
+            if ($cnt -lt $oldCnt) {
+                Say "[경고] 새 calibration.json 의 기록이 $cnt 건으로 기존 $oldCnt 건보다 적습니다. 건너뜁니다." Yellow
+            } else {
+                Write-Utf8 (Join-Path $repo "calibration.json") $calText
+                Say "캘리브레이션: $($cal.Name) 반영 ($cnt 건)" Gray
+                Remove-Item $cal.FullName -ErrorAction SilentlyContinue
+            }
+        } catch {
+            Say "[경고] $($cal.Name) 이 올바른 JSON 이 아니라 건너뜁니다." Yellow
+        }
+    } else {
+        Say "캘리브레이션: 새 파일 없음 (기존 유지)" DarkGray
+    }
     if (git status --porcelain) {
         git add -A | Out-Null
         git commit -m "brief: $newDate 발행" | Out-Null
