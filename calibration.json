@@ -43,6 +43,10 @@
 
     {"date":"2026-08-31","forecast_dir":"갭하락","low":6700,"high":6780,"band_width_pct":1.18,
      "prev_close":6788.88,"actual_open":6613.58,"gap_pct":-2.58,
-     "in_range":false,"dir_hit":true,"verdict":"miss","source":"2026-09-01 회차 채점"}
+     "in_range":false,"dir_hit":true,"verdict":"miss","source":"2026-09-01 회차 채점"},
+
+    {"date":"2026-09-01","forecast_dir":"보합","low":6740,"high":6850,"band_width_pct":1.61,
+     "prev_close":6820.02,"actual_open":6784.29,"gap_pct":-0.52,
+     "in_range":true,"dir_hit":true,"verdict":"hit","source":"2026-09-02 회차 채점"}
   ]
 }
