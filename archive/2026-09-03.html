@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="2026-09-03T07:45+09:00">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../style.css">
+<script>
+(function(){try{
+  var m=localStorage.getItem('jj-theme')||'system';
+  var d=(m==='dark')||(m==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-jj',d?'dark':'light');
+  document.documentElement.setAttribute('data-jj-mode',m);
+}catch(e){}})();
+</script>
+<style>
+/* 지식인 조간 v3 — 2026-09 · 요약 우선 + 3단 테마 */
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  color-scheme:light;
+  --bg:#F6F8FB; --panel:#FFFFFF; --panel2:#EEF2F7; --line:#DFE5EE; --line2:#BFCADA;
+  --tx:#0E1622; --tx2:#3B4759; --tx3:#6C7A8C;
+  --up:#C62D22; --down:#1257B8; --accent:#C0322A; --ok:#0F7A4C;
+  --warnbg:#FFF7E4; --warnline:#E7CF97; --warntx:#6B4E06; --warnstrong:#8A6100;
+  --shadow:0 1px 2px rgba(16,26,40,.05),0 1px 8px rgba(16,26,40,.04);
+  --sticky:rgba(246,248,251,.93);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-jj]){
+    color-scheme:dark;
+    --bg:#0A0F18; --panel:#141C29; --panel2:#1A2432; --line:#26314A; --line2:#3D4A63;
+    --tx:#E6E9EF; --tx2:#C2CEDF; --tx3:#8B9AB2;
+    --up:#FF7A6B; --down:#6FA8FF; --accent:#F0665C; --ok:#4FD494;
+    --warnbg:#241D0E; --warnline:#5D4818; --warntx:#EBD9AF; --warnstrong:#FFC95C;
+    --shadow:none; --sticky:rgba(10,15,24,.93);
+  }
+}
+:root[data-jj="dark"]{
+  color-scheme:dark;
+  --bg:#0A0F18; --panel:#141C29; --panel2:#1A2432; --line:#26314A; --line2:#3D4A63;
+  --tx:#E6E9EF; --tx2:#C2CEDF; --tx3:#8B9AB2;
+  --up:#FF7A6B; --down:#6FA8FF; --accent:#F0665C; --ok:#4FD494;
+  --warnbg:#241D0E; --warnline:#5D4818; --warntx:#EBD9AF; --warnstrong:#FFC95C;
+  --shadow:none; --sticky:rgba(10,15,24,.93);
+}
+
+body{background:var(--bg);color:var(--tx);
+  font-family:Pretendard,"Pretendard Variable","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  font-size:17px;line-height:1.65;letter-spacing:-.02em;text-align:left;
+  word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased;padding-bottom:64px}
+.wrap{max-width:640px;margin:0 auto;padding:0 18px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--tx3)}
+
+.brand{padding:20px 0 12px;border-bottom:2px solid var(--accent);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.bn{font-size:24px;font-weight:900;letter-spacing:-.05em;line-height:1}
+.bd{font-size:12px;color:var(--tx3);margin-top:6px;letter-spacing:-.01em}
+
+.theme{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex:none}
+.theme button{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:-.01em;
+  padding:5px 9px;border:0;background:var(--panel);color:var(--tx3);cursor:pointer;white-space:nowrap}
+.theme button+button{border-left:1px solid var(--line)}
+.theme button[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+header{padding:16px 0 0}
+.kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:700}
+header h1{font-size:28px;font-weight:900;margin-top:5px;letter-spacing:-.04em;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--tx3)}
+.rt{font-weight:700;color:var(--tx2);background:var(--panel2);border-radius:6px;padding:2px 8px}
+
+.fbanner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+  margin-top:16px;padding:15px 17px;border-radius:14px;
+  background:var(--warnbg);border:1px solid var(--warnline);border-left:5px solid var(--warnstrong)}
+.fbanner .fl{font-size:11.5px;font-weight:700;color:var(--warnstrong);letter-spacing:.06em;display:block;margin-bottom:3px}
+.fbanner .fv{font-size:24px;font-weight:900;color:var(--warnstrong);letter-spacing:-.04em;line-height:1.1}
+.fbanner .fr{font-size:14px;font-weight:700;color:var(--warntx);text-align:right;line-height:1.45}
+@media(max-width:520px){.fbanner{grid-template-columns:1fr}.fbanner .fr{text-align:left}}
+
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
+@media(min-width:560px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:var(--shadow)}
+.k .n{font-size:12px;color:var(--tx3);font-weight:700}
+.k .v{font-size:21px;font-weight:900;margin-top:3px;letter-spacing:-.045em}
+.k .c{font-size:14px;font-weight:800;margin-top:1px}
+.legend{font-size:11.5px;color:var(--tx3);margin-top:9px;font-weight:600}
+
+.bar{position:sticky;top:0;z-index:20;background:var(--sticky);
+  border-bottom:1px solid var(--line);margin:20px 0 0;padding:8px 18px}
+.bar-in{max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.jumps{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.jumps::-webkit-scrollbar{display:none}
+.jump{flex:none;font-size:12.5px;font-weight:700;color:var(--tx2);text-decoration:none;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;white-space:nowrap}
+.jump:hover{color:var(--accent);border-color:var(--line2)}
+#expandAll{flex:none;font:inherit;font-size:12.5px;font-weight:700;
+  color:var(--accent);background:var(--panel);border:1px solid var(--line2);border-radius:8px;
+  padding:5px 10px;cursor:pointer;white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.tldr{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px 18px;box-shadow:var(--shadow)}
+.tt{font-size:11.5px;font-weight:900;color:var(--accent);letter-spacing:.12em;margin-bottom:14px}
+.tl{display:grid;grid-template-columns:19px 1fr;gap:10px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.tl:last-child{padding-bottom:0;margin-bottom:0;border-bottom:none}
+.tn{width:19px;height:19px;border-radius:6px;background:var(--line2);color:var(--panel);
+  font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:5px}
+:root[data-jj="dark"] .tn{color:#0A0F18}
+.th{font-size:19px;font-weight:800;letter-spacing:-.035em;line-height:1.42}
+.tb{font-size:15px;color:var(--tx2);margin-top:4px}
+
+section{margin-top:38px;scroll-margin-top:56px}
+.sh{display:flex;align-items:center;gap:9px}
+h2{font-size:22px;font-weight:900;letter-spacing:-.04em;display:flex;align-items:center;gap:9px}
+h2:before{content:"";width:4px;height:18px;background:var(--accent);border-radius:2px;flex:none}
+.stag{font-size:11.5px;font-weight:700;color:var(--tx3);margin-left:auto;white-space:nowrap}
+.sum{font-size:15px;color:var(--tx2);font-weight:600;margin:8px 0 12px;padding-left:12px;border-left:2px solid var(--line2)}
+
+.tblwrap{overflow-x:auto}
+table.q{width:100%;border-collapse:collapse}
+table.q th{font-size:11.5px;font-weight:700;color:var(--tx3);text-align:left;
+  padding:0 0 7px;border-bottom:1px solid var(--line2);letter-spacing:.02em}
+table.q th.r{text-align:right}
+table.q td{padding:11px 0 0;vertical-align:baseline}
+tbody.st{border-top:1px solid var(--line)}
+tbody.st:first-of-type{border-top:none}
+td.nm{font-size:16.5px;font-weight:800;padding-right:10px}
+td.nm .cd{font-size:10.5px;color:var(--tx3);font-weight:600;margin-left:5px;white-space:nowrap}
+td.pr{text-align:right;font-size:16.5px;font-weight:800;white-space:nowrap;padding-left:10px}
+td.ch{text-align:right;font-size:15px;font-weight:800;white-space:nowrap;padding-left:12px;min-width:92px}
+td.ch.na{color:var(--tx3);font-weight:700}
+td.cm{font-size:14.5px;color:var(--tx2);padding:4px 0 12px}
+
+details{margin-top:6px}
+summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  font-size:12.5px;font-weight:700;color:var(--tx3);padding:2px 0}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"\25BE";font-size:10px;transition:transform .15s}
+details[open] summary:after{transform:rotate(180deg)}
+summary:hover{color:var(--accent)}
+.dbody{font-size:14.5px;color:var(--tx2);margin-top:6px;padding-left:11px;border-left:2px solid var(--line)}
+.dbody p+p{margin-top:9px}
+@media(prefers-reduced-motion:reduce){summary:after{transition:none}}
+
+.flow{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;margin-top:14px;box-shadow:var(--shadow)}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px 14px}
+@media(min-width:560px){.fgrid{grid-template-columns:repeat(4,1fr)}}
+.fk{font-size:11.5px;color:var(--tx3);font-weight:700;display:block}
+.fv{font-size:15.5px;font-weight:800;display:block}
+.fn{font-size:14.5px;color:var(--tx2);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+
+.split{display:grid;grid-template-columns:1fr;gap:11px}
+@media(min-width:560px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+  border-top:3px solid var(--line2);box-shadow:var(--shadow)}
+.col.bull{border-top-color:var(--up)} .col.bear{border-top-color:var(--down)}
+.col h3{font-size:14px;font-weight:900;margin-bottom:12px;letter-spacing:-.02em}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;margin-bottom:12px;padding-left:13px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--line2)}
+.col li b{display:block;font-weight:800;font-size:15px;line-height:1.42}
+.col li span{display:block;font-size:14px;color:var(--tx2);margin-top:2px}
+
+.ladder{display:flex;flex-direction:column;gap:6px}
+.lv{display:grid;grid-template-columns:98px 1fr;align-items:baseline;gap:12px;
+  padding:10px 13px;border-radius:10px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--line2)}
+.lvl{font-size:17px;font-weight:900}
+.lvd{font-size:13.5px;color:var(--tx2)}
+.lv.res{border-left-color:var(--up)} .lv.res .lvl{color:var(--up)}
+.lv.now{border-left-color:var(--warnstrong);background:var(--warnbg);border-color:var(--warnline)}
+.lv.now .lvl{color:var(--warnstrong)} .lv.now .lvd{color:var(--warntx);font-weight:700}
+.lv.sup{border-left-color:var(--down)} .lv.sup .lvl{color:var(--down)}
+.lv.sup2{border-left-color:var(--line2)} .lv.sup2 .lvl{color:var(--tx3)}
+@media(max-width:460px){.lv{grid-template-columns:1fr;gap:1px}}
+
+.scen{display:grid;grid-template-columns:1fr;gap:11px;margin-top:14px}
+@media(min-width:560px){.scen{grid-template-columns:1fr 1fr}}
+.sc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 17px;
+  border-top:3px solid var(--line2);box-shadow:var(--shadow)}
+.sc.base{border-top-color:var(--ok)} .sc.alt{border-top-color:var(--warnstrong)}
+.st{font-size:11px;font-weight:900;letter-spacing:.07em;color:var(--tx3)}
+.sc.base .st{color:var(--ok)} .sc.alt .st{color:var(--warnstrong)}
+.sch{font-size:16px;font-weight:900;margin-top:5px;letter-spacing:-.03em;line-height:1.38}
+.scb{font-size:14.5px;color:var(--tx2);margin-top:8px}
+.sif{font-size:13px;color:var(--tx3);margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-weight:700}
+
+.pts{background:var(--panel2);border-radius:14px;padding:16px 17px;margin-top:14px}
+.pth{font-size:12.5px;font-weight:900;margin-bottom:13px;color:var(--tx3);letter-spacing:.06em}
+.pt{display:grid;grid-template-columns:21px 1fr;gap:10px;margin-bottom:12px}
+.pt:last-child{margin-bottom:0}
+.pn{width:21px;height:21px;border-radius:7px;background:var(--accent);color:#fff;
+  font-size:11.5px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:3px}
+.pt b{display:block;font-size:15px;font-weight:800;line-height:1.42}
+.pt span{display:block;font-size:14px;color:var(--tx2);margin-top:2px}
+
+.chk{background:var(--warnbg);border:1px solid var(--warnline);border-left:4px solid var(--warnstrong);
+  border-radius:12px;padding:13px 15px;margin-top:14px}
+.ct{font-size:11px;font-weight:900;color:var(--warnstrong);letter-spacing:.1em}
+.cl{font-size:15px;font-weight:700;color:var(--warntx);margin-top:5px;line-height:1.58}
+.chk summary{color:var(--warnstrong)}
+.chk .dbody{color:var(--warntx);border-left-color:var(--warnline)}
+
+.score{display:flex;gap:6px;flex-wrap:wrap}
+.s{width:44px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:800;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{border-color:var(--up);color:var(--up)}
+.s.miss{border-color:var(--down);color:var(--down)}
+.s.wait{border-style:dashed;border-color:var(--line2);color:var(--tx2)}
+.verdict{display:inline-block;font-size:12.5px;font-weight:900;padding:3px 9px;border-radius:7px;
+  border:1px solid var(--line2);color:var(--tx2);margin-top:13px}
+.verdict.hit{border-color:var(--up);color:var(--up)}
+.verdict.miss{border-color:var(--down);color:var(--down)}
+.note{font-size:15px;color:var(--tx2);margin-top:7px}
+.note b{color:var(--tx)}
+.cov{font-size:13px;color:var(--tx3);margin-top:10px;font-weight:700}
+
+.arch{display:flex;gap:7px;flex-wrap:wrap}
+.arch a{font-size:12.5px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:7px 12px;text-decoration:none;font-weight:700}
+.arch a:hover{color:var(--accent);border-color:var(--line2)}
+footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-size:12px;color:var(--tx3);line-height:1.75}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <div>
+      <div class="bn">지식인 조간</div>
+      <div class="bd">반도체 · 메모리 개장 전 브리핑</div>
+    </div>
+    <div class="theme" role="group" aria-label="화면 테마">
+      <button type="button" data-set="system">시스템</button>
+      <button type="button" data-set="light">라이트</button>
+      <button type="button" data-set="dark">다크</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="kick">제 10 호</div>
+    <h1>2026년 9월 3일 (목)</h1>
+    <div class="meta">
+      <span class="rt">훑어읽기 4분</span>
+      <span>07:45 KST · 전일 종가 &amp; 간밤 미국장 반영</span>
+    </div>
+    <div class="fbanner">
+      <div><span class="fl">09:00 시초가 전망</span><span class="fv">갭상승 출발</span></div>
+      <div class="fr num">코스피 6,610 ~ 6,780<br>(+0.72% ~ +3.31%)</div>
+    </div>
+  </header>
+
+  <div class="kpi">
+<div class="k"><div class="n">KOSPI</div><div class="v num">6,562.72</div><div class="c down num">▼ −3.99%</div></div>
+<div class="k"><div class="n">SOX</div><div class="v num">11,332.10</div><div class="c up num">▲ +0.39%</div></div>
+<div class="k"><div class="n">삼성전자</div><div class="v num">250,500</div><div class="c down num">▼ −4.02%</div></div>
+<div class="k"><div class="n">SK하이닉스</div><div class="v num">1,613,000</div><div class="c down num">▼ −4.73%</div></div>
+  </div>
+  <div class="legend">▲ 상승 · ▼ 하락 (국내 관행)</div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="jumps">
+      <a class="jump" href="#s-global">간밤</a>
+      <a class="jump" href="#s-dom">국내</a>
+      <a class="jump" href="#s-issue">이슈</a>
+      <a class="jump" href="#s-scen">시나리오</a>
+      <a class="jump" href="#s-score">채점</a>
+    </div>
+    <button id="expandAll" type="button">전부 펼치기</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tldr">
+    <div class="tt">오늘 한눈에</div>
+<div class="tl"><div class="tn">1</div><div><div class="th">어제 무너진 값을 밤사이 미국이 되사들였습니다</div><div class="tb">MSCI 한국 ETF +1.74%, SK하이닉스 예탁증서 +2.61%입니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>어제 코스피는 3.99% 내렸고 원화는 0.12% 강해졌으니, 달러로 환산한 한국 지수는 3.88% 하락에 해당합니다. 그 하락을 다 보고 문을 연 미국에서 MSCI 한국 ETF는 1.74% 올라 끝났습니다.</p><p>SK하이닉스는 더 벌어졌습니다. 국내 4.73% 하락은 달러 기준 4.62% 하락인데, 미국 예탁증서(ADR)는 2.61% 올랐습니다. 같은 회사를 두고 두 시장이 7.2%포인트 다르게 매긴 것입니다.</p><p>어제 회차에서는 이 두 지표가 아래를 가리켜 갭하락을 택했고 실제로 3.08% 갭하락으로 열렸습니다. 오늘은 같은 두 지표가 위를 가리킵니다.</p></div></details></div></div>
+<div class="tl"><div class="tn">2</div><div><div class="th">코스피가 하루에 3.99% 내렸습니다</div><div class="tb">외국인·기관이 4조 원 가까이 팔았고 개인이 받았습니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>외국인 순매도 1조 9,195억 원, 기관 순매도 2조 433억 원으로 합계 3조 9,628억 원입니다. 개인이 2조 3,023억 원, 기타법인이 1조 6,504억 원을 받았습니다.</p><p>외국인은 8월 26일부터 전일까지 닷새 연속 하루 1조 원 미만이었는데 어제 하루에 2조 원 가까이 던졌습니다. 규모가 갑자기 네 배 가까이 커진 날입니다.</p><p>기타법인 순매수 1조 6,504억 원은 사흘 연속 1조 6천억 원대입니다. 이 손은 어제도 들어왔지만 파는 쪽이 두 배 이상 커서 지수를 받치지 못했습니다.</p></div></details></div></div>
+<div class="tl"><div class="tn">3</div><div><div class="th">유가는 여전히 오르고 있습니다</div><div class="tb">브렌트유 95.63달러로 이틀 급등 뒤 또 1% 올랐습니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>브렌트유는 배럴당 95.63달러로 다시 1% 안팎 올랐습니다. 그저께 4.60%, 그제 5.20% 오른 뒤 사흘째 상승입니다. 미국과 이란의 충돌이 계속되고 있습니다.</p><p>미 10년물 국채금리는 4.78% 부근으로 전날 4.79%와 큰 차이가 없습니다. 금리는 멈췄지만 유가는 아직 방향을 틀지 않았다는 뜻입니다.</p><p>어제 미국 증시가 오른 것은 유가 부담이 사라져서가 아니라 사흘 내리 밀린 기술주에 저가 매수가 들어왔기 때문입니다. 다우 0.56%, 스탠더드앤드푸어스500 0.46%, 나스닥 0.45% 상승입니다.</p></div></details></div></div>
+  </div>
+
+  <section id="s-global">
+    <div class="sh"><h2>간밤 글로벌</h2><span class="stag">9/2(수) 미국장 마감</span></div>
+    <div class="sum">미국은 사흘 만에 반등했고 한국 관련 자산이 특히 크게 올랐습니다</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+<tbody class="st">
+  <tr><td class="nm">필라델피아 반도체지수<span class="cd">SOX</span></td><td class="pr num">11,332.10</td><td class="ch up num">▲ +0.39%</td></tr>
+  <tr><td class="cm" colspan="3">지수는 올랐지만 반도체는 0.39%에 그쳤습니다<details><summary>자세히</summary><div class="dbody"><p>11,243.5에 열려 11,154.7까지 밀렸다가 11,332.1에 끝났습니다. 장중 고가는 11,389.0입니다. 전일 종가 11,288.6에서 43.5포인트 올랐습니다.</p><p>나스닥이 0.45% 오를 때 0.39% 올랐으니 이번에는 지수와 거의 같이 움직였습니다. 그제 나스닥 −1.03%에 반도체 −2.14%로 두 배 넘게 밀렸던 것과는 다른 모양입니다.</p><p>엔비디아와 마이크론이 각각 3.21%, 2.43% 올랐는데 지수 상승률이 0.39%에 그쳤다는 것은 나머지 편입 종목이 눌렀다는 뜻입니다. 반등이 전체로 번지지는 않았습니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">엔비디아<span class="cd">NVDA</span></td><td class="pr num">224.41</td><td class="ch up num">▲ +3.21%</td></tr>
+  <tr><td class="cm" colspan="3">사흘 하락을 끊었고 시간외에서 0.31% 더 올랐습니다<details><summary>자세히</summary><div class="dbody"><p>218.78달러에 열려 218.48달러까지 밀렸다가 224.41달러에 끝났습니다. 장중 고가는 227.95달러이고, 정규장 뒤 시간외에서 225.10달러로 0.31% 더 올랐습니다.</p><p>8월 27일 실적 발표로 8.74% 올랐던 자리에서 그제까지 4.62% 아래로 내려왔다가 어제 3.21%를 되찾았습니다. 실적 상승분의 대부분을 다시 회복한 상태입니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">마이크론<span class="cd">MU</span></td><td class="pr num">956.08</td><td class="ch up num">▲ +2.43%</td></tr>
+  <tr><td class="cm" colspan="3">이 상승분은 오늘 PLUS 글로벌HBM에 반영될 차례입니다<details><summary>자세히</summary><div class="dbody"><p>930.82달러에 열려 927.16달러까지 밀렸다가 956.08달러에 끝났고, 시간외에서 953.00달러로 0.32% 내렸습니다. 장중 고가는 958.00달러입니다.</p><p>어제 국내 장중에는 이 종목의 그제 하락분 2.64%가 반영됐고, 그래서 PLUS 글로벌HBM반도체가 4.07% 내렸습니다. 어제 상승분 2.43%는 오늘 반대 방향으로 반영될 차례입니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">MSCI 한국 ETF<span class="cd">EWY</span></td><td class="pr num">178.86</td><td class="ch up num">▲ +1.74%</td></tr>
+  <tr><td class="cm" colspan="3">코스피가 3.99% 내린 뒤 미국에서 1.74% 올랐습니다<details><summary>자세히</summary><div class="dbody"><p>176.81달러에 열려 176.27달러까지 밀렸다가 178.86달러에 끝났고, 시간외에서 179.16달러로 0.17% 더 올랐습니다. 장중 고가는 179.12달러입니다.</p><p>한국 장은 우리 시간 오후 3시 30분에 끝나고 미국 장은 그 뒤에 열립니다. 그러니 어제 미국 투자자들은 코스피 3.99% 하락을 다 알고 값을 매겼습니다. 그 상태에서 1.74%를 올렸다는 것이 오늘 갭의 가장 큰 단서입니다.</p><p>이 상품은 미국에서 거래가 두터운 편이라, 예탁증서와 값이 갈릴 때 이쪽을 우선하는 기준을 세워 뒀습니다. 오늘은 둘이 같은 방향입니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">SK하이닉스 ADR<span class="cd">SKHY</span></td><td class="pr num">164.98</td><td class="ch up num">▲ +2.61%</td></tr>
+  <tr><td class="cm" colspan="3">국내에서 4.73% 내린 종목이 미국에서 2.61% 올랐습니다<details><summary>자세히</summary><div class="dbody"><p>159.76달러에 열려 158.67달러까지 밀렸다가 164.98달러에 끝났고, 시간외에서 164.10달러로 0.53% 내렸습니다. 장중 고가는 165.47달러입니다.</p><p>국내 종가 161만 3천 원을 환율 1,368.7원으로 나누면 달러 기준으로는 4.62% 하락입니다. 같은 하루에 미국에서는 2.61% 올랐으니 두 시장의 차이는 7.2%포인트입니다.</p><p>다만 이 종목은 거래가 얇아 어제도 하루 안에 158.67달러에서 165.47달러까지 4.3% 범위를 오갔습니다. 이 폭을 그대로 국내 갭으로 옮기면 과대평가하기 쉽습니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">코스피200 선물<span class="cd">9/2 정규장</span></td><td class="pr num">1,029.15</td><td class="ch down num">▼ −4.55%</td></tr>
+  <tr><td class="cm" colspan="3">현물보다 0.56%포인트 더 내려 어제와 부호가 뒤집혔습니다<details><summary>자세히</summary><div class="dbody"><p>전일 1,078.15에서 49.00포인트 내린 1,029.15로 마감했습니다. 장중 고가는 1,052.59이고 저가는 종가와 같은 1,029.15입니다. 아래로 밀린 채 끝난 하루입니다.</p><p>그제는 선물이 현물보다 0.74%포인트 높게 끝나 국내 시장이 앞서 나간 신호로 읽었는데, 어제는 반대로 0.56%포인트 낮게 끝났습니다. 국내 안에서는 아직 아래를 보고 있다는 뜻입니다.</p><p>다만 이 값은 어제 오후 3시 45분 국내 정규장 종료 시점의 것으로, 그 뒤에 나온 미국 반등은 들어 있지 않습니다. 야간 세션 종가는 이번에도 확보하지 못해 갭 판단에 쓰지 않았습니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">원/달러<span class="cd">서울 주간 종가</span></td><td class="pr num">1,368.7</td><td class="ch down num">▼ −1.7원</td></tr>
+  <tr><td class="cm" colspan="3">원화가 0.12% 강해졌습니다. 갭상승 쪽에 조금 보탭니다<details><summary>자세히</summary><div class="dbody"><p>전일 1,370.4원에서 1.7원 내린 1,368.7원으로 끝났습니다. 환율이 내렸다는 건 원화가 강해졌다는 뜻이고, 외국인이 한국 주식을 달러로 환산해 볼 때 값이 조금 더 높아 보인다는 뜻입니다.</p><p>코스피가 4% 가까이 빠진 날에 원화가 오히려 강해진 것은 이례적입니다. 주식에서 나간 돈이 밖으로 빠져나가지 않았을 가능성을 시사하지만, 하루치로 단정하기는 이릅니다. 오늘 아침 역외 차액결제선물환(NDF) 값은 확보하지 못했습니다.</p></div></details></td></tr>
+</tbody>
+    </table></div>
+    <div class="chk">
+      <div class="ct">하방 체크</div>
+<div class="cl">미국이 되돌린 값에는 거래가 얇은 종목이 섞여 있어, 그 폭을 그대로 갭으로 옮기면 과합니다.</div><details><summary>근거</summary><div class="dbody"><p>SK하이닉스 예탁증서는 장외에서 거래되는 얇은 종목이라 어제도 하루 안에 158.67달러에서 165.47달러까지 4.3% 범위를 오갔습니다. 종가 하나를 국내 갭 폭으로 곧장 환산하면 과대평가하기 쉽습니다.</p><p>거래가 두터운 MSCI 한국 ETF의 1.74%가 더 믿을 만한 값입니다. 그리고 반도체지수 자체는 0.39% 오르는 데 그쳤습니다. 엔비디아와 마이크론만 크게 올랐고 나머지 편입 종목은 따라오지 않았다는 뜻입니다.</p><p>어제 미국 상승은 사흘 내리 밀린 뒤의 저가 매수라는 성격이 큽니다. 유가와 금리라는 원인 자체는 아직 방향을 틀지 않았습니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-dom">
+    <div class="sh"><h2>국내 종목 &amp; ETF</h2><span class="stag">9/2 종가</span></div>
+    <div class="sum">국내는 4% 가까이 무너졌고 그 값이 밤사이 미국에서 되돌려졌습니다</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+<tbody class="st">
+  <tr><td class="nm">삼성전자<span class="cd">005930</span></td><td class="pr num">250,500</td><td class="ch down num">▼ −4.02%</td></tr>
+  <tr><td class="cm" colspan="3">사흘 연속 상승이 끊겼고 25만 원선이 눈앞입니다<details><summary>자세히</summary><div class="dbody"><p>고가 25만 5,500원, 저가 24만 9,500원에서 25만 500원으로 끝났습니다. 저가에서 25만 원이 한 번 뚫렸고 종가는 그 바로 위입니다.</p><p>8월 31일 1.17%, 9월 1일 0.38%로 줄어들던 상승폭이 어제 4.02% 하락으로 뒤집혔습니다. 자사주 매입이라는 같은 손이 사흘 연속 들어왔는데도 셋째 날에는 지수와 함께 밀렸습니다.</p><p>자사주 매입은 자본정책 재료이지 실적 재료가 아닙니다. 회사가 사서 소각하면 주당 가치는 올라가지만 메모리가 얼마에 팔리는지는 달라지지 않고, 하루에 살 수 있는 수량에도 한도가 있습니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">SK하이닉스<span class="cd">000660</span></td><td class="pr num">1,613,000</td><td class="ch down num">▼ −4.73%</td></tr>
+  <tr><td class="cm" colspan="3">종가는 161만 3천 원, 예탁증서는 밤사이 위로 갔습니다<details><summary>자세히</summary><div class="dbody"><p>163만 원에 열려 161만 2,000원까지 밀렸다가 161만 3,000원에 끝났습니다. 고가는 166만 1,000원이고 종가는 거의 저가입니다. 아래로 밀린 채 끝난 하루입니다.</p><p>같은 회사의 미국 예탁증서는 밤사이 2.61% 올라 164.98달러가 됐습니다. 오늘 아침 이 종목이 어디서 열리는지가 지수 전체의 방향을 정합니다.</p><p>어제 회차에서 지목한 165만 원선이 실제로 깨졌습니다. 되찾는지가 오늘 확인 포인트입니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">SK스퀘어<span class="cd">402340</span></td><td class="pr num">982,000</td><td class="ch down num">▼ −7.97%</td></tr>
+  <tr><td class="cm" colspan="3">자회사보다 1.7배 내려 방어막 없는 종목의 낙폭을 보였습니다<details><summary>자세히</summary><div class="dbody"><p>고가 102만 4,000원, 저가 98만 2,000원에서 98만 2,000원으로 끝났습니다. 종가가 저가와 같고 100만 원선이 깨졌습니다.</p><p>그제는 SK하이닉스가 1.14% 오를 때 2.89% 올라 구조가 뒤집혔다고 적었는데, 어제는 SK하이닉스 4.73% 하락에 7.97% 하락으로 1.7배를 따라갔습니다. 위로도 아래로도 더 크게 움직이는 종목이라는 쪽이 맞았습니다.</p><p>이 종목에는 자사주 매입이라는 받침이 없습니다. 어제 낙폭이 자회사보다 큰 이유를 그 차이에서 찾는 것이 자연스럽습니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">삼성전기<span class="cd">009150</span></td><td class="pr num">—</td><td class="ch na">미확보</td></tr>
+  <tr><td class="cm" colspan="3">종가를 확인할 수 있는 소스를 찾지 못했습니다<details><summary>자세히</summary><div class="dbody"><p>Google Finance는 4월 30일자 옛 값을 돌려줬고, 한국경제 페이지는 141만 8,000원을 표시하면서 상태를 「2026.09.02 장중(20분 지연)」으로 찍었습니다. 이 표기는 종가가 아니라는 뜻이므로 쓰지 않았습니다.</p><p>알파스퀘어는 9월 1일 종가 143만 원까지만 제공했습니다. 추정값을 넣지 않고 미확보로 둡니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">SOL AI반도체TOP2플러스<span class="cd">0167A0</span></td><td class="pr num">16,800</td><td class="ch down num">▼ −3.75%</td></tr>
+  <tr><td class="cm" colspan="3">두 종목 평균보다 덜 내려 이틀 만에 방향이 바뀌었습니다<details><summary>자세히</summary><div class="dbody"><p>1만 6,800원에 열려 1만 6,790원까지 밀렸다가 1만 6,800원에 끝났습니다. 고가는 1만 7,220원입니다.</p><p>삼성전자와 SK하이닉스 하락률의 평균은 4.38%인데 이 상품은 3.75% 내렸습니다. 0.63%포인트 덜 내린 것입니다. 이틀 연속 두 종목보다 덜 올랐던 흐름이, 내리는 날에는 덜 내리는 쪽으로 작동했습니다.</p><p>나머지 편입 종목이 방향을 눌러 주는 구조는 같고 부호만 바뀐 것입니다. 오르는 날에는 손해, 내리는 날에는 이득입니다.</p></div></details></td></tr>
+</tbody>
+<tbody class="st">
+  <tr><td class="nm">PLUS 글로벌HBM반도체<span class="cd">442580</span></td><td class="pr num">94,960</td><td class="ch down num">▼ −4.07%</td></tr>
+  <tr><td class="cm" colspan="3">마이크론 어제 하락분이 들어갔고 오늘은 반대로 반영됩니다<details><summary>자세히</summary><div class="dbody"><p>9만 5,410원에 열려 9만 4,910원까지 밀렸다가 9만 4,960원에 끝났습니다. 고가는 9만 6,550원입니다.</p><p>이 상품은 삼성전자·SK하이닉스와 함께 마이크론·샌디스크를 담습니다. 어제 국내 장중에 반영된 미국 값은 마이크론이 2.64% 내렸던 9월 1일 마감분입니다.</p><p>어제 미국장에서 마이크론이 2.43% 올랐으므로 그 몫은 오늘 위쪽으로 반영됩니다. 국내 두 종목이 어떻게 열리는지와 겹쳐 봐야 합니다.</p></div></details></td></tr>
+</tbody>
+    </table></div>
+    <div class="flow">
+      <div class="fgrid">
+<div><span class="fk">외국인</span><span class="fv down num">▼ −1조 9,195억</span></div>
+<div><span class="fk">기관</span><span class="fv down num">▼ −2조 433억</span></div>
+<div><span class="fk">개인</span><span class="fv up num">▲ +2조 3,023억</span></div>
+<div><span class="fk">기타법인</span><span class="fv up num">▲ +1조 6,504억</span></div>
+      </div>
+      <div class="fn">외국인과 기관이 함께 4조 원을 던졌고 개인과 기타법인이 받았습니다.<details><summary>며칠 흐름</summary><div class="dbody"><p>외국인 흐름은 8월 25일 −3조 8,152억, 26일 −1,161억, 27일 +1,456억, 28일 −1조 7,564억, 31일 −6,407억, 9월 1일 −4,968억, 어제 −1조 9,195억입니다. 사흘 연속 줄던 매도가 어제 네 배 가까이 커졌습니다.</p><p>기타법인은 8월 31일 1조 5,787억, 9월 1일 1조 6,700억, 어제 1조 6,504억으로 사흘 연속 비슷한 규모입니다. 자사주 매입은 계속 들어왔지만 어제는 파는 쪽이 두 배 이상 커서 받쳐 내지 못했습니다.</p><p>외국인 순매도 규모는 매체마다 갈렸습니다. 아래 데이터 메모를 확인해 주십시오.</p></div></details></div>
+    </div>
+    <div class="chk">
+      <div class="ct">하방 체크</div>
+<div class="cl">어제 하락은 외국인과 기관이 함께 4조 원을 던진 결과이고, 그 손이 오늘 멈춘다는 근거는 아직 없습니다.</div><details><summary>근거</summary><div class="dbody"><p>외국인은 8월 26일부터 9월 1일까지 닷새 연속 하루 1조 원 미만이었는데 어제 하루에 1조 9,195억 원을 팔았습니다. 규모가 갑자기 네 배 가까이 커진 것이라, 하루로 끝났다고 보기에는 이릅니다.</p><p>기타법인 순매수는 사흘 연속 1조 6천억 원대로 거의 같습니다. 이 손의 크기는 자사주 매입 한도에 묶여 있어 갑자기 커지지 않습니다. 파는 쪽이 어제처럼 4조 원 규모로 나오면 받쳐 내지 못합니다.</p><p>삼성전자 저가 24만 9,500원에서 25만 원이 한 번 뚫렸고, SK스퀘어는 100만 원선이 깨졌습니다. 지지선이 하나씩 무너진 상태에서 여는 하루입니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-issue">
+    <div class="sh"><h2>메모리 이슈</h2><span class="stag">강세 3 / 약세 3</span></div>
+    <div class="sum">가장 최근 재료는 오늘 새벽 5시대 보도된 뉴욕 마감입니다</div>
+    <div class="split">
+      <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>미국이 한국을 되사들였습니다</b><span>MSCI 한국 ETF +1.74%, SK하이닉스 예탁증서 +2.61%입니다</span></li>
+<li><b>엔비디아와 마이크론이 함께 올랐습니다</b><span>엔비디아 +3.21%, 마이크론 +2.43%로 마감했습니다</span></li>
+<li><b>자사주 매입이 사흘 연속 들어왔습니다</b><span>기타법인 순매수가 어제도 1조 6,504억 원입니다</span></li></ul></div>
+      <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>유가가 아직 오르고 있습니다</b><span>브렌트유 95.63달러로 사흘째 상승했습니다</span></li>
+<li><b>중국 CXMT가 HBM3E 샘플을 냈습니다</b><span>티헤드·캄브리콘에서 호환 시험이 진행 중입니다</span></li>
+<li><b>선물이 현물보다 더 내렸습니다</b><span>코스피 −3.99%인 날 코스피200 선물은 −4.55%입니다</span></li></ul></div>
+    </div>
+    <div class="chk">
+      <div class="ct">하방 체크</div>
+<div class="cl">오늘 강세 근거 셋은 모두 간밤 미국 값이고, 국내 수급이 그 값을 인정하지 않으면 갭은 빠르게 좁혀집니다.</div><details><summary>근거</summary><div class="dbody"><p>8월 26일이 그 사례입니다. 그날도 미국 신호는 위를 가리켰는데 코스피는 0.23% 내려 열렸습니다. 미국이 매긴 값이 국내 개장 동시호가에서 그대로 반영되지 않은 날이 아홉 회차 중 세 번 있었습니다.</p><p>중국 CXMT의 HBM3E 샘플 생산은 어제 낮에 보도된 재료입니다. 티헤드·캄브리콘 같은 중국 설계사에서 호환 시험이 진행 중이고 이르면 내년 출시 가능성이 거론됐습니다. 당장 실적을 바꾸는 재료는 아니지만 어제 낙폭의 일부를 설명합니다.</p><p>자사주 매입은 강세 항목에 넣었지만 어제 이미 무력화된 것을 봤습니다. 사흘 연속 같은 크기로 들어왔는데 셋째 날에는 지수가 4% 가까이 빠졌습니다. 이 항목의 무게를 줄여 잡아야 합니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-scen">
+    <div class="sh"><h2>장중 시나리오</h2><span class="stag">09:00 → 15:30</span></div>
+    <div class="sum">갭상승으로 열고 어제 장중 고가 6,694를 시험하는 날로 봅니다</div>
+    <div class="ladder">
+<div class="lv res"><span class="lvl num">6,694.57</span><span class="lvd">1차 저항 — 9월 2일 장중 고가. 실제 거래값입니다</span></div>
+<div class="lv now"><span class="lvl num">6,562.72</span><span class="lvd">여기서 출발 — 9월 2일 종가. 고가에서 132p 아래</span></div>
+<div class="lv sup"><span class="lvl num">6,558.30</span><span class="lvd">1차 지지 — 9월 2일 장중 저가. 종가 바로 아래</span></div>
+<div class="lv sup2"><span class="lvl num">6,535.93</span><span class="lvd">2차 지지 — 8월 25일 시가. 현재가에서 0.41% 아래</span></div>
+    </div>
+    <div class="scen">
+<div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div><div class="sch">어제 고가 부근에서 열고 되돌림 폭을 시험하는 날</div><div class="scb">미국이 되돌린 폭을 국내가 절반 넘게 받아 6,610~6,780에서 출발하는 흐름을 봅니다. 어제 고가 6,694.57 위로 열리면 하루 낙폭의 절반을 개장에 회복한 자리입니다.</div><div class="sif">유지 조건 — 시초가 6,610 이상 &amp; SK하이닉스 165만 원 회복 &amp; 오전 11시까지 외국인 순매도 5,000억 원 미만</div></div>
+<div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div><div class="sch">갭상승으로 열고 오전 중 되밀리는 날</div><div class="scb">8월 26일에도 미국 신호는 위를 가리켰지만 코스피는 0.23% 내려 열었습니다. 외국인 매도가 이어지면 갭은 1% 안쪽에 그치고 구간 하단을 아래로 벗어납니다.</div><div class="sif">전환 신호 — 개장 30분 내 6,600 이탈 &amp; 삼성전자 25만 원 붕괴 &amp; 외국인 순매도 오전 중 1조 원 돌파</div></div>
+    </div>
+    <details style="margin-top:14px"><summary>전망 근거 자세히</summary><div class="dbody">
+<p>아래로 미는 힘부터 봅니다. 어제 국내에서 외국인과 기관이 합쳐 3조 9,628억 원을 팔았고, 코스피200 선물은 현물보다 0.56%포인트 더 내려 마감했습니다. 브렌트유는 95.63달러로 사흘째 올랐고 미 10년물 금리는 4.78% 부근입니다.</p>
+<p>위로 받치는 힘이 더 큽니다. 어제 국내 마감을 다 보고 문을 연 미국에서 MSCI 한국 ETF가 1.74%, SK하이닉스 예탁증서가 2.61% 올랐습니다. 엔비디아는 3.21%, 마이크론은 2.43% 올랐고 원화도 0.12% 강해졌습니다.</p>
+<p>갭상승을 택한 이유는 시점 차이입니다. 미는 힘은 어제 오후 3시 30분까지 국내에서 만들어진 값이고, 받치는 힘은 그 뒤 미국이 어제 폭락을 다 알고 매긴 값입니다. 나중에 만들어진 값이 개장 동시호가에 먼저 들어옵니다.</p>
+<p>구간을 170포인트로 잡은 것은 누적 커버리지가 37.5%에 그치기 때문입니다. 아홉 회차 중 세 번만 구간 안에 들어왔고 최근 세 회차의 갭은 절대값으로 평균 2.06%였습니다. 반대로 8월 26일처럼 미국 신호가 국내 수급에 덮인 전례가 있어 하단을 낮게 뒀습니다.</p>
+    </div></details>
+    <div class="pts">
+      <div class="pth">장중 확인 포인트 3</div>
+<div class="pt"><div class="pn">1</div><div><b>시초가가 6,694.57을 넘는가</b><span>어제 장중 고가입니다. 이 위에서 열리면 하루 낙폭의 절반을 개장에 회복한 것입니다</span></div></div>
+<div class="pt"><div class="pn">2</div><div><b>외국인이 이틀 연속 파는가</b><span>어제 1조 9,195억 원 순매도였습니다. 오전 11시까지 5,000억 원이 기준선입니다</span></div></div>
+<div class="pt"><div class="pn">3</div><div><b>SK하이닉스가 165만 원을 회복하는가</b><span>예탁증서가 매긴 값이 그 부근입니다. 못 넘기면 미국 신호가 국내에서 깎인 것입니다</span></div></div>
+    </div>
+    <div class="chk">
+      <div class="ct">하방 체크 · 가장 약한 고리</div>
+<div class="cl">가장 약한 고리는 구간 하단 6,610입니다. 미국 신호가 국내 수급에 덮이면 이 아래에서 열립니다.</div><details><summary>근거</summary><div class="dbody"><p>미국이 매긴 되돌림을 국내가 얼마나 받아들이는지는 회차마다 갈렸습니다. 8월 27일에는 예상보다 크게 받아 구간 위를 벗어났고, 8월 26일에는 아예 반대로 열렸습니다. 오늘 하단 6,610은 갭 +0.72%에 해당하는데, 어제 같은 매도가 이어지면 이보다 낮은 +0.2% 언저리도 가능합니다.</p><p>반대쪽 위험도 같이 봅니다. 상단 6,780은 갭 +3.31%인데, 예탁증서가 매긴 값을 그대로 옮기면 +4%도 나옵니다. 구간 폭 170포인트는 이 두 방향의 오차를 모두 덮으려다 넓어진 값이고, 커버리지가 올라가도 그것만으로 예측이 좋아졌다고 볼 수는 없습니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-score">
+    <div class="sh"><h2>예측 채점</h2><span class="stag">최근 10회차 · 왼쪽이 최신</span></div>
+    <div class="score">
+<div class="s wait">오늘</div>
+<div class="s hit">9/2</div>
+<div class="s hit">9/1</div>
+<div class="s miss">8/31</div>
+<div class="s miss">8/28</div>
+<div class="s miss">8/27</div>
+<div class="s miss">8/26</div>
+<div class="s miss">8/25</div>
+<div class="s hit">8/24</div>
+<div class="s miss">8/21</div>
+    </div>
+    <div class="legend">테두리 색 — 적색 적중 · 청색 빗나감 · 점선 미채점</div>
+    <div class="verdict hit">9/2 회차 — 적중</div>
+    <div class="note">갭하락 방향이 맞았고 실제 시초가 6,625.47이 예상 구간 6,600~6,735 안에 들어와 이틀 연속 적중입니다.</div>
+    <details><summary>맞은 것과 놓친 것 전부 보기</summary><div class="dbody">
+<p>맞은 것은 시점 판단입니다. 어제 회차는 국내 종가에 이미 들어간 자사주 매입 수요보다 국내 장이 끝난 뒤에 나온 미국 하락을 더 무겁게 봤고, 실제 시초가는 전일 대비 3.08% 아래인 6,625.47에서 열렸습니다.</p>
+<p>놓친 것은 폭입니다. 구간 하단 6,600을 25포인트 남기고 들어왔으니 조금만 더 밀렸으면 빗나갔을 자리입니다. 장중에는 6,558.30까지 내려 하단을 크게 뚫었고 종가도 6,562.72로 구간 아래에서 끝났습니다.</p>
+<p>반복되는 패턴은 미국이 매긴 한국 자산 가격이 개장 갭의 방향을 잘 설명한다는 점입니다. 아홉 회차 중 방향은 여섯 번 맞았습니다. 틀린 세 번은 모두 미국 신호를 국내 수급이 덮은 날이었습니다.</p>
+<p>남는 약점은 폭입니다. 방향 적중률 66.7%에 비해 구간 커버리지가 37.5%에 그친다는 것은, 방향은 읽는데 크기를 계속 작게 잡는다는 뜻입니다. 기록이 스무 건이 되면 최근 열 회차 갭의 80퍼센타일로 폭을 자동 산출하는 규칙이 켜집니다.</p>
+    </div></details>
+    <div class="cov">누적 9회차 — 구간 커버리지 37.5% (3/8) · 방향 적중 66.7% · 평균 구간폭 1.44%p</div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>지난 회차</h2></div>
+    <div class="arch"><a href="./archive/2026-09-02.html">9/2 (수)</a> <a href="./archive/2026-09-01.html">9/1 (화)</a> <a href="./archive/2026-08-31.html">8/31 (월)</a> <a href="./archive/">전체 보기</a></div>
+  </section>
+
+  <footer>
+    출처 — 국내 종가는 Google Finance 9월 2일 15:30대 값(코스피·SK하이닉스·SOL·PLUS)과 한국경제 「2026.09.02 장마감」 값(삼성전자·SK스퀘어·코스피200 선물)을, 각각 우리 아카이브의 9월 1일 종가로 계산한 등락률과 대조했습니다.<details><summary>나머지 출처</summary><div class="dbody"><p>엔비디아·마이크론·MSCI 한국 ETF·SK하이닉스 예탁증서는 Google Finance 9월 2일 미국장 마감 값이고, 필라델피아 반도체지수는 Investing.com입니다.</p><p>지수·코스닥·수급은 머니투데이·아시아경제·Businesskorea 9월 2일 마감 시황, 원/달러는 머니투데이·아시아경제 오후 3시 30분 기준, 뉴욕 마감은 CBC뉴스 오늘 새벽 보도, 중국 CXMT 관련은 한국경제 9월 2일 보도입니다.</p></div></details><br>
+    데이터 메모 — 대조한 아홉 항목 가운데 여덟 개가 두 소스에서 일치했고, 삼성전기 하나만 종가를 확보하지 못했습니다.<details><summary>갈린 항목</summary><div class="dbody"><p>삼성전자와 SK스퀘어는 Google Finance가 4~5월자 옛 값을 돌려줘 한국경제 「장마감」 값을 채택했고, 아카이브 대비 계산 등락률이 화면 표기와 일치했습니다.</p><p>삼성전기는 한국경제가 「장중(20분 지연)」으로 표기해 종가로 쓰지 않았고 다른 소스도 9월 1일까지만 제공해 미확보로 뒀습니다.</p><p>필라델피아 반도체지수는 Investing.com이 마감 시각을 명확히 찍지 않았으나 전일 종가 11,288.6이 우리 기록과 일치해 채택했습니다.</p><p>외국인 순매도는 머니투데이 1조 9,195억 원과 아시아경제 1조 9,094억 원으로 갈려, 네 주체 합계가 맞아떨어지는 머니투데이 값을 썼습니다.</p></div></details><br>
+    개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+  </footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  function apply(mode){
+    var d=(mode==='dark')||(mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-jj',d?'dark':'light');
+    root.setAttribute('data-jj-mode',mode);
+    var bs=document.querySelectorAll('.theme button');
+    for(var i=0;i<bs.length;i++){bs[i].setAttribute('aria-pressed',bs[i].dataset.set===mode?'true':'false');}
+  }
+  var saved='system';
+  try{saved=localStorage.getItem('jj-theme')||'system';}catch(e){}
+  apply(saved);
+  var bs=document.querySelectorAll('.theme button');
+  for(var i=0;i<bs.length;i++){
+    bs[i].addEventListener('click',function(){
+      var m=this.dataset.set;
+      try{localStorage.setItem('jj-theme',m);}catch(e){}
+      apply(m);
+    });
+  }
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var onch=function(){if(root.getAttribute('data-jj-mode')==='system')apply('system');};
+  if(mq.addEventListener)mq.addEventListener('change',onch);else if(mq.addListener)mq.addListener(onch);
+
+  var btn=document.getElementById('expandAll'),open=false;
+  if(btn)btn.addEventListener('click',function(){
+    open=!open;
+    var ds=document.querySelectorAll('details');
+    for(var j=0;j<ds.length;j++){ds[j].open=open;}
+    btn.textContent=open?'전부 접기':'전부 펼치기';
+  });
+})();
+</script>
+</body>
+</html>
