@@ -72,7 +72,6 @@ header{padding:16px 0 0}
 .kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:700}
 header h1{font-size:28px;font-weight:900;margin-top:5px;letter-spacing:-.04em;text-wrap:balance}
 .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--tx3)}
-.rt{font-weight:700;color:var(--tx2);background:var(--panel2);border-radius:6px;padding:2px 8px}
 
 .fbanner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
   margin-top:16px;padding:15px 17px;border-radius:14px;
@@ -87,6 +86,7 @@ header h1{font-size:28px;font-weight:900;margin-top:5px;letter-spacing:-.04em;te
 .k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:var(--shadow)}
 .k .n{font-size:12px;color:var(--tx3);font-weight:700}
 .k .v{font-size:21px;font-weight:900;margin-top:3px;letter-spacing:-.045em}
+.k .v.up{color:var(--up)} .k .v.down{color:var(--down)}
 .k .c{font-size:14px;font-weight:800;margin-top:1px}
 .legend{font-size:11.5px;color:var(--tx3);margin-top:9px;font-weight:600}
 
@@ -128,10 +128,11 @@ table.q th.r{text-align:right}
 table.q td{padding:11px 0 0;vertical-align:baseline}
 tbody.st{border-top:1px solid var(--line)}
 tbody.st:first-of-type{border-top:none}
-td.nm{font-size:16.5px;font-weight:800;padding-right:10px}
-td.nm .cd{font-size:10.5px;color:var(--tx3);font-weight:600;margin-left:5px;white-space:nowrap}
-td.pr{text-align:right;font-size:16.5px;font-weight:800;white-space:nowrap;padding-left:10px}
-td.ch{text-align:right;font-size:15px;font-weight:800;white-space:nowrap;padding-left:12px;min-width:92px}
+td.nm{font-size:16.5px;font-weight:800;padding-right:10px;word-break:keep-all;overflow-wrap:anywhere}
+td.nm .cd{display:block;font-size:10.5px;color:var(--tx3);font-weight:600;margin-top:1px;white-space:nowrap}
+td.pr{text-align:right;font-size:16.5px;font-weight:800;white-space:nowrap;padding-left:10px;padding-right:14px}
+td.pr.up{color:var(--up)} td.pr.down{color:var(--down)}
+td.ch{text-align:right;font-size:15px;font-weight:800;white-space:nowrap;padding-left:10px;min-width:80px}
 td.ch.na{color:var(--tx3);font-weight:700}
 td.cm{font-size:14.5px;color:var(--tx2);padding:4px 0 12px}
 
@@ -245,7 +246,6 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
     <div class="kick">제 11 호</div>
     <h1>2026년 9월 4일 (금)</h1>
     <div class="meta">
-      <span class="rt">훑어읽기 4분</span>
       <span>07:45 KST · 전일 종가 &amp; 간밤 미국장 반영</span>
     </div>
     <div class="fbanner">
@@ -255,10 +255,10 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
   </header>
 
   <div class="kpi">
-<div class="k"><div class="n">KOSPI</div><div class="v num">6,579.48</div><div class="c up num">▲ +0.26%</div></div>
-<div class="k"><div class="n">SOX</div><div class="v num">11,352.13</div><div class="c up num">▲ +0.11%</div></div>
-<div class="k"><div class="n">삼성전자</div><div class="v num">250,000</div><div class="c down num">▼ −0.20%</div></div>
-<div class="k"><div class="n">SK하이닉스</div><div class="v num">1,596,000</div><div class="c down num">▼ −1.05%</div></div>
+<div class="k"><div class="n">KOSPI</div><div class="v num up">6,579.48</div><div class="c up num">▲ +0.26%</div></div>
+<div class="k"><div class="n">SOX</div><div class="v num up">11,352.13</div><div class="c up num">▲ +0.11%</div></div>
+<div class="k"><div class="n">삼성전자</div><div class="v num down">250,000</div><div class="c down num">▼ −0.20%</div></div>
+<div class="k"><div class="n">SK하이닉스</div><div class="v num down">1,596,000</div><div class="c down num">▼ −1.05%</div></div>
   </div>
   <div class="legend">▲ 상승 · ▼ 하락 (국내 관행)</div>
 </div>
@@ -280,48 +280,48 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
 
   <div class="tldr">
     <div class="tt">오늘 한눈에</div>
-<div class="tl"><div class="tn">1</div><div><div class="th">미국이 어제는 한국을 다시 매기지 않았습니다</div><div class="tb">MSCI 한국 ETF 상승분이 국내 상승과 환율로 전부 설명됩니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>어제 코스피는 0.26% 올랐고 원/달러는 1,368.7원에서 1,359.3원으로 0.69% 내렸습니다. 원화가 그만큼 강해졌다는 뜻이니, 두 몫을 곱하면 달러로 환산한 한국 지수는 0.95% 상승입니다.</p><p>MSCI 한국 ETF는 어제 미국에서 정확히 0.95% 올라 180.56달러로 끝났습니다. 차이가 0.00%포인트입니다. 미국 투자자들이 한국 장 마감 뒤에 값을 새로 얹지도 깎지도 않았다는 뜻입니다.</p><p>그제는 달랐습니다. 코스피가 3.99% 내린 날 이 상품은 1.74% 올라 큰 폭으로 되사들였고, 실제로 어제 1.34% 갭상승으로 열렸습니다. 오늘은 그 신호가 없습니다.</p></div></details></div></div>
-<div class="tl"><div class="tn">2</div><div><div class="th">SK하이닉스 예탁증서만 아래를 가리킵니다</div><div class="tb">국내 종가를 달러로 바꾸면 −0.37%인데 −0.79%로 끝났습니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>국내에서 1.05% 내린 것을 원화 강세 0.69%로 보정하면 달러 기준으로는 0.37% 하락입니다. 미국 예탁증서(ADR)는 같은 하루를 0.79% 하락으로 매겼습니다. 0.42%포인트 더 낮은 값입니다.</p><p>정규장이 끝난 뒤 시간외에서도 162.70달러로 0.60% 더 내렸습니다. 방향이 한 번 더 아래입니다.</p><p>다만 이 종목은 거래가 얇습니다. 어제도 157.73달러에서 164.63달러까지 4.4% 범위를 오갔습니다. 종가 하나를 국내 갭으로 곧장 옮기면 과대평가하기 쉽습니다.</p></div></details></div></div>
+<div class="tl"><div class="tn">1</div><div><div class="th">간밤 뉴욕은 한국 자산을 새로 반영하지 않았습니다</div><div class="tb">MSCI 한국 ETF 상승분이 국내 상승과 환율로 전부 설명됩니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>어제 코스피는 0.26% 올랐고 원/달러는 1,368.7원에서 1,359.3원으로 0.69% 내렸습니다. 원화가 그만큼 강해졌다는 뜻이니, 두 몫을 곱하면 달러로 환산한 한국 지수는 0.95% 상승입니다.</p><p>MSCI 한국 ETF는 어제 미국에서 정확히 0.95% 올라 180.56달러로 끝났습니다. 차이가 0.00%포인트입니다. 미국 투자자들이 한국 장 마감 뒤에 값을 새로 얹지도 깎지도 않았다는 뜻입니다.</p><p>그제는 달랐습니다. 코스피가 3.99% 내린 날 이 상품은 1.74% 올라 큰 폭으로 되사들였고, 실제로 어제 1.34% 갭상승으로 열렸습니다. 오늘은 그 신호가 없습니다.</p></div></details></div></div>
+<div class="tl"><div class="tn">2</div><div><div class="th">SK하이닉스 ADR만 방향이 반대입니다</div><div class="tb">국내 종가를 달러로 바꾸면 −0.37%인데 −0.79%로 끝났습니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>국내에서 1.05% 내린 것을 원화 강세 0.69%로 보정하면 달러 기준으로는 0.37% 하락입니다. ADR은 같은 하루를 0.79% 하락으로 마감했습니다. 0.42%포인트 더 낮은 값입니다.</p><p>정규장이 끝난 뒤 시간외에서도 162.70달러로 0.60% 더 내렸습니다. 방향이 한 번 더 아래입니다.</p><p>다만 이 종목은 거래가 얇습니다. 어제도 157.73달러에서 164.63달러까지 4.4% 범위를 오갔습니다. 종가 하나를 국내 갭으로 곧장 옮기면 과대평가하기 쉽습니다.</p></div></details></div></div>
 <div class="tl"><div class="tn">3</div><div><div class="th">삼성전자가 HBM 점유율을 33%로 올렸습니다</div><div class="tb">SK하이닉스와의 격차가 37%p에서 17%p로 좁혀졌습니다</div><details><summary>숫자로 보기</summary><div class="dbody"><p>카운터포인트리서치의 2026년 2분기 매출 기준 집계입니다. SK하이닉스가 67%에서 50%로, 마이크론이 21%에서 18%로 내려왔고 삼성전자가 21%에서 33%로 올라왔습니다.</p><p>이것은 시장이 커지는 재료가 아니라 같은 시장을 나누는 몫이 바뀌는 재료입니다. 두 회사에 반대 방향으로 작용하므로 지수 전체로는 중립에 가깝습니다.</p><p>어제 저녁 6시 35분에 보도됐습니다. 국내 장이 끝난 뒤에 나왔으므로 어제 종가에는 들어 있지 않고 오늘 반영될 차례입니다.</p></div></details></div></div>
   </div>
 
   <section id="s-global">
     <div class="sh"><h2>간밤 글로벌</h2><span class="stag">9/3(목) 미국장 마감</span></div>
-    <div class="sum">미국은 올랐지만 한국 자산에 덧붙인 값은 없습니다</div>
+    <div class="sum">미국은 올랐지만 한국 자산에 붙은 프리미엄은 없습니다</div>
     <div class="tblwrap"><table class="q">
       <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
 <tbody class="st">
-  <tr><td class="nm">필라델피아 반도체지수<span class="cd">SOX</span></td><td class="pr num">11,352.13</td><td class="ch up num">▲ +0.11%</td></tr>
+  <tr><td class="nm">필라델피아 반도체지수<span class="cd">SOX</span></td><td class="pr num up">11,352.13</td><td class="ch up num">▲ +0.11%</td></tr>
   <tr><td class="cm" colspan="3">지수는 올랐지만 반도체는 사흘째 0.5% 미만입니다<details><summary>자세히</summary><div class="dbody"><p>11,219.44에 열려 11,056.38까지 밀렸다가 11,352.13에 끝났습니다. 장중 고가는 11,371.33입니다. 하루 안에 314포인트, 2.8% 범위를 오갔는데 끝은 제자리였습니다.</p><p>엔비디아가 1.80% 올랐는데 지수가 0.11%에 그쳤다는 것은 나머지 편입 종목이 눌렀다는 뜻입니다. 그제도 엔비디아·마이크론만 올리고 지수는 0.39%였습니다. 이틀 연속 같은 모양입니다.</p><p>전일 종가 기준값이 소스마다 갈렸습니다. 아래 데이터 메모를 확인해 주십시오.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">엔비디아<span class="cd">NVDA</span></td><td class="pr num">228.45</td><td class="ch up num">▲ +1.80%</td></tr>
+  <tr><td class="nm">엔비디아<span class="cd">NVDA</span></td><td class="pr num up">228.45</td><td class="ch up num">▲ +1.80%</td></tr>
   <tr><td class="cm" colspan="3">이틀 연속 올라 실적 발표 자리를 되찾았습니다<details><summary>자세히</summary><div class="dbody"><p>226.02달러에 열려 224.75달러까지 밀렸다가 228.45달러에 끝났습니다. 장중 고가는 230.40달러이고, 시간외에서 229.28달러로 0.36% 더 올랐습니다.</p><p>8월 27일 실적 발표로 8.74% 올랐다가 사흘 내리 밀렸던 자리를 이틀 만에 되찾았습니다. 다만 이 회복이 반도체 전체로 번지지는 않았습니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">마이크론<span class="cd">MU</span></td><td class="pr num">958.16</td><td class="ch up num">▲ +0.22%</td></tr>
-  <tr><td class="cm" colspan="3">장중 918.88달러까지 4% 밀렸다가 되돌렸습니다<details><summary>자세히</summary><div class="dbody"><p>956.91달러에 열려 918.88달러까지 밀렸다가 958.16달러에 끝났고, 시간외에서 954.20달러로 0.41% 내렸습니다. 장중 고가는 959.76달러입니다.</p><p>종가만 보면 0.22% 상승이라 조용한 하루처럼 보이지만, 저가에서 고가까지 4.4%를 오간 하루입니다. PLUS 글로벌HBM반도체가 담는 종목이므로 오늘 국내에서 이 폭이 어떻게 반영되는지 봐야 합니다.</p></div></details></td></tr>
+  <tr><td class="nm">마이크론<span class="cd">MU</span></td><td class="pr num up">958.16</td><td class="ch up num">▲ +0.22%</td></tr>
+  <tr><td class="cm" colspan="3">장중 918.88달러까지 4% 밀렸다가 되돌렸습니다<details><summary>자세히</summary><div class="dbody"><p>956.91달러에 열려 918.88달러까지 밀렸다가 958.16달러에 끝났고, 시간외에서 954.20달러로 0.41% 내렸습니다. 장중 고가는 959.76달러입니다.</p><p>종가만 보면 0.22% 상승이라 조용한 하루처럼 보이지만, 저가에서 고가까지 4.4%를 오간 하루입니다. PLUS 글로벌HBM가 담는 종목이므로 오늘 국내에서 이 폭이 어떻게 반영되는지 봐야 합니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">MSCI 한국 ETF<span class="cd">EWY</span></td><td class="pr num">180.56</td><td class="ch up num">▲ +0.95%</td></tr>
-  <tr><td class="cm" colspan="3">국내 상승과 환율로 정확히 설명되는 상승폭입니다<details><summary>자세히</summary><div class="dbody"><p>178.29달러에 열려 176.08달러까지 밀렸다가 180.56달러에 끝났고, 시간외에서 179.68달러로 0.49% 내렸습니다. 장중 고가는 180.81달러입니다.</p><p>코스피 0.26% 상승에 원화 0.69% 강세를 곱하면 달러 기준 0.95%입니다. 이 상품의 상승률과 소수점까지 같습니다. 미국이 한국 장 마감 뒤에 값을 새로 매기지 않았다는 뜻이고, 그래서 오늘 갭의 근거가 되지 못합니다.</p><p>거래가 두터운 쪽이라 예탁증서와 값이 갈릴 때 이쪽을 우선하는 기준을 세워 뒀습니다. 오늘은 둘이 반대 방향이라 그 기준이 실제로 갈리는 날입니다.</p></div></details></td></tr>
+  <tr><td class="nm">MSCI 한국 ETF<span class="cd">EWY</span></td><td class="pr num up">180.56</td><td class="ch up num">▲ +0.95%</td></tr>
+  <tr><td class="cm" colspan="3">국내 상승과 환율로 정확히 설명되는 상승폭입니다<details><summary>자세히</summary><div class="dbody"><p>178.29달러에 열려 176.08달러까지 밀렸다가 180.56달러에 끝났고, 시간외에서 179.68달러로 0.49% 내렸습니다. 장중 고가는 180.81달러입니다.</p><p>코스피 0.26% 상승에 원화 0.69% 강세를 곱하면 달러 기준 0.95%입니다. 이 상품의 상승률과 소수점까지 같습니다. 국내 마감 뒤 뉴욕에서 새로 반영된 몫이 없다는 뜻이고, 오늘 갭의 근거가 되지 못합니다.</p><p>유동성이 두터운 쪽이라 ADR과 값이 갈릴 때 이쪽을 우선하는 기준을 세워 뒀습니다. 오늘은 둘이 반대 방향이라 그 기준이 실제로 갈리는 날입니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">SK하이닉스 ADR<span class="cd">SKHY</span></td><td class="pr num">163.68</td><td class="ch down num">▼ −0.79%</td></tr>
-  <tr><td class="cm" colspan="3">국내를 달러로 바꾼 값보다 0.42%p 낮게 끝났습니다<details><summary>자세히</summary><div class="dbody"><p>160.82달러에 열려 157.73달러까지 밀렸다가 163.68달러에 끝났고, 시간외에서 162.70달러로 0.60% 더 내렸습니다. 장중 고가는 164.63달러입니다.</p><p>국내 종가 159만 6천 원은 원화 강세를 반영하면 달러 기준 0.37% 하락인데, 미국에서는 0.79% 하락으로 매겼습니다. 0.42%포인트 더 낮은 값입니다.</p><p>다만 하루 안에 4.4% 범위를 오간 얇은 종목입니다. 이 폭을 그대로 국내 갭으로 옮기면 과대평가합니다. 방향의 단서로만 씁니다.</p></div></details></td></tr>
+  <tr><td class="nm">SK하이닉스 ADR<span class="cd">SKHY</span></td><td class="pr num down">163.68</td><td class="ch down num">▼ −0.79%</td></tr>
+  <tr><td class="cm" colspan="3">국내를 달러로 바꾼 값보다 0.42%p 낮게 끝났습니다<details><summary>자세히</summary><div class="dbody"><p>160.82달러에 열려 157.73달러까지 밀렸다가 163.68달러에 끝났고, 시간외에서 162.70달러로 0.60% 더 내렸습니다. 장중 고가는 164.63달러입니다.</p><p>국내 종가 159만 6천 원은 원화 강세를 반영하면 달러 기준 0.37% 하락인데, 뉴욕에서는 0.79% 하락으로 끝났습니다. 0.42%포인트 더 낮은 값입니다.</p><p>다만 하루 안에 4.4% 범위를 오간 얇은 종목입니다. 이 폭을 그대로 국내 갭으로 옮기면 과대평가합니다. 방향의 단서로만 씁니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
   <tr><td class="nm">코스피200 선물<span class="cd">9/3 정규장</span></td><td class="pr num">—</td><td class="ch na">미확보</td></tr>
   <tr><td class="cm" colspan="3">확인할 수 있는 소스를 찾지 못했습니다<details><summary>자세히</summary><div class="dbody"><p>Investing.com의 코스피200 선물 페이지는 2월 9일자 옛 값을 돌려줬고, 어제 마감 시황 기사에도 선물 지수는 실리지 않았습니다.</p><p>추정값을 넣지 않고 미확보로 둡니다. 야간 세션 종가도 이번 회차에서는 확보하지 못했습니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">원/달러<span class="cd">서울 주간 종가</span></td><td class="pr num">1,359.3</td><td class="ch down num">▼ −9.4원</td></tr>
+  <tr><td class="nm">원/달러<span class="cd">서울 주간 종가</span></td><td class="pr num down">1,359.3</td><td class="ch down num">▼ −9.4원</td></tr>
   <tr><td class="cm" colspan="3">원화가 0.69% 강해졌고 간밤 0.23% 더 갔습니다<details><summary>자세히</summary><div class="dbody"><p>전일 1,368.7원에서 9.4원 내린 1,359.3원으로 끝났습니다. 환율이 내렸다는 건 원화가 강해졌다는 뜻이고, 외국인이 한국 주식을 달러로 환산해 볼 때 값이 그만큼 높아 보인다는 뜻입니다.</p><p>오늘 아침 7시 44분 국제 시세는 1,356.22원으로 서울 종가보다 0.23% 더 내려 있습니다. 이 몫은 오늘 갭에서 위로 작용하는 유일한 새 재료입니다.</p><p>주식에서는 세 주체가 팔았는데 원화는 이틀 연속 강해졌습니다. 판 돈이 아직 밖으로 나가지 않았을 가능성을 시사하지만 이틀치로 단정하기는 이릅니다.</p></div></details></td></tr>
 </tbody>
     </table></div>
     <div class="chk">
       <div class="ct">하방 체크</div>
-<div class="cl">미국 지수는 올랐지만 한국 자산에 새로 매겨진 값은 없습니다. 간밤 상승을 갭 근거로 쓰기 어렵습니다.</div><details><summary>근거</summary><div class="dbody"><p>MSCI 한국 ETF의 0.95% 상승은 어제 국내 장에서 이미 만들어진 몫입니다. 코스피 0.26%와 원화 강세 0.69%를 곱하면 그대로 나오는 값이고, 미국 세션이 더한 프리미엄은 0.00%포인트입니다.</p><p>반도체지수는 0.11% 오르는 데 그쳤습니다. 엔비디아 1.80%와 마이크론 0.22%만 올랐고 나머지 편입 종목은 따라오지 않았습니다. 이틀 연속 같은 모양이므로 반등이 넓어졌다고 보기 어렵습니다.</p><p>SK하이닉스 예탁증서는 아예 반대 방향입니다. 미국이 준 신호가 종목별로 갈린 밤이라, 지수 갭과 개별 종목 갭을 같은 방향으로 놓고 보면 틀립니다.</p></div></details>
+<div class="cl">미국 지수는 올랐지만 한국 자산에 새로 매겨진 값은 없습니다. 간밤 상승을 갭 근거로 쓰기 어렵습니다.</div><details><summary>근거</summary><div class="dbody"><p>MSCI 한국 ETF의 0.95% 상승은 어제 국내 장에서 이미 만들어진 몫입니다. 코스피 0.26%와 원화 강세 0.69%를 곱하면 그대로 나오는 값이고, 미국 세션이 더한 프리미엄은 0.00%포인트입니다.</p><p>반도체지수는 0.11% 오르는 데 그쳤습니다. 엔비디아 1.80%와 마이크론 0.22%만 올랐고 나머지 편입 종목은 따라오지 않았습니다. 이틀 연속 같은 모양이므로 반등이 넓어졌다고 보기 어렵습니다.</p><p>SK하이닉스 ADR은 아예 반대 방향입니다. 간밤 신호가 종목별로 갈렸으므로, 지수 갭과 개별 종목 갭을 같은 방향으로 놓고 보면 틀립니다.</p></div></details>
     </div>
   </section>
 
@@ -331,15 +331,15 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
     <div class="tblwrap"><table class="q">
       <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
 <tbody class="st">
-  <tr><td class="nm">삼성전자<span class="cd">005930</span></td><td class="pr num">250,000</td><td class="ch down num">▼ −0.20%</td></tr>
+  <tr><td class="nm">삼성전자<span class="cd">005930</span></td><td class="pr num down">250,000</td><td class="ch down num">▼ −0.20%</td></tr>
   <tr><td class="cm" colspan="3">25만 원선을 종가로 지켰고 저가는 24만 3천 원입니다<details><summary>자세히</summary><div class="dbody"><p>고가 25만 5,000원, 저가 24만 3,000원에서 25만 원으로 끝났습니다. 저가에서 25만 원이 다시 뚫렸다가 정확히 그 자리로 돌아왔습니다.</p><p>그제 4.02% 하락 뒤 어제는 0.20% 하락에 그쳤습니다. 낙폭이 20분의 1로 줄었지만 방향은 아직 아래입니다.</p><p>HBM 점유율이 21%에서 33%로 올랐다는 어제 저녁 보도는 이 종가에 들어 있지 않습니다. 다만 점유율은 매출 배분을 바꾸는 것이지 메모리 값 자체를 바꾸지는 않습니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">SK하이닉스<span class="cd">000660</span></td><td class="pr num">1,596,000</td><td class="ch down num">▼ −1.05%</td></tr>
-  <tr><td class="cm" colspan="3">160만 원이 깨졌고 저가는 155만 8천 원입니다<details><summary>자세히</summary><div class="dbody"><p>164만 3,000원에 열려 155만 8,000원까지 밀렸다가 159만 6,000원에 끝났습니다. 고가는 164만 9,000원입니다. 하루 안에 5.8% 범위를 오갔습니다.</p><p>어제 회차에서 확인 포인트로 지목한 165만 원 회복은 실패했습니다. 장중 164만 9,000원까지 붙었다가 되밀렸습니다.</p><p>예탁증서는 밤사이 국내보다 0.42%포인트 낮게 매겼고 HBM 점유율은 67%에서 50%로 내려왔다는 집계가 나왔습니다. 두 재료 모두 이 종목에 아래쪽입니다.</p></div></details></td></tr>
+  <tr><td class="nm">SK하이닉스<span class="cd">000660</span></td><td class="pr num down">1,596,000</td><td class="ch down num">▼ −1.05%</td></tr>
+  <tr><td class="cm" colspan="3">160만 원이 깨졌고 저가는 155만 8천 원입니다<details><summary>자세히</summary><div class="dbody"><p>164만 3,000원에 열려 155만 8,000원까지 밀렸다가 159만 6,000원에 끝났습니다. 고가는 164만 9,000원입니다. 하루 안에 5.8% 범위를 오갔습니다.</p><p>어제 회차에서 확인 포인트로 지목한 165만 원 회복은 실패했습니다. 장중 164만 9,000원까지 붙었다가 되밀렸습니다.</p><p>ADR은 밤사이 국내 대비 0.42%p 디스카운트로 끝났고 HBM 점유율은 67%에서 50%로 내려왔다는 집계가 나왔습니다. 두 재료 모두 이 종목에 아래쪽입니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">SK스퀘어<span class="cd">402340</span></td><td class="pr num">981,000</td><td class="ch down num">▼ −0.10%</td></tr>
+  <tr><td class="nm">SK스퀘어<span class="cd">402340</span></td><td class="pr num down">981,000</td><td class="ch down num">▼ −0.10%</td></tr>
   <tr><td class="cm" colspan="3">어제는 자회사보다 덜 내려 배율이 뒤집혔습니다<details><summary>자세히</summary><div class="dbody"><p>고가 100만 6,000원, 저가 94만 7,000원에서 98만 1,000원으로 끝났습니다. 장중 100만 원선을 되찾았다가 다시 내줬습니다.</p><p>그제는 SK하이닉스 4.73% 하락에 7.97% 하락으로 1.7배를 따라갔는데, 어제는 1.05% 하락에 0.10% 하락으로 10분의 1만 따라갔습니다. 배율이 회차마다 크게 흔들린다는 뜻이므로 고정된 배수로 보지 않는 편이 안전합니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
@@ -347,11 +347,11 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
   <tr><td class="cm" colspan="3">이틀 연속 종가 소스를 찾지 못했습니다<details><summary>자세히</summary><div class="dbody"><p>Google Finance는 4월 30일자 옛 값을 돌려줬고, 한국경제 페이지는 135만 5,000원을 표시하면서 상태를 「2026.09.03 장중(20분 지연)」으로 찍었습니다. 장이 끝난 지 16시간이 지난 시각인데도 장중 표기가 남아 있으므로 종가로 쓰지 않았습니다.</p><p>전일 종가도 확보하지 못한 상태라 등락률을 계산할 기준값 자체가 없습니다. 추정값을 넣지 않고 미확보로 둡니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">SOL AI반도체TOP2플러스<span class="cd">0167A0</span></td><td class="pr num">16,495</td><td class="ch down num">▼ −1.82%</td></tr>
+  <tr><td class="nm">SOL AI반도체TOP2<span class="cd">0167A0</span></td><td class="pr num down">16,495</td><td class="ch down num">▼ −1.82%</td></tr>
   <tr><td class="cm" colspan="3">두 종목 평균보다 1.19%p 더 내렸습니다<details><summary>자세히</summary><div class="dbody"><p>1만 7,100원에 열려 1만 6,080원까지 밀렸다가 1만 6,495원에 끝났습니다. 고가는 1만 7,185원입니다.</p><p>삼성전자와 SK하이닉스 하락률의 평균은 0.63%인데 이 상품은 1.82% 내렸습니다. 그제는 두 종목보다 덜 내렸는데 어제는 더 내렸습니다. 나머지 편입 종목이 방향을 눌러 주던 구조가 어제는 반대로 작동했습니다.</p></div></details></td></tr>
 </tbody>
 <tbody class="st">
-  <tr><td class="nm">PLUS 글로벌HBM반도체<span class="cd">442580</span></td><td class="pr num">95,060</td><td class="ch up num">▲ +0.11%</td></tr>
+  <tr><td class="nm">PLUS 글로벌HBM<span class="cd">442580</span></td><td class="pr num up">95,060</td><td class="ch up num">▲ +0.11%</td></tr>
   <tr><td class="cm" colspan="3">국내 두 종목이 내린 날에 홀로 올랐습니다<details><summary>자세히</summary><div class="dbody"><p>9만 6,020원에 열려 9만 3,420원까지 밀렸다가 9만 5,060원에 끝났습니다. 고가는 9만 7,910원입니다.</p><p>이 상품은 삼성전자·SK하이닉스와 함께 마이크론·샌디스크를 담습니다. 어제 국내 장중에 반영된 미국 값은 마이크론이 2.43% 올랐던 9월 2일 마감분이고, 그 몫이 국내 두 종목의 하락을 상쇄했습니다.</p><p>어제 미국장에서 마이크론은 0.22% 오르는 데 그쳤습니다. 오늘은 이 상품을 밀어 올릴 미국 몫이 거의 없습니다.</p></div></details></td></tr>
 </tbody>
     </table></div>
@@ -375,7 +375,7 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
     <div class="sum">가장 최근 재료는 어제 저녁 6시 35분 HBM 점유율 보도입니다</div>
     <div class="split">
       <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>원화가 이틀째 강해졌습니다</b><span>서울 종가 1,359.3원, 간밤 1,356.22원으로 더 내렸습니다</span></li><li><b>엔비디아가 1.80% 올랐습니다</b><span>228.45달러로 이틀 연속 상승했습니다</span></li><li><b>자사주 매입이 나흘째 들어왔습니다</b><span>기타법인 순매수가 어제도 1조 5,936억 원입니다</span></li></ul></div>
-      <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>예탁증서가 국내보다 낮게 매겼습니다</b><span>달러 환산 −0.37%인데 −0.79%로 끝났습니다</span></li><li><b>삼성전자가 HBM 점유율을 가져갔습니다</b><span>SK하이닉스가 67%에서 50%로 내려왔습니다</span></li><li><b>개인이 받는 손에서 파는 손이 됐습니다</b><span>그제 +2조 3,023억에서 어제 −9,552억입니다</span></li></ul></div>
+      <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>ADR이 국내 대비 디스카운트로 끝났습니다</b><span>달러 환산 −0.37%인데 −0.79%로 끝났습니다</span></li><li><b>삼성전자가 HBM 점유율을 가져갔습니다</b><span>SK하이닉스가 67%에서 50%로 내려왔습니다</span></li><li><b>개인이 받는 손에서 파는 손이 됐습니다</b><span>그제 +2조 3,023억에서 어제 −9,552억입니다</span></li></ul></div>
     </div>
     <div class="chk">
       <div class="ct">하방 체크</div>
@@ -393,11 +393,11 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
 <div class="lv sup2"><span class="lvl num">6,439.49</span><span class="lvd">2차 지지 — 9월 3일 장중 저가. 2.13% 아래</span></div>
     </div>
     <div class="scen">
-<div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div><div class="sch">보합으로 열고 어제의 넓은 폭을 다시 시험</div><div class="scb">미국이 한국 자산에 덧붙인 값이 0이라 갭 근거가 약합니다. 간밤 원화가 0.23% 더 강해진 몫만 위로 작용해 6,540~6,660에서 여는 흐름을 봅니다.</div><div class="sif">유지 조건 — 시초가 6,540 이상 &amp; SK하이닉스 160만 원 회복 &amp; 오전 11시까지 외국인 순매도 3,000억 원 미만</div></div>
-<div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div><div class="sch">예탁증서가 매긴 값이 지수를 눌러 갭하락</div><div class="scb">SK하이닉스 예탁증서는 국내를 달러로 바꾼 값보다 0.42%p 낮았고 시간외에서 0.60% 더 내렸습니다. 이 몫이 지수를 끌면 하단을 벗어납니다.</div><div class="sif">전환 신호 — 개장 30분 내 6,540 이탈 &amp; SK하이닉스 158만 원 이탈 &amp; 외국인 순매도 오전 중 5,000억 원 돌파</div></div>
+<div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div><div class="sch">보합으로 열고 어제의 넓은 폭을 다시 시험</div><div class="scb">한국 자산에 붙은 프리미엄이 0이라 갭 근거가 약합니다. 간밤 원화가 0.23% 더 강해진 몫만 위로 작용해 6,540~6,660에서 여는 흐름을 봅니다.</div><div class="sif">유지 조건 — 시초가 6,540 이상 &amp; SK하이닉스 160만 원 회복 &amp; 오전 11시까지 외국인 순매도 3,000억 원 미만</div></div>
+<div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div><div class="sch">ADR 디스카운트가 지수를 눌러 갭하락</div><div class="scb">SK하이닉스 ADR은 국내 종가의 달러 환산값보다 0.42%p 낮았고 시간외에서 0.60% 더 내렸습니다. 이 몫이 지수를 끌면 하단을 벗어납니다.</div><div class="sif">전환 신호 — 개장 30분 내 6,540 이탈 &amp; SK하이닉스 158만 원 이탈 &amp; 외국인 순매도 오전 중 5,000억 원 돌파</div></div>
     </div>
     <details style="margin-top:14px"><summary>전망 근거 자세히</summary><div class="dbody">
-<p>아래로 미는 힘부터 봅니다. SK하이닉스 예탁증서가 국내를 달러로 환산한 값보다 0.42%포인트 낮게 끝났고 시간외에서 0.60% 더 내렸습니다. 어제 국내에서는 외국인·기관·개인 세 주체가 모두 팔았습니다.</p>
+<p>아래로 미는 힘부터 봅니다. SK하이닉스 ADR이 국내 종가의 달러 환산값보다 0.42%p 낮게 끝났고 시간외에서 0.60% 더 내렸습니다. 어제 국내에서는 외국인·기관·개인 세 주체가 모두 팔았습니다.</p>
 <p>위로 받치는 힘은 두 가지입니다. 원/달러가 서울 종가 1,359.3원에서 간밤 1,356.22원으로 0.23% 더 내렸고, 엔비디아가 1.80% 올랐습니다. 기타법인의 자사주 매입도 나흘 연속 들어왔습니다.</p>
 <p>보합을 택한 이유는 MSCI 한국 ETF입니다. 어제 이 상품의 0.95% 상승은 코스피 0.26%와 원화 강세 0.69%를 곱한 값과 소수점까지 같습니다. 미국이 한국 장 마감 뒤에 값을 새로 얹지 않았다는 뜻입니다.</p>
 <p>구간을 120포인트로 잡은 것은 갭 근거가 약할 때 폭을 줄이는 편이 맞다고 봤기 때문입니다. 다만 누적 커버리지가 44.4%에 그치고 최근 세 회차 갭이 절대값 평균 1.65%였으므로 어제의 170포인트보다만 좁혔습니다.</p>
@@ -405,12 +405,12 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
     <div class="pts">
       <div class="pth">장중 확인 포인트 3</div>
 <div class="pt"><div class="pn">1</div><div><b>시초가가 6,562.72 위인가</b><span>9월 2일 종가입니다. 아래에서 열리면 어제 상승분을 반납한 것입니다</span></div></div>
-<div class="pt"><div class="pn">2</div><div><b>SK하이닉스가 160만 원을 넘는가</b><span>어제 종가 159만 6천 원입니다. 예탁증서는 이 아래를 가리킵니다</span></div></div>
+<div class="pt"><div class="pn">2</div><div><b>SK하이닉스가 160만 원을 넘는가</b><span>어제 종가 159만 6천 원입니다. ADR은 이 아래에서 끝났습니다</span></div></div>
 <div class="pt"><div class="pn">3</div><div><b>기타법인 매수가 나흘째 들어오는가</b><span>어제 1조 5,936억 원입니다. 이 손이 줄면 받칠 손이 없습니다</span></div></div>
     </div>
     <div class="chk">
       <div class="ct">하방 체크 · 가장 약한 고리</div>
-<div class="cl">가장 약한 고리는 상단 6,660입니다. 미국이 얹은 프리미엄이 0인데 상단을 +1.22%까지 열어 뒀습니다.</div><details><summary>근거</summary><div class="dbody"><p>오늘 위쪽 근거는 원화 0.23% 추가 강세와 엔비디아 1.80% 상승뿐입니다. 이 둘만으로 1.2% 갭상승이 나오려면 국내 매수가 개장 동시호가에 먼저 들어와야 하는데, 어제 세 주체가 판 뒤라 그 근거가 약합니다.</p><p>반대쪽도 봅니다. 하단 6,540은 −0.60%인데, 예탁증서가 매긴 0.42%포인트와 시간외 0.60%를 그대로 옮기면 −1% 부근도 가능합니다. 그러면 하단도 벗어납니다.</p><p>누적 커버리지가 44.4%라는 것은 열 번 중 네 번만 구간 안에 들어왔다는 뜻입니다. 방향 적중은 70.0%인데 구간은 절반을 못 넘깁니다. 방향은 읽는데 크기를 계속 작게 잡는 약점이 아직 그대로입니다.</p></div></details>
+<div class="cl">가장 약한 고리는 상단 6,660입니다. 미국이 얹은 프리미엄이 0인데 상단을 +1.22%까지 열어 뒀습니다.</div><details><summary>근거</summary><div class="dbody"><p>오늘 위쪽 근거는 원화 0.23% 추가 강세와 엔비디아 1.80% 상승뿐입니다. 이 둘만으로 1.2% 갭상승이 나오려면 국내 매수가 개장 동시호가에 먼저 들어와야 하는데, 어제 세 주체가 판 뒤라 그 근거가 약합니다.</p><p>반대쪽도 봅니다. 하단 6,540은 −0.60%인데, ADR 디스카운트 0.42%p와 시간외 0.60%를 그대로 옮기면 −1% 부근도 가능합니다. 그러면 하단도 벗어납니다.</p><p>누적 커버리지가 44.4%라는 것은 열 번 중 네 번만 구간 안에 들어왔다는 뜻입니다. 방향 적중은 70.0%인데 구간은 절반을 못 넘깁니다. 방향은 읽는데 크기를 계속 작게 잡는 약점이 아직 그대로입니다.</p></div></details>
     </div>
   </section>
 
@@ -446,7 +446,7 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
   </section>
 
   <footer>
-    출처 — 국내 종가는 Google Finance 9월 3일 15:30대 값(SK하이닉스·SOL·PLUS)과 한국경제 「2026.09.03 장마감」 값(삼성전자·SK스퀘어)을, 각각 우리 아카이브의 9월 2일 종가로 계산한 등락률과 대조했습니다.<details><summary>나머지 출처</summary><div class="dbody"><p>코스피 지수(종가·시가·고가·저가)와 수급은 인포스탁데일리 9월 3일 마감체크와 위키트리 9월 3일 마감 기사를 대조했고, 코스닥 790.21은 두 기사가 일치했습니다.</p><p>엔비디아·마이크론·MSCI 한국 ETF·SK하이닉스 예탁증서·필라델피아 반도체지수는 Google Finance 9월 3일 미국장 마감 값이며, 예탁증서와 MSCI 한국 ETF는 Investing.com·StockAnalysis와 각각 대조했습니다.</p><p>원/달러 서울 주간 종가는 Businesskorea와 인포스탁데일리, 오늘 아침 국제 시세는 Google Finance 9월 3일 22:44 UTC 값입니다. HBM 점유율은 머니투데이 9월 3일 18:35 보도(카운터포인트리서치 2026년 2분기 매출 기준)입니다.</p></div></details><br>
+    출처 — 국내 종가는 Google Finance 9월 3일 15:30대 값(SK하이닉스·SOL·PLUS)과 한국경제 「2026.09.03 장마감」 값(삼성전자·SK스퀘어)을, 각각 우리 아카이브의 9월 2일 종가로 계산한 등락률과 대조했습니다.<details><summary>나머지 출처</summary><div class="dbody"><p>코스피 지수(종가·시가·고가·저가)와 수급은 인포스탁데일리 9월 3일 마감체크와 위키트리 9월 3일 마감 기사를 대조했고, 코스닥 790.21은 두 기사가 일치했습니다.</p><p>엔비디아·마이크론·MSCI 한국 ETF·SK하이닉스 ADR·필라델피아 반도체지수는 Google Finance 9월 3일 미국장 마감 값이며, ADR과 MSCI 한국 ETF는 Investing.com·StockAnalysis와 각각 대조했습니다.</p><p>원/달러 서울 주간 종가는 Businesskorea와 인포스탁데일리, 오늘 아침 국제 시세는 Google Finance 9월 3일 22:44 UTC 값입니다. HBM 점유율은 머니투데이 9월 3일 18:35 보도(카운터포인트리서치 2026년 2분기 매출 기준)입니다.</p></div></details><br>
     데이터 메모 — 대조한 열한 항목 가운데 아홉 개가 두 소스에서 일치했고, 필라델피아 반도체지수 하나가 갈렸으며 삼성전기와 코스피200 선물은 종가를 확보하지 못했습니다.<details><summary>갈린 항목</summary><div class="dbody"><p>필라델피아 반도체지수는 우리 아카이브의 9월 2일 종가 11,332.10으로 계산하면 어제 상승률이 0.18%인데, Google Finance 화면 표기는 0.11%였습니다. 0.07%포인트 차이입니다. Investing.com이 9월 2일 종가를 11,339.3으로 표시하고 있어 아카이브 값이 확정 전 값이었던 것으로 보고, 시각이 찍힌 Google Finance의 0.11%를 채택했습니다.</p><p>수급은 세 소스가 갈렸습니다. Businesskorea는 외국인 −1,491억·기관 −703억·개인 +1,591억으로 다른 두 소스와 크게 어긋났고, 인포스탁데일리(외국인 −4,194억)와 위키트리(−4,234억)는 근사 일치했습니다. 네 주체 합계가 0에 맞아떨어지는 인포스탁데일리 값을 썼습니다.</p><p>삼성전기는 한국경제가 장이 끝난 지 16시간 뒤에도 「장중(20분 지연)」으로 표기해 종가로 쓰지 않았고 Google Finance는 4월 30일자 옛 값을 돌려줬습니다. 코스피200 선물은 Investing.com이 2월 9일자 값을 돌려줘 두 항목 모두 미확보로 뒀습니다.</p><p>엔비디아 등락률은 소스마다 갈렸습니다. 한 블로그 매체가 2.29%로 적었으나, 아카이브의 9월 2일 종가 224.41달러로 계산하면 1.80%이고 Google Finance 화면 표기와도 같아 1.80%를 썼습니다. 같은 매체가 전한 미국 3대 지수 종가는 대조 소스를 찾지 못해 본문에 쓰지 않았습니다.</p></div></details><br>
     개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
   </footer>

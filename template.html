@@ -72,7 +72,6 @@ header{padding:16px 0 0}
 .kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:700}
 header h1{font-size:28px;font-weight:900;margin-top:5px;letter-spacing:-.04em;text-wrap:balance}
 .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--tx3)}
-.rt{font-weight:700;color:var(--tx2);background:var(--panel2);border-radius:6px;padding:2px 8px}
 
 .fbanner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
   margin-top:16px;padding:15px 17px;border-radius:14px;
@@ -87,6 +86,7 @@ header h1{font-size:28px;font-weight:900;margin-top:5px;letter-spacing:-.04em;te
 .k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:var(--shadow)}
 .k .n{font-size:12px;color:var(--tx3);font-weight:700}
 .k .v{font-size:21px;font-weight:900;margin-top:3px;letter-spacing:-.045em}
+.k .v.up{color:var(--up)} .k .v.down{color:var(--down)}
 .k .c{font-size:14px;font-weight:800;margin-top:1px}
 .legend{font-size:11.5px;color:var(--tx3);margin-top:9px;font-weight:600}
 
@@ -128,10 +128,11 @@ table.q th.r{text-align:right}
 table.q td{padding:11px 0 0;vertical-align:baseline}
 tbody.st{border-top:1px solid var(--line)}
 tbody.st:first-of-type{border-top:none}
-td.nm{font-size:16.5px;font-weight:800;padding-right:10px}
-td.nm .cd{font-size:10.5px;color:var(--tx3);font-weight:600;margin-left:5px;white-space:nowrap}
-td.pr{text-align:right;font-size:16.5px;font-weight:800;white-space:nowrap;padding-left:10px}
-td.ch{text-align:right;font-size:15px;font-weight:800;white-space:nowrap;padding-left:12px;min-width:92px}
+td.nm{font-size:16.5px;font-weight:800;padding-right:10px;word-break:keep-all;overflow-wrap:anywhere}
+td.nm .cd{display:block;font-size:10.5px;color:var(--tx3);font-weight:600;margin-top:1px;white-space:nowrap}
+td.pr{text-align:right;font-size:16.5px;font-weight:800;white-space:nowrap;padding-left:10px;padding-right:14px}
+td.pr.up{color:var(--up)} td.pr.down{color:var(--down)}
+td.ch{text-align:right;font-size:15px;font-weight:800;white-space:nowrap;padding-left:10px;min-width:80px}
 td.ch.na{color:var(--tx3);font-weight:700}
 td.cm{font-size:14.5px;color:var(--tx2);padding:4px 0 12px}
 
@@ -244,10 +245,7 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
   <header>
     <div class="kick">제 {{ISSUE}} 호</div>
     <h1>{{DATE_LABEL}}</h1>
-    <div class="meta">
-      <span class="rt">훑어읽기 {{READ_TIME}}분</span>
-      <span>{{SUBTITLE}}</span>
-    </div>
+    <div class="meta"><span>{{SUBTITLE}}</span></div>
     <div class="fbanner">
       <div><span class="fl">09:00 시초가 전망</span><span class="fv">{{OPEN_FORECAST}}</span></div>
       <div class="fr num">{{OPEN_RANGE}}</div>
