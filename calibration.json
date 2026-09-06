@@ -156,6 +156,20 @@
       "dir_hit": true,
       "verdict": "hit",
       "source": "2026-09-04 회차 채점"
+    },
+    {
+      "date": "2026-09-04",
+      "forecast_dir": "보합",
+      "low": 6540,
+      "high": 6660,
+      "band_width_pct": 1.82,
+      "prev_close": 6579.48,
+      "actual_open": 6654.36,
+      "gap_pct": 1.14,
+      "in_range": true,
+      "dir_hit": false,
+      "verdict": "miss",
+      "source": "2026-09-07 회차 채점"
     }
   ]
 }
