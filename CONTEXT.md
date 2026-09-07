@@ -33,3 +33,12 @@
 ## 재배포 유의
 발행 페이지는 public GitHub Pages다. KRX 이용약관 제12조 제2항이 사전 허락 없는
 배포·공중송신을 금지한다. `noindex` 유지, "개인 학습용" 문구 유지, 출처 명시 유지.
+
+## 회차 간 파일 구조 (2026-09-07 도입 — 토큰 절감)
+- `template.html` 은 **열지 않는다.** curl 로 받기만 한다.
+- 값은 `fill.json` 에 쓰고 `python3 fill.py` 가 치환한다. `index.html` 을 직접 쓰지 않는다.
+- `state.json` 이 회차 간 인수인계 파일이다. **아카이브 HTML 을 파싱하지 않는다.**
+  - `forecast` : 직전 회차의 시초가 전망. 이번 회차가 이걸로 채점한다.
+  - `closes` : 직전 영업일 종가. 이번 회차의 등락률 계산 기준.
+  - 매 회차가 통째로 갱신하고, publish.bat 이 index.html·calibration.json 과 함께 집어 간다.
+- Playwright 검증은 `evaluate` 로 숫자만 받는다. 스크린샷을 찍지 않는다.

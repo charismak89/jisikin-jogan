@@ -130,6 +130,27 @@ if (-not $repairOnly) {
     } else {
         Say "캘리브레이션: 새 파일 없음 (기존 유지)" DarkGray
     }
+
+    # ── 2-c) state.json (회차 간 인수인계 파일) ──
+    $st = Get-ChildItem -Path $dl -Filter "state*.json" -File -ErrorAction SilentlyContinue |
+          Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($st) {
+        try {
+            $stText = Read-Utf8 $st.FullName
+            $stObj  = $stText | ConvertFrom-Json          # 깨진 JSON 이면 여기서 멈춘다
+            if (-not $stObj.issue_date -or -not $stObj.forecast -or -not $stObj.closes) {
+                Say "[경고] $($st.Name) 에 issue_date/forecast/closes 가 없습니다. 건너뜁니다." Yellow
+            } else {
+                Write-Utf8 (Join-Path $repo "state.json") $stText
+                Say "인수인계  : $($st.Name) 반영 (전망 $($stObj.forecast.date), 종가 $($stObj.closes.as_of))" Gray
+                Remove-Item $st.FullName -ErrorAction SilentlyContinue
+            }
+        } catch {
+            Say "[경고] $($st.Name) 이 올바른 JSON 이 아니라 건너뜁니다." Yellow
+        }
+    } else {
+        Say "인수인계  : 새 파일 없음 (기존 유지)" DarkGray
+    }
     if (git status --porcelain) {
         git add -A | Out-Null
         git commit -m "brief: $newDate 발행" | Out-Null
