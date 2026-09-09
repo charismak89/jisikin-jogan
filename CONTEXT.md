@@ -21,9 +21,27 @@
 
 ## 소스 우선순위
 - 국내 종목·지수·ETF : Google Finance(15:30 종가) 주 + 한국경제 대조
-- 코스닥 / 코스피200 선물 / 미 10년물 / WTI : Google Finance 미커버. kr.investing.com
-- SOX : kr.investing.com
+- **코스피200 선물 : 한국경제 `https://markets.hankyung.com/indices/kospi-future`**
+  - 이 페이지만 `2026.09.08 장마감` 처럼 **기준일을 명시**한다. 그래서 1순위다.
+  - `장중` 표기면 종가가 아니다. 다른 종목과 같은 판정 규칙을 적용한다.
+  - 대조용 2순위 : `https://kr.investing.com/indices/korea-200-futures`
+- 코스닥 / 미 10년물 / WTI : kr.investing.com 또는 언론사 기사
+- SOX : `https://kr.investing.com/indices/phlx-semiconductor`
 - 수급 : 언론사 마감시황 기사. 다른 경로가 전부 막혀 있다
+
+### 코스피200 선물 — 쓰지 말 소스 (2026-09-09 실측)
+네 곳을 대조한 결과 값이 전부 갈렸다. 기준일을 못 믿으면 갭 판단에 쓸 수 없다.
+
+| 소스 | 값 | 기준 표기 | 판정 |
+|---|---|---|---|
+| 한국경제 kospi-future | 1,098.40 (−1.02%) | `2026.09.08 장마감` | **채택** |
+| investing.com korea-200-futures | 1,117.15 | `07/09 닫음` | 대조용 |
+| investing.com …-futures-chart | 1,103.05 | `13/08 닫음` — 신뢰 불가 | 쓰지 말 것 |
+| kr.tradingview.com KRX-K2I1! | 1,120.25 | 없음 | 쓰지 말 것 |
+| yasun.gg/chart/^KS200 | 없음 | JS 렌더라 값이 안 나옴 | 쓰지 말 것 |
+
+`korea-200-futures-chart`(끝에 `-chart`)와 `kospi-200-futures`는 404 이거나 낡은 값을 준다.
+선물 값을 실을 때는 **한국경제의 기준일을 그대로 확인**하고, 두 소스가 갈리면 기준일이 명시된 쪽을 채택해 DATA_NOTE 에 남긴다.
 
 ## 접근 불가로 확인된 경로 (시도하지 말 것)
 - 네이버 증권, KRX, 야후 파이낸스 API, stooq, FnGuide
