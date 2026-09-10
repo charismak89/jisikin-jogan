@@ -214,6 +214,20 @@
    "verdict": "hit",
    "source": "2026-09-10 회차 채점",
    "flag": "보합 판정 ±0.5% 기준. 갭 +0.26%로 보합. 시초가는 구글 파이낸스, 장중 저가 6968.06을 한국경제와 교차 확인"
+  },
+  {
+   "date": "2026-09-10",
+   "forecast_dir": "갭하락",
+   "low": 6880,
+   "high": 7060,
+   "band_width_pct": 2.55,
+   "prev_close": 7051.64,
+   "actual_open": 7038.85,
+   "gap_pct": -0.18,
+   "in_range": true,
+   "dir_hit": false,
+   "verdict": "miss",
+   "source": "2026-09-11 회차 채점"
   }
  ]
 }
