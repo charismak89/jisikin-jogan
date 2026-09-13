@@ -228,6 +228,20 @@
    "dir_hit": false,
    "verdict": "miss",
    "source": "2026-09-11 회차 채점"
+  },
+  {
+   "date": "2026-09-11",
+   "forecast_dir": "갭하락",
+   "low": 6730,
+   "high": 6920,
+   "band_width_pct": 2.7,
+   "prev_close": 7033.92,
+   "actual_open": 6802.5,
+   "gap_pct": -3.29,
+   "in_range": true,
+   "dir_hit": true,
+   "verdict": "hit",
+   "source": "2026-09-14 회차 채점"
   }
  ]
 }
