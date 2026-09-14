@@ -6,7 +6,8 @@ publish.ps1(수동 경로)과 같은 일을 한다. 예약 세션이 clone 한 �
 
 사용법 (저장소 루트에서. 기본 입력은 render.py 가 만든 out/ 의 세 파일)
   python3 publish.py                    # 아카이브·목록·링크 정리 + 커밋
-  python3 publish.py --push             # + push (토큰은 환경변수 GH_TOKEN 으로만)
+  python3 publish.py --push             # + push. 루틴에 저장소가 붙어 있으면 프록시가 자격증명을 넣어 준다.
+                                        #   그게 실패하고 GH_TOKEN 환경변수가 있으면 그 토큰으로 한 번 더 시도한다 (로컬용)
   python3 publish.py --dry-run          # 파일만 바꾸고 커밋·push 하지 않음
   python3 publish.py --allow-date       # 발행일이 오늘(KST)이 아니어도 진행 (테스트용)
   python3 publish.py --index X --cal Y --state Z   # 입력 파일 지정
@@ -15,7 +16,8 @@ publish.ps1(수동 경로)과 같은 일을 한다. 예약 세션이 clone 한 �
   - 새 index.html 의 <meta name="generated"> 날짜가 오늘(KST)이 아니면 중단 (--allow-date 로 해제)
   - 새 calibration.json 의 records 수가 기존보다 적으면 calibration.json 은 건너뛴다
   - 새 state.json 에 issue_date/forecast/closes 가 없으면 state.json 은 건너뛴다
-  - 토큰은 인자로 받지 않고 GH_TOKEN 환경변수로만 받는다. 출력에 찍지 않는다
+  - 토큰은 인자로 받지 않는다. GH_TOKEN 환경변수가 있을 때만 폴백으로 쓰고 출력에 찍지 않는다
+  - 클라우드 세션(Cowork·루틴)의 git 프록시는 PAT 를 그대로 통과시키지 않는다. 자동 발행은 루틴에 저장소를 붙여야 된다
 """
 import io, json, os, re, subprocess, sys
 from datetime import datetime, timedelta, timezone, date
@@ -139,8 +141,16 @@ def main():
     print('커밋 %s — brief: %s 발행' % (sha, new_date))
     if not push:
         print('push 안 함 (--push 없음)'); return 0
+    # 1차: 자격증명 없이 push. 루틴/클라우드 세션에 저장소가 붙어 있으면 git 프록시가 자격증명을 넣는다.
+    env0 = dict(os.environ); env0['GIT_TERMINAL_PROMPT'] = '0'
+    r = subprocess.run(['git', 'push', 'origin', 'HEAD:main'], capture_output=True, text=True, env=env0)
+    if r.returncode == 0:
+        print('push 완료 (프록시 자격증명) — https://charismak89.github.io/jisikin-jogan/ 에 1~2분 뒤 반영'); return 0
+    first_err = (r.stderr or r.stdout).strip()[:300]
     token = os.environ.get('GH_TOKEN', '').strip()
-    if not token: raise SystemExit('[중단] GH_TOKEN 환경변수 없음 — push 생략. 세 파일을 수동 경로로 전달할 것')
+    if not token:
+        raise SystemExit('[실패] push 실패 (루틴에 저장소가 붙어 있지 않거나 권한 없음): %s\n세 파일을 수동 경로로 전달할 것' % first_err)
+    # 2차: GH_TOKEN 폴백 (로컬 실행용. 클라우드 프록시는 이 토큰을 통과시키지 않는다)
     import tempfile
     fd, askpass = tempfile.mkstemp(prefix='askpass-', suffix='.sh')
     os.write(fd, b'#!/bin/sh\ncase "$1" in *sername*) echo x-access-token;; *) echo "$GH_TOKEN";; esac\n'); os.close(fd)
@@ -154,7 +164,7 @@ def main():
     if r.returncode != 0:
         msg = (r.stderr or r.stdout).replace(token, '***')
         raise SystemExit('[실패] push 실패: %s' % msg.strip()[:400])
-    print('push 완료 — https://charismak89.github.io/jisikin-jogan/ 에 1~2분 뒤 반영')
+    print('push 완료 (GH_TOKEN) — https://charismak89.github.io/jisikin-jogan/ 에 1~2분 뒤 반영')
     return 0
 
 if __name__ == '__main__':

@@ -15,8 +15,8 @@
 `python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다.
 
 ## 1. 준비
-저장소는 `repo/` 에 clone 돼 있다(부트스트랩 프롬프트가 한다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v4.html render.py score.py publish.py holidays.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
-모든 작업은 `repo/` 안에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
+루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v4.html render.py score.py publish.py holidays.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
+모든 작업은 저장소 루트에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
 
 ## 2. 시세 — 병렬 3턴
 **턴 A · Google Finance 12개를 한 턴에 병렬로.** 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
@@ -104,11 +104,11 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 
 ## 8. 발행
 게이트 — `render.py` 마지막 줄이 `GATE PASS` 일 때만 자동 발행한다. (조건: FAIL 없음 · 금지 표현·글자 초과 경고 0 · 야간선물 확보 · `data_note.diverged` ≤ 2). `GATE HOLD` 면 수동 경로다.
-토큰 — Notion 에서 제목이 `jisikin-jogan deploy token` 인 비공개 페이지를 찾아(notion-search → notion-fetch) 본문의 `github_pat_` 또는 `ghp_` 로 시작하는 문자열을 읽는다. 토큰을 응답이나 파일에 적지 않는다.
-- 게이트 통과 + 토큰 있음: `GH_TOKEN=<토큰> python3 publish.py --push`. 성공하면 커밋 SHA 를 응답에 적는다.
-- 그 외(GATE HOLD, 토큰 없음, push 실패): publish.py 를 돌리지 않는다. `out/` 의 세 파일을 SendUserFile 로 보내고 "다운로드 폴더에 두고 publish.bat" 을 안내한다.
+자격증명 — 토큰을 찾거나 넣지 않는다. 루틴에 저장소 `charismak89/jisikin-jogan` 이 붙어 있으면 git 프록시가 push 에 자격증명을 넣어 준다(클라우드 세션은 PAT 를 통과시키지 않는다).
+- 게이트 통과: `python3 publish.py --push`. 성공하면 커밋 SHA 를 응답에 적는다.
+- 그 외(GATE HOLD, push 실패): `out/` 의 세 파일을 SendUserFile 로 보내고 "다운로드 폴더에 두고 publish.bat" 을 안내한다. push 실패 메시지의 첫 줄을 응답에 그대로 옮긴다(저장소 미부착·권한 문제를 사람이 알아볼 수 있게).
 - 자동 발행에 성공해도 세 파일은 SendUserFile 로 함께 보낸다(백업).
-- 추가 메시지에 "테스트" 가 있으면 push 하지 않고 `--dry-run` 결과만 보고한다.
+- `<routine-fire-payload>` 또는 추가 메시지에 "테스트" 가 있으면 push 하지 않고 `python3 publish.py --dry-run` 결과만 보고한다.
 
 ## 9. 세션 응답 — 아래만. 인사말·서론·총평 금지
 - 시초가 전망 + 예상 구간 한 줄 · 야간선물 값과 시각 · EWY/ADR 시사 갭
