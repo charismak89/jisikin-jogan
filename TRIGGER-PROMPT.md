@@ -2,6 +2,7 @@
 
 루틴 「지식인 조간 — 반도체 모닝 대시보드 (평일 07:45)」 의 프롬프트는 아래 전문이다. 절차는 저장소의 `RUNBOOK.md` 에 있으므로 프롬프트를 다시 고칠 일은 거의 없다.
 자동 발행(push)은 루틴에 저장소 `charismak89/jisikin-jogan` 이 붙어 있어야 된다 (claude.ai/code/routines → 루틴 편집 → Repositories). 클라우드 세션의 git 프록시는 개인 토큰을 통과시키지 않는다.
+**루틴 환경의 Network access 는 Full 이어야 한다.** 기본값(Trusted)에서는 WebFetch 가 Google Finance·한국경제·sonmul·investing·stockanalysis 에 닿지 못해(EGRESS_BLOCKED) 시세를 한 건도 못 받는다 (2026-09-14 테스트 실측). 루틴 편집 → Instructions 아래 환경(Default) → 설정 아이콘 → Network access: Full → Save.
 
 ```
 평일 07:45 KST 「지식인 조간」 반도체·메모리 모닝 대시보드 발행 작업이다. 확인 질문을 받아줄 사람이 없으니 애매하면 가정을 명시하고 진행한다.

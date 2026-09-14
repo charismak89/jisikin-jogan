@@ -7,7 +7,9 @@ publish.ps1(수동 경로)과 같은 일을 한다. 예약 세션이 clone 한 �
 사용법 (저장소 루트에서. 기본 입력은 render.py 가 만든 out/ 의 세 파일)
   python3 publish.py                    # 아카이브·목록·링크 정리 + 커밋
   python3 publish.py --push             # + push. 루틴에 저장소가 붙어 있으면 프록시가 자격증명을 넣어 준다.
-                                        #   그게 실패하고 GH_TOKEN 환경변수가 있으면 그 토큰으로 한 번 더 시도한다 (로컬용)
+                                        #   main 이 거부되면 claude/publish-<발행일> 브랜치로 한 번 더 민다 (claude/ 브랜치는 항상 허용)
+                                        #   그것도 실패하고 GH_TOKEN 환경변수가 있으면 그 토큰으로 main 에 시도한다 (로컬용)
+  python3 publish.py --push --branch claude/hold-2026-09-15   # 게이트 미통과분을 사람이 검토하도록 브랜치에만 올릴 때
   python3 publish.py --dry-run          # 파일만 바꾸고 커밋·push 하지 않음
   python3 publish.py --allow-date       # 발행일이 오늘(KST)이 아니어도 진행 (테스트용)
   python3 publish.py --index X --cal Y --state Z   # 입력 파일 지정
@@ -143,13 +145,26 @@ def main():
         print('push 안 함 (--push 없음)'); return 0
     # 1차: 자격증명 없이 push. 루틴/클라우드 세션에 저장소가 붙어 있으면 git 프록시가 자격증명을 넣는다.
     env0 = dict(os.environ); env0['GIT_TERMINAL_PROMPT'] = '0'
-    r = subprocess.run(['git', 'push', 'origin', 'HEAD:main'], capture_output=True, text=True, env=env0)
+    target = arg('--branch', 'main')
+    r = subprocess.run(['git', 'push', 'origin', 'HEAD:%s' % target], capture_output=True, text=True, env=env0)
     if r.returncode == 0:
-        print('push 완료 (프록시 자격증명) — https://charismak89.github.io/jisikin-jogan/ 에 1~2분 뒤 반영'); return 0
+        if target == 'main':
+            print('push 완료 (프록시 자격증명, main) — https://charismak89.github.io/jisikin-jogan/ 에 1~2분 뒤 반영')
+        else:
+            print('push 완료 — 브랜치 %s 에만 올림. 사람이 GitHub 에서 main 으로 merge 해야 사이트에 반영된다' % target)
+        return 0
     first_err = (r.stderr or r.stdout).strip()[:300]
+    if target == 'main':
+        # 2차: claude/ 브랜치는 루틴에서 항상 허용된다. 사람이 merge 하도록 브랜치에라도 올린다.
+        alt = 'claude/publish-%s' % new_date
+        r2 = subprocess.run(['git', 'push', 'origin', 'HEAD:%s' % alt], capture_output=True, text=True, env=env0)
+        if r2.returncode == 0:
+            print('[주의] main push 거부: %s' % first_err.splitlines()[0] if first_err else '[주의] main push 거부')
+            print('브랜치 %s 에 올렸다 — GitHub 에서 main 으로 merge 하면 사이트에 반영된다 (사람 작업 필요)' % alt)
+            return 0
     token = os.environ.get('GH_TOKEN', '').strip()
     if not token:
-        raise SystemExit('[실패] push 실패 (루틴에 저장소가 붙어 있지 않거나 권한 없음): %s\n세 파일을 수동 경로로 전달할 것' % first_err)
+        raise SystemExit('[실패] push 실패 (루틴에 저장소가 붙어 있지 않거나 권한 없음): %s\n결과물은 out/ 에 남아 있다. 수동 경로(SendUserFile 또는 세션 diff)로 전달할 것' % first_err)
     # 2차: GH_TOKEN 폴백 (로컬 실행용. 클라우드 프록시는 이 토큰을 통과시키지 않는다)
     import tempfile
     fd, askpass = tempfile.mkstemp(prefix='askpass-', suffix='.sh')
