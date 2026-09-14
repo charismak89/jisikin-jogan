@@ -1,0 +1,6 @@
+# 회차 작업 파일 — 커밋하지 않는다
+fill.json
+out/
+__pycache__/
+*.pyc
+.askpass*

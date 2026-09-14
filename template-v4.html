@@ -1,3 +1,23 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="{{GENERATED}}">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="style.css">
+<script>
+(function(){try{
+  var m=localStorage.getItem('jj-theme')||'system';
+  var d=(m==='dark')||(m==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-jj',d?'dark':'light');
+  document.documentElement.setAttribute('data-jj-mode',m);
+}catch(e){}})();
+</script>
+<style>
 /* 지식인 조간 v4 — 2026-09-15 · 전망 신뢰도 + 채점 차트 + 3단 테마 */
 *{margin:0;padding:0;box-sizing:border-box}
 
@@ -231,3 +251,189 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
 .schart svg{display:block;width:100%;height:auto;overflow:visible}
 .schart .sl{font-size:11.5px;color:var(--tx3);font-weight:600;margin-top:4px}
 .fv.na{color:var(--tx3)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <div>
+      <div class="bn">지식인 조간</div>
+      <div class="bd">반도체 · 메모리 개장 전 브리핑</div>
+    </div>
+    <div class="theme" role="group" aria-label="화면 테마">
+      <button type="button" data-set="system">시스템</button>
+      <button type="button" data-set="light">라이트</button>
+      <button type="button" data-set="dark">다크</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="kick">제 {{ISSUE}} 호</div>
+    <h1>{{DATE_LABEL}}</h1>
+    <div class="meta"><span>{{SUBTITLE}}</span></div>
+    <div class="fbanner">
+      <div><span class="fl">09:00 시초가 전망</span><span class="fv">{{OPEN_FORECAST}}</span></div>
+      <div class="fr num">{{OPEN_RANGE}}</div>
+      <div class="fwide fband" aria-label="예상 구간과 전일 종가">{{BAND_BAR}}</div>
+      <div class="fwide fsig num">{{SIGNAL_STRIP}}</div>
+      <div class="fwide fconf">{{CONF_LINE}}</div>
+    </div>
+  </header>
+
+  <div class="kpi">
+{{KPI}}
+  </div>
+  <div class="legend">▲ 상승 · ▼ 하락 (국내 관행)</div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="jumps">
+      <a class="jump" href="#s-global">간밤</a>
+      <a class="jump" href="#s-dom">국내</a>
+      <a class="jump" href="#s-issue">이슈</a>
+      <a class="jump" href="#s-scen">시나리오</a>
+      <a class="jump" href="#s-score">채점</a>
+    </div>
+    <button id="expandAll" type="button">전부 펼치기</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tldr">
+    <div class="tt">오늘 한눈에</div>
+{{TLDR}}
+  </div>
+
+  <section id="s-global">
+    <div class="sh"><h2>간밤 글로벌</h2><span class="stag">{{GLOBAL_TAG}}</span></div>
+    <div class="sum">{{GLOBAL_SUM}}</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+{{GLOBAL_ROWS}}
+    </table></div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+{{GLOBAL_CHK}}
+    </div>
+  </section>
+
+  <section id="s-dom">
+    <div class="sh"><h2>국내 종목 &amp; ETF</h2><span class="stag">{{DOMESTIC_TAG}}</span></div>
+    <div class="sum">{{DOMESTIC_SUM}}</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+{{DOMESTIC_ROWS}}
+    </table></div>
+    <div class="flow">
+      <div class="fgrid">
+{{FLOW_GRID}}
+      </div>
+      <div class="fn">{{FLOW_NOTE}}</div>
+    </div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+{{DOMESTIC_CHK}}
+    </div>
+  </section>
+
+  <section id="s-issue">
+    <div class="sh"><h2>메모리 이슈</h2><span class="stag">강세 {{N_BULL}} / 약세 {{N_BEAR}}</span></div>
+    <div class="sum">{{ISSUE_SUM}}</div>
+    <div class="split">
+      <div class="col bull"><h3>▲ 올릴 힘</h3><ul>{{BULL_ITEMS}}</ul></div>
+      <div class="col bear"><h3>▼ 누를 힘</h3><ul>{{BEAR_ITEMS}}</ul></div>
+    </div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+{{ISSUE_CHK}}
+    </div>
+  </section>
+
+  <section id="s-scen">
+    <div class="sh"><h2>장중 시나리오</h2><span class="stag">09:00 → 15:30</span></div>
+    <div class="sum">{{SCEN_SUM}}</div>
+    <div class="ladder">
+{{LADDER}}
+    </div>
+    <div class="scen">
+{{SCENARIOS}}
+    </div>
+    <details style="margin-top:14px"><summary>전망 근거 자세히</summary><div class="dbody">
+{{FCAST_WHY}}
+    </div></details>
+    <div class="pts">
+      <div class="pth">장중 확인 포인트 3</div>
+{{POINTS}}
+    </div>
+    <div class="chk">
+      <div class="ct">하방 체크 · 가장 약한 고리</div>
+{{SCENARIO_CHK}}
+    </div>
+  </section>
+
+  <section id="s-score">
+    <div class="sh"><h2>예측 채점</h2><span class="stag">최근 10회차 · 왼쪽이 최신</span></div>
+    <div class="score">
+{{SCORE_STRIP}}
+    </div>
+    <div class="legend">녹색 적중 · 회색 빗나감 · 점선 미채점 (적중 = 방향과 구간 모두)</div>
+    <div class="verdict {{VERDICT_CLASS}}">{{VERDICT}}</div>
+    <div class="note">{{SCORE_LEAD}}</div>
+    <details><summary>맞은 것과 놓친 것 전부 보기</summary><div class="dbody">
+{{SCORE_MORE}}
+    </div></details>
+    <div class="schart" aria-label="최근 회차 예상 구간과 실제 시초가">{{SCORE_CHART}}<div class="sl">회색 막대 — 예상 구간 · 점 — 실제 시초가 (채움: 구간 안, 테두리만: 구간 밖) · 단위 전일 종가 대비 %</div></div>
+    <div class="cov">{{COVERAGE}}</div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>지난 회차</h2></div>
+    <div class="arch">{{ARCHIVE_LINKS}}</div>
+  </section>
+
+  <footer>
+    {{SOURCES}}<br>
+    {{DATA_NOTE}}<br>
+    개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+  </footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  function apply(mode){
+    var d=(mode==='dark')||(mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-jj',d?'dark':'light');
+    root.setAttribute('data-jj-mode',mode);
+    var bs=document.querySelectorAll('.theme button');
+    for(var i=0;i<bs.length;i++){bs[i].setAttribute('aria-pressed',bs[i].dataset.set===mode?'true':'false');}
+  }
+  var saved='system';
+  try{saved=localStorage.getItem('jj-theme')||'system';}catch(e){}
+  apply(saved);
+  var bs=document.querySelectorAll('.theme button');
+  for(var i=0;i<bs.length;i++){
+    bs[i].addEventListener('click',function(){
+      var m=this.dataset.set;
+      try{localStorage.setItem('jj-theme',m);}catch(e){}
+      apply(m);
+    });
+  }
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var onch=function(){if(root.getAttribute('data-jj-mode')==='system')apply('system');};
+  if(mq.addEventListener)mq.addEventListener('change',onch);else if(mq.addListener)mq.addListener(onch);
+
+  var btn=document.getElementById('expandAll'),open=false;
+  if(btn)btn.addEventListener('click',function(){
+    open=!open;
+    var ds=document.querySelectorAll('details');
+    for(var j=0;j<ds.length;j++){ds[j].open=open;}
+    btn.textContent=open?'전부 접기':'전부 펼치기';
+  });
+})();
+</script>
+</body>
+</html>
