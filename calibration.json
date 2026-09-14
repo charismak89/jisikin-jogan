@@ -245,6 +245,24 @@
    "dir_hit": true,
    "verdict": "hit",
    "source": "2026-09-14 회차 채점"
+  },
+  {
+   "date": "2026-09-14",
+   "forecast_dir": "갭상승",
+   "low": 6990.0,
+   "high": 7230.0,
+   "band_width_pct": 3.47,
+   "prev_close": 6909.91,
+   "actual_open": 6692.61,
+   "gap_pct": -3.14,
+   "in_range": false,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": false,
+   "center_pct": 2.9,
+   "center_err_pct": -6.04,
+   "signals": null,
+   "source": "2026-09-15 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
