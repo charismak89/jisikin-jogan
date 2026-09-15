@@ -263,6 +263,32 @@
    "center_err_pct": -6.04,
    "signals": null,
    "source": "2026-09-15 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-09-15",
+   "forecast_dir": "갭하락",
+   "low": 6450.0,
+   "high": 6650.0,
+   "band_width_pct": 2.99,
+   "prev_close": 6684.37,
+   "actual_open": 6659.25,
+   "gap_pct": -0.38,
+   "in_range": false,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -2.01,
+   "center_err_pct": 1.63,
+   "signals": {
+    "k200n_pct": -1.87,
+    "k200n_close": 1028.8,
+    "k200n_asof": "9/15 05:00",
+    "k200f_close": 1048.4,
+    "ewy_implied_pct": -3.37,
+    "adr_implied_pct": -1.23,
+    "news_flag": "미국장 마감 뒤 트럼프가 AI 속도조절론을 공개 비판했습니다"
+   },
+   "source": "2026-09-16 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
