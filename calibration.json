@@ -289,6 +289,32 @@
     "news_flag": "미국장 마감 뒤 트럼프가 AI 속도조절론을 공개 비판했습니다"
    },
    "source": "2026-09-16 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-09-16",
+   "forecast_dir": "보합",
+   "low": 6565.0,
+   "high": 6690.0,
+   "band_width_pct": 1.89,
+   "prev_close": 6627.26,
+   "actual_open": 6611.24,
+   "gap_pct": -0.24,
+   "in_range": true,
+   "dir_hit": true,
+   "verdict": "hit",
+   "sign_hit": false,
+   "center_pct": 0.0,
+   "center_err_pct": -0.25,
+   "signals": {
+    "k200n_pct": -0.17,
+    "k200n_close": 1038.0,
+    "k200n_asof": "9/16 05:00",
+    "k200f_close": 1039.8,
+    "ewy_implied_pct": 1.92,
+    "adr_implied_pct": 0.85,
+    "news_flag": "미 10년물이 4.998% 로 5% 선에 붙었고 WTI 는 105.37달러입니다"
+   },
+   "source": "2026-09-17 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
