@@ -315,6 +315,32 @@
     "news_flag": "미 10년물이 4.998% 로 5% 선에 붙었고 WTI 는 105.37달러입니다"
    },
    "source": "2026-09-17 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-09-17",
+   "forecast_dir": "갭하락",
+   "low": 6600.0,
+   "high": 6700.0,
+   "band_width_pct": 1.49,
+   "prev_close": 6717.97,
+   "actual_open": 6779.02,
+   "gap_pct": 0.91,
+   "in_range": false,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": false,
+   "center_pct": -1.01,
+   "center_err_pct": 1.92,
+   "signals": {
+    "k200n_pct": -1.0,
+    "k200n_close": 1050.55,
+    "k200n_asof": "9/17 05:00",
+    "k200f_close": 1061.15,
+    "ewy_implied_pct": -1.22,
+    "adr_implied_pct": -3.25,
+    "news_flag": "젠슨 황과 트럼프가 AI 감속론을 반박했고 미 10년물은 5.021%입니다"
+   },
+   "source": "2026-09-18 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
