@@ -8,7 +8,7 @@
 ## 토큰 규칙 (이 작업의 제약 조건)
 1. `template-v4.html` · `calibration.json` · `archive/` 를 열지 않는다. 스크립트가 처리한다. 읽는 파일은 `CONTEXT.md` 와 `state.json` 둘뿐이다.
 2. `index.html` 을 직접 쓰지 않는다. 값과 문장만 `fill.json` 에 쓴다. HTML 태그·화살표·색·등락률·시사 갭·채점 문구는 `render.py` 가 만든다.
-3. 시세 WebFetch 는 **한 턴에 병렬로** 부른다. 같은 URL 을 두 번 부르지 않는다. 프롬프트는 값만 짧게.
+3. 시세 WebFetch 는 **한 턴에 병렬로** 부른다. 같은 URL 을 두 번 부르지 않는다. 프롬프트는 값만 짧게. Google Finance 는 WebFetch 가 아니라 curl 로 받는다(2단계 턴 A).
 4. 스크린샷을 찍지 않는다. 레이아웃 검증은 `page.evaluate` 숫자만.
 
 ## 0. 휴장일
@@ -19,8 +19,21 @@
 모든 작업은 저장소 루트에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
 
 ## 2. 시세 — 병렬 3턴
-**턴 A · Google Finance 12개를 한 턴에 병렬로.** 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
-`KOSPI:KRX` `005930:KRX` `000660:KRX` `402340:KRX` `009150:KRX` `0167A0:KRX` `442580:KRX` `NVDA:NASDAQ` `MU:NASDAQ` `EWY:NYSEARCA` `SKHY:NASDAQ` `USD-KRW` (`https://www.google.com/finance/quote/…`)
+**턴 A · Google Finance 12개를 curl 로 한 번에 받는다. WebFetch 를 쓰지 않는다.**
+`KOSPI:KRX` `005930:KRX` `000660:KRX` `402340:KRX` `009150:KRX` `0167A0:KRX` `442580:KRX` `NVDA:NASDAQ` `MU:NASDAQ` `EWY:NYSEARCA` `SKHY:NASDAQ` `USD-KRW`
+
+2026-09-21 확인 — WebFetch 로 `https://www.google.com/finance/quote/…` 를 부르면 12개 전부 `Your device isn't supported` 만 돌려준다. 값이 하나도 안 나오므로 WebFetch 로는 이 소스를 쓸 수 없다. 데스크톱 User-Agent 를 단 curl 은 200 을 받는다(`/finance/beta/quote/…` 로 리다이렉트된다).
+```
+UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+for q in KOSPI:KRX 005930:KRX … USD-KRW; do
+  curl -sSL -A "$UA" "https://www.google.com/finance/quote/$q" -o "q_${q/:/_}.html" &
+done; wait
+```
+받은 HTML 의 한계를 알고 쓴다. **숫자는 평문으로 들어 있지만 `Previous close`·`Open` 같은 라벨과 시각 표기는 JS 렌더라 없다.** 그래서 Google Finance 는 이번 절차에서 **대조용**이다.
+- 라벨이 붙은 값(종가·시가·고저·기준일)은 턴 B 의 한국경제·investing.com·stockanalysis.com 에서 받는다.
+- 그 값이 Google Finance HTML 안에 문자열로 있는지 `grep` 해서 두 소스 일치를 확인한다. 예: `grep -c '1,857,000' q_000660_KRX.html`
+- 예외로 **KOSPI 페이지는 종가·시가·고가·저가 네 숫자가 평문으로 다 나온다.** `grep -oE '[0-9],[0-9]{3}\.[0-9]{2}' gf_KOSPI.html` 로 뽑아 investing.com 값과 맞춘다.
+
 KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드시 챙기고, 그 세션 날짜를 `open_date` 에 적는다. `state.forecast.date` 와 다르면(회차를 건너뛴 날) 그 날짜의 시가를 마감시황 기사에서 찾아 `score.actual_open`·`score.actual_open_date` 에 넣는다. 못 찾으면 채점 불가로 두고 억지로 채점하지 않는다.
 
 **턴 B · 대조와 보완, 한 턴에 병렬로.**
@@ -106,6 +119,13 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 게이트 — `render.py` 마지막 줄이 `GATE PASS` 일 때만 자동 발행한다. (조건: FAIL 없음 · 금지 표현·글자 초과 경고 0 · 야간선물 확보 · `data_note.diverged` ≤ 2). `GATE HOLD` 면 수동 경로다.
 자격증명 — 토큰을 찾거나 넣지 않는다. 루틴에 저장소 `charismak89/jisikin-jogan` 이 붙어 있으면 git 프록시가 push 에 자격증명을 넣어 준다(클라우드 세션은 PAT 를 통과시키지 않는다).
 - 게이트 통과: `python3 publish.py --push`. `main` 에 올라가면 커밋 SHA 를 응답에 적는다. main 이 거부돼 `claude/publish-<날짜>` 브랜치로 올라갔으면 응답 첫 줄에 **"브랜치 claude/publish-<날짜> — GitHub 에서 main 으로 merge 필요"** 라고 적는다.
+- **클라우드·루틴 세션은 main 에 직접 push 할 수 없다 (2026-09-21 확인).** 세션 지시에 지정 브랜치(예: `claude/laughing-sagan-pc110t`)가 있으면 `publish.py --push` 대신 **`python3 publish.py --push --branch <지정 브랜치>`** 를 쓴다. 지정 브랜치가 없을 때만 `--push` 로 main 을 시도한다. 지정 브랜치가 있는데 main 에 밀면 하니스가 막는다.
+  - 브랜치에만 올라간 회차는 **사이트에 반영되지 않는다.** GitHub Pages 는 `main` 을 서비스한다. main 이 머지될 때까지 사이트는 직전 회차를 계속 보여 준다 — 이걸 "push 실패" 로 착각하지 말 것.
+  - 응답 첫 줄에 **"브랜치 `<이름>` — GitHub 에서 main 으로 merge 필요"** 와 PR 링크를 적는다. PR 이 아직 없으면 사람에게 PR 을 열어 달라고 한다(회차가 임의로 PR 을 만들지 않는다).
+  - 머지 뒤에는 **브랜치를 지워야 한다**. 머지된 PR 은 닫히고 다시 쓰지 못하는데, 브랜치가 남아 있으면 다음 회차 커밋이 닫힌 PR 에 딸린 브랜치에 쌓여 또 사이트에 안 올라간다. 응답에 이 한 줄을 반드시 넣는다.
+  - 직전 PR 이 이미 머지됐으면 다음 회차는 `git fetch origin main && git checkout -B <지정 브랜치> origin/main` 으로 main 에서 새로 시작한다. 머지된 이력 위에 쌓지 않는다.
+  - 머지되면 1분 안팎이면 반영된다. 확인은 `curl -sS https://charismak89.github.io/jisikin-jogan/ | grep -o '<발행일>'` 로 한다.
+  - `origin/main` 참조가 세션 시작 시점에서 낡아 있을 수 있다. main 위치를 말하기 전에 반드시 `git fetch origin main` 을 먼저 돌린다.
 - GATE HOLD: `python3 publish.py --push --branch claude/hold-<날짜>` 로 브랜치에만 올린다(사이트에는 반영되지 않는다). 응답 첫 줄에 HOLD 사유와 브랜치 이름을 적는다. 사람이 세션 diff 를 보고 merge 여부를 정한다.
 - push 가 전부 실패하면: 실패 메시지 첫 줄을 응답에 그대로 옮긴다(저장소 미부착·권한 문제를 사람이 알아볼 수 있게). SendUserFile 도구가 있으면 `out/` 의 세 파일을 보내고 "다운로드 폴더에 두고 publish.bat" 을 안내한다. 없으면 `out/index.html` 이 세션 diff 에 보이도록 그대로 둔다.
 - SendUserFile 도구가 있는 환경(코워크)에서는 자동 발행에 성공해도 세 파일을 함께 보낸다(백업). 루틴 환경에는 이 도구가 없을 수 있다 — 그때는 생략한다.
