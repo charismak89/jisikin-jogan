@@ -367,6 +367,32 @@
     "news_flag": "사우디의 오만 경유 원유 수송 확대로 중동 공급 차질 우려가 누그러졌고 미 10년물이 4.95% 안팎으로 내렸습니다"
    },
    "source": "2026-09-21 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-09-21",
+   "forecast_dir": "갭하락",
+   "low": 6770.0,
+   "high": 6914.0,
+   "band_width_pct": 2.09,
+   "prev_close": 6894.23,
+   "actual_open": 6938.34,
+   "gap_pct": 0.64,
+   "in_range": false,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": false,
+   "center_pct": -0.76,
+   "center_err_pct": 1.4,
+   "signals": {
+    "k200n_pct": 0.22,
+    "k200n_close": 1094.8,
+    "k200n_asof": "9/19 05:00",
+    "k200f_close": 1092.45,
+    "ewy_implied_pct": -3.09,
+    "adr_implied_pct": -3.64,
+    "news_flag": "현지 9월 18일 금요일 캘리포니아 북부연방지법에 AI 4사의 속도조절 합의를 담합으로 본 집단소송이 접수됐습니다"
+   },
+   "source": "2026-09-22 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }

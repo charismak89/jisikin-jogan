@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="2026-09-21T07:45+09:00">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../style.css">
+<script>
+(function(){try{
+  var m=localStorage.getItem('jj-theme')||'system';
+  var d=(m==='dark')||(m==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-jj',d?'dark':'light');
+  document.documentElement.setAttribute('data-jj-mode',m);
+}catch(e){}})();
+</script>
+<style>
+/* 지식인 조간 v4 — 2026-09-15 · 전망 신뢰도 + 채점 차트 + 3단 테마 */
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  color-scheme:light;
+  --bg:#F6F8FB; --panel:#FFFFFF; --panel2:#EEF2F7; --line:#DFE5EE; --line2:#BFCADA;
+  --tx:#0E1622; --tx2:#3B4759; --tx3:#5A6879;
+  --up:#C62D22; --down:#1257B8; --accent:#C0322A; --ok:#0F7A4C;
+  --warnbg:#FFF7E4; --warnline:#E7CF97; --warntx:#6B4E06; --warnstrong:#8A6100;
+  --shadow:0 1px 2px rgba(16,26,40,.05),0 1px 8px rgba(16,26,40,.04);
+  --sticky:rgba(246,248,251,.93);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-jj]){
+    color-scheme:dark;
+    --bg:#0A0F18; --panel:#141C29; --panel2:#1A2432; --line:#26314A; --line2:#3D4A63;
+    --tx:#E6E9EF; --tx2:#C2CEDF; --tx3:#8B9AB2;
+    --up:#FF7A6B; --down:#6FA8FF; --accent:#F0665C; --ok:#4FD494;
+    --warnbg:#241D0E; --warnline:#5D4818; --warntx:#EBD9AF; --warnstrong:#FFC95C;
+    --shadow:none; --sticky:rgba(10,15,24,.93);
+  }
+}
+:root[data-jj="dark"]{
+  color-scheme:dark;
+  --bg:#0A0F18; --panel:#141C29; --panel2:#1A2432; --line:#26314A; --line2:#3D4A63;
+  --tx:#E6E9EF; --tx2:#C2CEDF; --tx3:#8B9AB2;
+  --up:#FF7A6B; --down:#6FA8FF; --accent:#F0665C; --ok:#4FD494;
+  --warnbg:#241D0E; --warnline:#5D4818; --warntx:#EBD9AF; --warnstrong:#FFC95C;
+  --shadow:none; --sticky:rgba(10,15,24,.93);
+}
+
+
+/* 기호는 Pretendard 서브셋에 없을 수 있어 시스템 기호 폰트를 먼저 태운다 */
+@font-face{font-family:'JJSym';
+  src:local('Segoe UI Symbol'),local('Apple Symbols'),local('Apple SD Gothic Neo'),
+      local('Noto Sans Symbols 2'),local('Malgun Gothic'),local('Arial Unicode MS');
+  unicode-range:U+00B7,U+2014,U+2192,U+2212,U+25B2,U+25BC,U+25BE,U+2605;}
+body{background:var(--bg);color:var(--tx);
+  font-family:'JJSym',Pretendard,"Pretendard Variable","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  font-size:17px;line-height:1.65;letter-spacing:-.02em;text-align:left;
+  word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased;padding-bottom:64px}
+.wrap{max-width:640px;margin:0 auto;padding:0 18px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--tx3)}
+
+.brand{padding:20px 0 12px;border-bottom:2px solid var(--accent);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.bn{font-size:24px;font-weight:900;letter-spacing:-.05em;line-height:1}
+.bd{font-size:12px;color:var(--tx3);margin-top:6px;letter-spacing:-.01em}
+
+.theme{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex:none}
+.theme button{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:-.01em;
+  padding:5px 9px;border:0;background:var(--panel);color:var(--tx3);cursor:pointer;white-space:nowrap}
+.theme button+button{border-left:1px solid var(--line)}
+.theme button[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+header{padding:16px 0 0}
+.kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:700}
+header h1{font-size:28px;font-weight:900;margin-top:5px;letter-spacing:-.04em;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--tx3)}
+
+.fbanner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+  margin-top:16px;padding:15px 17px;border-radius:14px;
+  background:var(--warnbg);border:1px solid var(--warnline);border-left:5px solid var(--warnstrong)}
+.fbanner .fl{font-size:11.5px;font-weight:700;color:var(--warnstrong);letter-spacing:.06em;display:block;margin-bottom:3px}
+.fbanner .fv{font-size:24px;font-weight:900;color:var(--warnstrong);letter-spacing:-.04em;line-height:1.1}
+.fbanner .fr{font-size:14px;font-weight:700;color:var(--warntx);text-align:right;line-height:1.45}
+@media(max-width:520px){.fbanner{grid-template-columns:1fr}.fbanner .fr{text-align:left}}
+
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
+@media(min-width:560px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:var(--shadow)}
+.k .n{font-size:12px;color:var(--tx3);font-weight:700}
+.k .v{font-size:21px;font-weight:900;margin-top:3px;letter-spacing:-.045em}
+.k .v.up{color:var(--up)} .k .v.down{color:var(--down)}
+.k .c{font-size:14px;font-weight:800;margin-top:1px}
+.legend{font-size:11.5px;color:var(--tx3);margin-top:9px;font-weight:600}
+
+.bar{position:sticky;top:0;z-index:20;background:var(--sticky);
+  border-bottom:1px solid var(--line);margin:20px 0 0;padding:8px 18px}
+.bar-in{max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.jumps{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.jumps::-webkit-scrollbar{display:none}
+.jump{flex:none;font-size:12.5px;font-weight:700;color:var(--tx2);text-decoration:none;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;white-space:nowrap}
+.jump:hover{color:var(--accent);border-color:var(--line2)}
+#expandAll{flex:none;font:inherit;font-size:12.5px;font-weight:700;
+  color:var(--accent);background:var(--panel);border:1px solid var(--line2);border-radius:8px;
+  padding:5px 10px;cursor:pointer;white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.tldr{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px 18px;box-shadow:var(--shadow)}
+.tt{font-size:11.5px;font-weight:900;color:var(--accent);letter-spacing:.12em;margin-bottom:14px}
+.tl{display:grid;grid-template-columns:19px 1fr;gap:10px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.tl:last-child{padding-bottom:0;margin-bottom:0;border-bottom:none}
+.tn{width:19px;height:19px;border-radius:6px;background:var(--line2);color:var(--panel);
+  font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:5px}
+:root[data-jj="dark"] .tn{color:#0A0F18}
+.th{font-size:19px;font-weight:800;letter-spacing:-.035em;line-height:1.42}
+.tb{font-size:15px;color:var(--tx2);margin-top:4px}
+
+section{margin-top:38px;scroll-margin-top:56px}
+.sh{display:flex;align-items:center;gap:9px}
+h2{font-size:22px;font-weight:900;letter-spacing:-.04em;display:flex;align-items:center;gap:9px}
+h2:before{content:"";width:4px;height:18px;background:var(--accent);border-radius:2px;flex:none}
+.stag{font-size:11.5px;font-weight:700;color:var(--tx3);margin-left:auto;white-space:nowrap}
+.sum{font-size:15px;color:var(--tx2);font-weight:600;margin:8px 0 12px;padding-left:12px;border-left:2px solid var(--line2)}
+
+.tblwrap{overflow-x:auto}
+table.q{width:100%;border-collapse:collapse}
+table.q th{font-size:11.5px;font-weight:700;color:var(--tx3);text-align:left;
+  padding:0 0 7px;border-bottom:1px solid var(--line2);letter-spacing:.02em}
+table.q th.r{text-align:right}
+table.q td{padding:11px 0 0;vertical-align:baseline}
+tbody.st{border-top:1px solid var(--line)}
+tbody.st:first-of-type{border-top:none}
+td.nm{font-size:15.5px;font-weight:800;padding-right:10px;word-break:keep-all;overflow-wrap:anywhere}
+td.nm .cd{display:block;font-size:10.5px;color:var(--tx3);font-weight:600;margin-top:1px;white-space:nowrap}
+td.pr{text-align:right;font-size:16.5px;font-weight:800;white-space:nowrap;padding-left:10px;padding-right:14px}
+td.pr.up{color:var(--up)} td.pr.down{color:var(--down)}
+td.ch{text-align:right;font-size:15px;font-weight:800;white-space:nowrap;padding-left:10px;min-width:80px}
+td.ch.na{color:var(--tx3);font-weight:700}
+td.cm{font-size:14.5px;color:var(--tx2);padding:4px 0 12px}
+
+details{margin-top:6px}
+summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  font-size:12.5px;font-weight:700;color:var(--tx3);padding:2px 0}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"\25BE";font-size:10px;transition:transform .15s}
+details[open] summary:after{transform:rotate(180deg)}
+summary:hover{color:var(--accent)}
+.dbody{font-size:14.5px;color:var(--tx2);margin-top:6px;padding-left:11px;border-left:2px solid var(--line)}
+.dbody p+p{margin-top:9px}
+@media(prefers-reduced-motion:reduce){summary:after{transition:none}}
+
+.flow{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;margin-top:14px;box-shadow:var(--shadow)}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px 14px}
+@media(min-width:560px){.fgrid{grid-template-columns:repeat(4,1fr)}}
+.fk{font-size:11.5px;color:var(--tx3);font-weight:700;display:block}
+.fv{font-size:15.5px;font-weight:800;display:block}
+.fn{font-size:14.5px;color:var(--tx2);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+
+.split{display:grid;grid-template-columns:1fr;gap:11px}
+@media(min-width:560px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+  border-top:3px solid var(--line2);box-shadow:var(--shadow)}
+.col.bull{border-top-color:var(--up)} .col.bear{border-top-color:var(--down)}
+.col h3{font-size:14px;font-weight:900;margin-bottom:12px;letter-spacing:-.02em}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;margin-bottom:12px;padding-left:13px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--line2)}
+.col li b{display:block;font-weight:800;font-size:15px;line-height:1.42}
+.col li span{display:block;font-size:14px;color:var(--tx2);margin-top:2px}
+
+.ladder{display:flex;flex-direction:column;gap:6px}
+.lv{display:grid;grid-template-columns:98px 1fr;align-items:baseline;gap:12px;
+  padding:10px 13px;border-radius:10px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--line2)}
+.lvl{font-size:17px;font-weight:900}
+.lvd{font-size:13.5px;color:var(--tx2)}
+.lv.res{border-left-color:var(--up)} .lv.res .lvl{color:var(--up)}
+.lv.now{border-left-color:var(--warnstrong);background:var(--warnbg);border-color:var(--warnline)}
+.lv.now .lvl{color:var(--warnstrong)} .lv.now .lvd{color:var(--warntx);font-weight:700}
+.lv.sup{border-left-color:var(--down)} .lv.sup .lvl{color:var(--down)}
+.lv.sup2{border-left-color:var(--line2)} .lv.sup2 .lvl{color:var(--tx3)}
+@media(max-width:460px){.lv{grid-template-columns:1fr;gap:1px}}
+
+.scen{display:grid;grid-template-columns:1fr;gap:11px;margin-top:14px}
+@media(min-width:560px){.scen{grid-template-columns:1fr 1fr}}
+.sc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 17px;
+  border-top:3px solid var(--line2);box-shadow:var(--shadow)}
+.sc.base{border-top-color:var(--ok)} .sc.alt{border-top-color:var(--warnstrong)}
+.st{font-size:11px;font-weight:900;letter-spacing:.07em;color:var(--tx3)}
+.sc.base .st{color:var(--ok)} .sc.alt .st{color:var(--warnstrong)}
+.sch{font-size:16px;font-weight:900;margin-top:5px;letter-spacing:-.03em;line-height:1.38}
+.scb{font-size:14.5px;color:var(--tx2);margin-top:8px}
+.sif{font-size:13px;color:var(--tx3);margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-weight:700}
+
+.pts{background:var(--panel2);border-radius:14px;padding:16px 17px;margin-top:14px}
+.pth{font-size:12.5px;font-weight:900;margin-bottom:13px;color:var(--tx3);letter-spacing:.06em}
+.pt{display:grid;grid-template-columns:21px 1fr;gap:10px;margin-bottom:12px}
+.pt:last-child{margin-bottom:0}
+.pn{width:21px;height:21px;border-radius:7px;background:var(--accent);color:#fff;
+  font-size:11.5px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:3px}
+.pt b{display:block;font-size:15px;font-weight:800;line-height:1.42}
+.pt span{display:block;font-size:14px;color:var(--tx2);margin-top:2px}
+
+.chk{background:var(--warnbg);border:1px solid var(--warnline);border-left:4px solid var(--warnstrong);
+  border-radius:12px;padding:13px 15px;margin-top:14px}
+.ct{font-size:11px;font-weight:900;color:var(--warnstrong);letter-spacing:.1em}
+.cl{font-size:15px;font-weight:700;color:var(--warntx);margin-top:5px;line-height:1.58}
+.chk summary{color:var(--warnstrong)}
+.chk .dbody{color:var(--warntx);border-left-color:var(--warnline)}
+
+.score{display:flex;gap:6px;flex-wrap:wrap}
+.s{width:44px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:800;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{border-color:var(--ok);color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,var(--panel))}
+.s.miss{border-color:var(--line2);color:var(--tx3)}
+.s.wait{border-style:dashed;border-color:var(--line2);color:var(--tx2)}
+.verdict{display:inline-block;font-size:12.5px;font-weight:900;padding:3px 9px;border-radius:7px;
+  border:1px solid var(--line2);color:var(--tx2);margin-top:13px}
+.verdict.hit{border-color:var(--ok);color:var(--ok)}
+.verdict.miss{border-color:var(--line2);color:var(--tx3)}
+.note{font-size:15px;color:var(--tx2);margin-top:7px}
+.note b{color:var(--tx)}
+.cov{font-size:13px;color:var(--tx3);margin-top:10px;font-weight:700}
+
+.arch{display:flex;gap:7px;flex-wrap:wrap}
+.arch a{font-size:12.5px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:7px 12px;text-decoration:none;font-weight:700}
+.arch a:hover{color:var(--accent);border-color:var(--line2)}
+footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-size:12px;color:var(--tx3);line-height:1.75}
+
+/* v4 추가 — 전망 배너 보강 */
+.fsig{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.fsig span{font-size:12px;font-weight:700;padding:3px 8px;border-radius:7px;background:var(--panel);border:1px solid var(--line);color:var(--tx2)}
+.fsig span.up{color:var(--up)} .fsig span.down{color:var(--down)} .fsig span.na{color:var(--tx3)}
+.fsig span small{font-weight:600;color:var(--tx3);margin-left:3px}
+.fband{margin-top:10px}
+.fband svg{display:block;width:100%;height:auto;overflow:visible}
+.fconf{font-size:12px;font-weight:700;color:var(--warntx);margin-top:8px}
+.fbanner .fl,.fbanner .fv,.fbanner .fr{grid-column:auto}
+.fbanner .fwide{grid-column:1/-1}
+/* v4 — 하방 체크: 가장 약한 고리만 노란색, 나머지는 회색 패널 */
+.chk.soft{background:var(--panel2);border-color:var(--line);border-left-color:var(--line2)}
+.chk.soft .ct{color:var(--tx3)} .chk.soft .cl{color:var(--tx2)}
+.chk.soft summary{color:var(--tx3)} .chk.soft .dbody{color:var(--tx2);border-left-color:var(--line)}
+/* v4 — 채점 차트 */
+.schart{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 12px 6px}
+.schart svg{display:block;width:100%;height:auto;overflow:visible}
+.schart .sl{font-size:11.5px;color:var(--tx3);font-weight:600;margin-top:4px}
+.fv.na{color:var(--tx3)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <div>
+      <div class="bn">지식인 조간</div>
+      <div class="bd">반도체 · 메모리 개장 전 브리핑</div>
+    </div>
+    <div class="theme" role="group" aria-label="화면 테마">
+      <button type="button" data-set="system">시스템</button>
+      <button type="button" data-set="light">라이트</button>
+      <button type="button" data-set="dark">다크</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="kick">제 22 호</div>
+    <h1>2026년 9월 21일 (월)</h1>
+    <div class="meta"><span>07:45 KST · 전일 종가 &amp; 간밤 미국장 반영</span></div>
+    <div class="fbanner">
+      <div><span class="fl">09:00 시초가 전망</span><span class="fv">갭하락 출발</span></div>
+      <div class="fr num">코스피 6,770 ~ 6,914<br>(−1.80% ~ +0.29%)</div>
+      <div class="fwide fband" aria-label="예상 구간과 전일 종가"><svg viewBox="0 0 360 46" role="img" aria-label="예상 구간 6,770 ~ 6,914, 전일 종가 6,894.23"><line x1="22" x2="338" y1="26" y2="26" style="stroke:var(--line2)" stroke-width="2"/><rect x="108.8" y="12" width="82.5" height="16" rx="4" style="fill:var(--warnstrong);opacity:.55"/><line x1="180.0" x2="180.0" y1="4" y2="34" style="stroke:var(--tx)" stroke-width="2"/><text x="180.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx2)" font-weight="700">전일 종가</text><text x="22.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-4%</text><text x="101.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-2%</text><text x="259.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+2%</text><text x="338.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+4%</text><line x1="188.7" x2="188.7" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/><text x="188.7" y="7" font-size="9" text-anchor="middle" style="fill:var(--tx3)">야간</text><line x1="57.9" x2="57.9" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/><text x="57.9" y="7" font-size="9" text-anchor="middle" style="fill:var(--tx3)">EWY</text></svg></div>
+      <div class="fwide fsig num"><span class="up">야간선물 ▲ +0.22%<small>9/19 05:00</small></span><span class="down">EWY 시사 ▼ −3.09%</span><span class="down">ADR 시사 ▼ −3.64%</span></div>
+      <div class="fwide fconf">최근 10회 — 구간 안 6 · 방향 5 · 중심 오차 중앙 1.15%p</div>
+    </div>
+  </header>
+
+  <div class="kpi">
+<div class="k"><div class="n">KOSPI</div><div class="v num up">6,894.23</div><div class="c up num">▲ +2.66%</div></div><div class="k"><div class="n">SOX</div><div class="v num up">11,921.70</div><div class="c up num">▲ +2.78%</div></div><div class="k"><div class="n">삼성전자</div><div class="v num up">261,000</div><div class="c up num">▲ +3.37%</div></div><div class="k"><div class="n">SK하이닉스</div><div class="v num up">1,857,000</div><div class="c up num">▲ +6.42%</div></div>
+  </div>
+  <div class="legend">▲ 상승 · ▼ 하락 (국내 관행)</div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="jumps">
+      <a class="jump" href="#s-global">간밤</a>
+      <a class="jump" href="#s-dom">국내</a>
+      <a class="jump" href="#s-issue">이슈</a>
+      <a class="jump" href="#s-scen">시나리오</a>
+      <a class="jump" href="#s-score">채점</a>
+    </div>
+    <button id="expandAll" type="button">전부 펼치기</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tldr">
+    <div class="tt">오늘 한눈에</div>
+<div class="tl"><div class="tn">1</div><div><div class="th">야간선물은 보합인데 EWY·ADR 시사는 갭하락입니다</div><div class="tb">세 신호가 갈렸고 금요일 밤 기준이라 주말 재료가 빠졌습니다</div><details><summary>더 보기</summary><div class="dbody"><p>야간선물은 주간 종가 1,092.45 대비 0.22% 올라 사실상 멈춰 섰습니다. 금요일 밤 세션의 종가입니다.</p><p>EWY 시사 갭과 ADR 시사 갭은 금요일 뉴욕 종가 기준이라 같은 창을 봅니다. 두 값이 야간선물과 3%p 넘게 어긋난 회차는 흔치 않습니다.</p></div></details></div></div><div class="tl"><div class="tn">2</div><div><div class="th">간밤 미 반도체는 강했지만 한국 ETF는 내렸습니다</div><div class="tb">SOX가 2.78% 올랐는데 EWY는 0.59% 내렸습니다</div><details><summary>더 보기</summary><div class="dbody"><p>마이크론이 3.92%, 엔비디아가 1.34% 올랐고 필라델피아 반도체지수는 11,921.7로 마감했습니다.</p><p>EWY는 한국 주식만 담습니다. 미 반도체가 오르는 동안 한국 비중만 줄었다는 뜻이라 외국인 수급을 따로 봐야 합니다.</p></div></details></div></div><div class="tl"><div class="tn">3</div><div><div class="th">주말에 AI 속도조절 합의를 겨냥한 집단소송이 나왔습니다</div><div class="tb">9월 12일 합의가 담합이라는 주장이라 방향이 양쪽입니다</div><details><summary>더 보기</summary><div class="dbody"><p>현지 9월 18일 금요일 캘리포니아 북부연방지법에 접수됐습니다. 원고는 네 서비스의 유료 구독자 4명이고 전국 집단소송을 청구했습니다.</p><p>합의가 흔들리면 AI 캐펙스가 다시 빨라져 메모리에 유리합니다. 반대로 소송이 길어지면 속도조절 이야기가 계속 헤드라인에 남습니다.</p></div></details></div></div>
+  </div>
+
+  <section id="s-global">
+    <div class="sh"><h2>간밤 글로벌</h2><span class="stag">9/18(금) 미국장 마감</span></div>
+    <div class="sum">미 반도체는 올랐고 10년물은 4.989%로 5% 문턱에 다시 붙었습니다</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+<tbody class="st"><tr><td class="nm">K200 야간선물<span class="cd">야간 · 9/19 05:00</span></td><td class="pr num up">1,094.80</td><td class="ch up num">▲ +0.22%</td></tr><tr><td class="cm" colspan="3">금요일 밤 세션은 주간 종가 위에서 거의 멈춰 섰습니다<details><summary>근거</summary><div class="dbody"><p>금요일 18시부터 토요일 새벽 5시까지 열린 세션의 종가입니다. 주간 종가 1,092.45 대비 0.22% 올랐습니다.</p><p>일요일 밤 세션은 없습니다. 토요일 오후 이후 나온 주말 재료는 이 값에 들어 있지 않습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SOX<span class="cd">PHLX</span></td><td class="pr num up">11,921.70</td><td class="ch up num">▲ +2.78%</td></tr><tr><td class="cm" colspan="3">반도체 업종 전반이 올라 지수가 11,900선을 회복했습니다<details><summary>근거</summary><div class="dbody"><p>장중 11,686.1에서 11,923.0 사이에서 움직였고 종가는 고가 근처였습니다.</p><p>직전 회차 종가 11,599.5과 견주면 사흘 연속 오름세가 이어졌습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">엔비디아<span class="cd">NVDA</span></td><td class="pr num up">222.27</td><td class="ch up num">▲ +1.34%</td></tr><tr><td class="cm" colspan="3">엔비디아 상승폭은 마이크론의 3분의 1에 그쳤습니다<details><summary>근거</summary><div class="dbody"><p>시가 219.35달러, 장중 218.03~222.73달러에서 움직였습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">마이크론<span class="cd">MU</span></td><td class="pr num up">1,015.80</td><td class="ch up num">▲ +3.92%</td></tr><tr><td class="cm" colspan="3">마이크론이 3.92% 올라 간밤 메모리 강세를 이끌었습니다<details><summary>근거</summary><div class="dbody"><p>장중 977.83~1,016.44달러에서 움직였고 1,000달러선을 넘어 마감했습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">MSCI 한국 ETF<span class="cd">EWY</span></td><td class="pr num down">181.31</td><td class="ch down num">▼ −0.59%</td></tr><tr><td class="cm" colspan="3">한국 주식만 담는 ETF는 뉴욕에서 홀로 내렸습니다<details><summary>근거</summary><div class="dbody"><p>장중 178.23~181.46달러에서 움직였습니다. 미 반도체가 오르는 동안 한국 비중만 줄었다는 뜻입니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스 ADR<span class="cd">SKHY</span></td><td class="pr num up">187.50</td><td class="ch up num">▲ +2.46%</td></tr><tr><td class="cm" colspan="3">ADR은 올랐지만 서울의 6.42% 상승에는 못 미쳤습니다<details><summary>근거</summary><div class="dbody"><p>장중 182.80~192.01달러에서 움직였고 시간외로 187.90달러까지 올랐습니다.</p><p>나스닥 정규 상장 종목입니다. 거래대금이 큰 EWY와 방향이 같아 이번 회차에서는 둘을 따로 가르지 않았습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">코스피200 선물<span class="cd">K200F · 주간</span></td><td class="pr num up">1,092.45</td><td class="ch up num">▲ +2.79%</td></tr><tr><td class="cm" colspan="3">주간 선물이 2.79% 올라 현물보다 조금 더 뛰었습니다<details><summary>근거</summary><div class="dbody"><p>한국경제가 2026.09.18 장마감으로 기준일을 찍었고 sonmul.co.kr 의 주간 종가와 값이 같습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">원달러<span class="cd">USD/KRW</span></td><td class="pr num up">1,383.30</td><td class="ch up num">▲ +0.08%</td></tr><tr><td class="cm" colspan="3">원화가 이레째 약해졌다는 뜻이라 외국인 자금에 부담입니다<details><summary>근거</summary><div class="dbody"><p>서울 외환시장 종가 기준입니다. 전 거래일보다 1.1원 올랐습니다.</p></div></details></td></tr></tbody>
+    </table></div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+<div class="cl">간밤 미 반도체는 강했지만 한국만 담는 ETF는 홀로 내렸습니다. 미 10년물은 4.989%로 5% 문턱에 다시 붙었습니다.</div><details><summary>근거</summary><div class="dbody"><p>필라델피아 반도체지수는 11,921.7로 2.78% 올랐고 장중 11,686.1에서 11,923.0 사이에서 움직였습니다. 엔비디아는 1.34%, 마이크론은 3.92% 올랐습니다.</p><p>EWY는 181.31달러로 0.59% 내렸습니다. 미 반도체가 오르는 동안 한국 비중만 줄었다는 뜻이라 외국인 자금 흐름을 따로 확인해야 합니다.</p><p>연준은 9월 회의에서 기준금리를 3.75~4.00%로 25bp 올렸습니다. CME 페드워치 기준 10월 추가 인상 확률은 53% 안팎입니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-dom">
+    <div class="sh"><h2>국내 종목 &amp; ETF</h2><span class="stag">9/18 종가</span></div>
+    <div class="sum">코스피는 2.66% 올랐고 외국인이 여드레 만에 순매수로 돌아섰습니다</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+<tbody class="st"><tr><td class="nm">삼성전자<span class="cd">005930</span></td><td class="pr num up">261,000</td><td class="ch up num">▲ +3.37%</td></tr><tr><td class="cm" colspan="3">삼성전자가 3.37% 올라 26만원대를 회복했습니다<details><summary>근거</summary><div class="dbody"><p>장중 257,500~262,000원에서 움직였고 거래대금은 3조8,141억원이었습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스<span class="cd">000660</span></td><td class="pr num up">1,857,000</td><td class="ch up num">▲ +6.42%</td></tr><tr><td class="cm" colspan="3">SK하이닉스가 6.42% 올라 185만원대에 올라섰습니다<details><summary>근거</summary><div class="dbody"><p>거래대금 7조9,864억원으로 하루 대금이 삼성전자의 두 배를 넘었습니다.</p><p>로이터는 9월 16일 인텔과 미국 내 메모리 생산을 협의 중이라고 보도했고, 회사는 확정된 사실이 아니라고 밝혔습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SK스퀘어<span class="cd">402340</span></td><td class="pr num up">1,079,000</td><td class="ch up num">▲ +7.04%</td></tr><tr><td class="cm" colspan="3">SK스퀘어가 7.04% 올라 자회사 주가 상승을 따라갔습니다<details><summary>근거</summary><div class="dbody"><p>장중 1,036,000~1,083,000원에서 움직였습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">삼성전기<span class="cd">009150</span></td><td class="pr num up">1,388,000</td><td class="ch up num">▲ +4.36%</td></tr><tr><td class="cm" colspan="3">삼성전기가 4.36% 올라 부품주 가운데 상대강세를 보였습니다</td></tr></tbody><tbody class="st"><tr><td class="nm">SOL AI반도체TOP2<span class="cd">0167A0</span></td><td class="pr num up">17,660</td><td class="ch up num">▲ +3.58%</td></tr><tr><td class="cm" colspan="3">AI반도체 ETF가 3.58% 올라 대형주 상승을 그대로 따랐습니다</td></tr></tbody><tbody class="st"><tr><td class="nm">PLUS 글로벌HBM<span class="cd">442580</span></td><td class="pr num up">101,235</td><td class="ch up num">▲ +4.31%</td></tr><tr><td class="cm" colspan="3">HBM ETF가 4.31% 올라 10만원선 위에서 마감했습니다</td></tr></tbody>
+    </table></div>
+    <div class="flow">
+      <div class="fgrid">
+<div><span class="fk">외국인</span><span class="fv up num">▲ +4,206억</span></div><div><span class="fk">기관</span><span class="fv up num">▲ +3조1,675억</span></div><div><span class="fk">개인</span><span class="fv down num">▼ −3조5,900억</span></div><div><span class="fk">기타법인</span><span class="fv na">미확보</span></div>
+      </div>
+      <div class="fn">외국인이 여드레 만에 사들였고 개인은 3조5,900억을 팔았습니다<details><summary>짚을 것</summary><div class="dbody"><p>기관이 3조1,675억원을 순매수해 금요일 수급을 주도했습니다. 개인은 차익 실현에 나섰습니다.</p><p>기타 주체 순매수는 마감시황 기사에서 확인하지 못해 비워 두었습니다.</p></div></details></div>
+    </div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+<div class="cl">코스피는 2.66% 오른 6,894.23으로 마쳤고 반도체 대형주가 상승을 이끌었습니다. 외국인이 여드레 만에 순매수로 돌아섰습니다.</div><details><summary>근거</summary><div class="dbody"><p>SK하이닉스가 6.42%, SK스퀘어가 7.04% 올랐습니다. 삼성전자는 3.37% 올라 26만원대를 회복했습니다.</p><p>기관이 3조1,675억원을 순매수했고 개인은 3조5,900억원을 팔았습니다. 코스닥은 0.60% 올라 나흘째 상승했습니다.</p><p>코스피 장중 진폭은 6,830.95에서 6,914.08까지 83포인트였고 종가는 고가 근처였습니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-issue">
+    <div class="sh"><h2>메모리 이슈</h2><span class="stag">강세 3 / 약세 3</span></div>
+    <div class="sum">가장 최근 재료는 현지 일요일 트럼프 대통령의 AI 규제 발언입니다</div>
+    <div class="split">
+      <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>미 반도체 업종 강세</b><span>SOX가 2.78% 올랐고 마이크론은 3.92% 상승했습니다</span></li><li><b>외국인 순매수 전환</b><span>여드레 만에 4,206억원을 사들여 수급이 한 번 바뀌었습니다</span></li><li><b>속도조절 합의에 제동</b><span>합의가 담합이라는 소송이 걸려 AI 감속론이 흔들립니다</span></li></ul></div>
+      <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>EWY·ADR 시사 갭 하락</b><span>두 신호 모두 코스피가 3%가량 앞서 갔다고 읽힙니다</span></li><li><b>원화 이레째 약세</b><span>서울 종가가 1,383.3원으로 올라 외국인 부담이 커집니다</span></li><li><b>미 10년물 4.989%</b><span>5% 문턱에 다시 붙었고 10월 추가 인상 확률은 53%입니다</span></li></ul></div>
+    </div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+<div class="cl">주말에 AI 속도조절 합의를 겨냥한 집단소송이 접수됐고, 올트먼은 입법을 기다리지 말자고 다시 말했습니다.</div><details><summary>근거</summary><div class="dbody"><p>현지 9월 18일 금요일 캘리포니아 북부연방지법에 앤트로픽·오픈AI·스페이스X AI·구글을 상대로 접수됐습니다. 원고는 네 서비스의 유료 구독자 4명입니다.</p><p>원고는 9월 12일 아모데이 CEO의 에세이와 같은 날 올트먼·머스크·하사비스의 동조를 담합의 근거로 들었습니다. 개별 회사가 스스로 속도를 늦추는 것은 문제 삼지 않았습니다.</p><p>현지 일요일 트럼프 대통령은 행정부가 AI 개발을 점검할 필요성을 낮춰 말하면서도 일부 규제는 필요하다고 했습니다.</p><p>로이터는 9월 16일 SK하이닉스가 인텔과 미국 내 메모리 생산을 협의 중이라고 보도했습니다. 회사는 확정된 사실이 아니라고 밝혔습니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-scen">
+    <div class="sh"><h2>장중 시나리오</h2><span class="stag">09:00 → 15:30</span></div>
+    <div class="sum">야간선물과 EWY 시사가 갈린 채로 주말 재료가 겹쳤습니다</div>
+    <div class="ladder">
+<div class="lv res"><span class="lvl num">6,914.08</span><span class="lvd">1차 저항 — 9/18 장중 고가 — 실제 거래된 값</span></div><div class="lv now"><span class="lvl num">6,894.23</span><span class="lvd">9/18 종가 — 장중 고가 6,914.08</span></div><div class="lv sup"><span class="lvl num">6,830.95</span><span class="lvd">1차 지지 — 9/18 장중 저가 — 실제 거래된 값</span></div><div class="lv sup2"><span class="lvl num">6,715.41</span><span class="lvd">2차 지지 — 9/17 종가 — 금요일 상승 직전 자리</span></div>
+    </div>
+    <div class="scen">
+<div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div><div class="sch">야간선물과 시사 갭 사이에서 약하게 밀립니다</div><div class="scb">금요일 밤 선물은 멈춰 섰지만 EWY와 ADR은 코스피가 앞서 갔다고 읽힙니다. 간밤 미 반도체 강세가 낙폭을 막아 하락 폭은 1% 안쪽에 머뭅니다.</div><div class="sif">유지 조건 — 개장 30분 안에 6,830.95를 지키고 SK하이닉스가 180만원 위에 머물면 이 그림이 유지됩니다.</div></div><div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div><div class="sch">소송 소식이 감속론을 밀어내면 갭상승입니다</div><div class="scb">속도조절 합의가 흔들린다는 해석이 퍼지면 AI 캐펙스 기대가 되살아납니다. 금요일 미 반도체 강세가 그대로 이어져 지수가 위에서 출발합니다.</div><div class="sif">전환 신호 — 6,914.08을 넘어선 채로 외국인이 이틀 연속 순매수를 이어가면 전환 신호입니다.</div></div>
+    </div>
+    <details style="margin-top:14px"><summary>전망 근거 자세히</summary><div class="dbody">
+<p>EWY는 금요일 뉴욕에서 0.59% 내렸고 같은 날 코스피는 2.66% 올랐습니다. 두 값을 맞추면 코스피가 3%가량 앞서 갔다는 계산이 나옵니다. ADR 시사 갭도 같은 방향입니다. 원화는 이레째 약해져 1,383.3원까지 올랐습니다.</p><p>필라델피아 반도체지수가 2.78% 올랐고 마이크론은 3.92% 상승했습니다. 메모리 수요 이야기가 간밤에 꺾이지 않았습니다. 외국인이 여드레 만에 4,206억원을 순매수해 금요일에 수급도 한 번 바뀌었습니다.</p><p>야간선물은 0.22% 올라 보합인데 저는 갭하락을 냅니다. 야간선물 종가는 금요일 밤 세션이라 주말 소송과 발언이 빠져 있습니다. 다만 직전 회차에서는 야간선물이 실제 갭에 가장 가까웠으므로 하락 폭은 작게 잡았습니다. 방향만 아래로 두고 크기는 1% 안쪽으로 봅니다.</p><p>위쪽 6,914.08은 금요일 장중 고가로 실제 거래된 값입니다. 아래쪽 6,770은 목요일 종가 6,715.41과 금요일 장중 저가 6,830.95 사이에서 잡은 라운드 넘버입니다. 월요일이라 주말 재료가 어느 쪽으로 튈지 몰라 폭을 144포인트로 넓혔습니다.</p>
+    </div></details>
+    <div class="pts">
+      <div class="pth">장중 확인 포인트 3</div>
+<div class="pt"><div class="pn">1</div><div><b>개장 30분 외국인 수급</b><span>여드레 만의 순매수가 이틀째 이어지는지 봅니다. 끊기면 금요일 상승이 하루짜리입니다</span></div></div><div class="pt"><div class="pn">2</div><div><b>SK하이닉스 180만원선</b><span>금요일 종가는 185만7천원입니다. 180만원을 내주면 ADR 시사 갭대로 밀린 셈입니다</span></div></div><div class="pt"><div class="pn">3</div><div><b>AI 속도조절 소송 후속</b><span>네 회사의 공식 입장이 나오는지 봅니다. 합의 유지를 확인하면 메모리에 부담입니다</span></div></div>
+    </div>
+    <div class="chk">
+      <div class="ct">하방 체크 · 가장 약한 고리</div>
+<div class="cl">야간선물이 보합인데 갭하락을 냈다는 점이 오늘 전망의 가장 약한 고리입니다.</div><details><summary>근거</summary><div class="dbody"><p>야간선물은 금요일 밤 세션 종가라 주말 재료가 빠져 있습니다. 다만 직전 회차에서는 세 신호 가운데 실제 갭에 가장 가까웠습니다. 야간선물이 또 맞으면 오늘 방향은 틀립니다.</p><p>주말 소송은 방향이 양쪽입니다. 감속 합의가 흔들린다는 쪽으로 읽히면 갭상승으로 뒤집힙니다.</p><p>금요일 상승분의 대부분을 기관 한 주체가 만들었습니다. 이 매수가 하루로 끝나면 금요일 상승분을 반납할 압력이 커집니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-score">
+    <div class="sh"><h2>예측 채점</h2><span class="stag">최근 10회차 · 왼쪽이 최신</span></div>
+    <div class="score">
+<div class="s wait">오늘</div><div class="s hit">9/18</div><div class="s miss">9/17</div><div class="s hit">9/16</div><div class="s miss">9/15</div><div class="s miss">9/14</div><div class="s hit">9/11</div><div class="s miss">9/10</div><div class="s hit">9/9</div><div class="s miss">9/8</div>
+    </div>
+    <div class="legend">녹색 적중 · 회색 빗나감 · 점선 미채점 (적중 = 방향과 구간 모두)</div>
+    <div class="verdict hit">9/18 회차 — 적중</div>
+    <div class="note">9월 18일 전망은 갭상승 6,780~6,910이었고 실제 시초가는 6,885.70이었습니다. 방향과 구간을 모두 맞혔습니다.</div>
+    <details><summary>맞은 것과 놓친 것 전부 보기</summary><div class="dbody">
+<p>야간선물이 2.99% 올랐고 EWY·ADR 시사 갭도 같은 방향이어서 세 신호가 모두 갭상승을 가리켰습니다. 실제 갭은 2.54%로 야간선물 값에 가장 가까웠고, 시초가는 구간 6,780~6,910 안에 들어왔습니다.</p><p>EWY 시사 4.97%와 ADR 시사 6.53%는 실제 갭보다 각각 2.4%p, 4.0%p 높았습니다. 두 시사 갭을 크기 그대로 읽으면 구간을 위로 치우치게 잡습니다. 시사 갭은 방향 신호로만 쓰는 편이 낫습니다.</p><p>최근 회차에서 야간선물이 실제 갭에 가장 가까웠습니다. 다만 직전 회차는 세 신호가 한 방향이던 날이라 신호가 갈렸을 때의 정확도는 아직 모릅니다. 오늘이 그 표본을 하나 더합니다.</p>
+    </div></details>
+    <div class="schart" aria-label="최근 회차 예상 구간과 실제 시초가"><svg viewBox="0 0 360 150" role="img" aria-label="최근 16회차 예상 구간과 실제 시초가"><line x1="22" x2="356" y1="128.0" y2="128.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="131.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">-5</text><line x1="22" x2="356" y1="104.4" y2="104.4" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="107.4" font-size="9" text-anchor="end" style="fill:var(--tx3)">-3</text><line x1="22" x2="356" y1="80.8" y2="80.8" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="83.8" font-size="9" text-anchor="end" style="fill:var(--tx3)">-1</text><line x1="22" x2="356" y1="57.2" y2="57.2" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="60.2" font-size="9" text-anchor="end" style="fill:var(--tx3)">+1</text><line x1="22" x2="356" y1="33.6" y2="33.6" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="36.6" font-size="9" text-anchor="end" style="fill:var(--tx3)">+3</text><line x1="22" x2="356" y1="10.0" y2="10.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="13.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">+5</text><rect x="28.3" y="60.9" width="8.0" height="17.1" rx="2" style="fill:var(--line2)"/><circle cx="32.3" cy="80.2" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="48.9" y="70.5" width="8.0" height="13.9" rx="2" style="fill:var(--line2)"/><circle cx="52.9" cy="99.4" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><text x="52.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">8/31</text><rect x="69.6" y="63.8" width="8.0" height="19.0" rx="2" style="fill:var(--line2)"/><circle cx="73.6" cy="75.1" r="3.6" style="fill:var(--ok)"/><rect x="90.2" y="86.4" width="8.0" height="23.3" rx="2" style="fill:var(--line2)"/><circle cx="94.2" cy="105.3" r="3.6" style="fill:var(--ok)"/><text x="94.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/2</text><rect x="110.8" y="29.9" width="8.0" height="30.6" rx="2" style="fill:var(--line2)"/><circle cx="114.8" cy="53.3" r="3.6" style="fill:var(--ok)"/><rect x="131.4" y="54.6" width="8.0" height="21.5" rx="2" style="fill:var(--line2)"/><circle cx="135.4" cy="55.5" r="3.6" style="fill:var(--ok)"/><text x="135.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/4</text><rect x="152.1" y="35.0" width="8.0" height="31.8" rx="2" style="fill:var(--line2)"/><circle cx="156.1" cy="29.6" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="172.7" y="54.7" width="8.0" height="38.8" rx="2" style="fill:var(--line2)"/><circle cx="176.7" cy="60.5" r="3.6" style="fill:var(--ok)"/><text x="176.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/8</text><rect x="193.3" y="51.1" width="8.0" height="35.6" rx="2" style="fill:var(--line2)"/><circle cx="197.3" cy="65.9" r="3.6" style="fill:var(--ok)"/><rect x="213.9" y="67.6" width="8.0" height="30.1" rx="2" style="fill:var(--line2)"/><circle cx="217.9" cy="71.1" r="3.6" style="fill:var(--ok)"/><text x="217.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/10</text><rect x="234.6" y="88.1" width="8.0" height="31.9" rx="2" style="fill:var(--line2)"/><circle cx="238.6" cy="107.8" r="3.6" style="fill:var(--ok)"/><rect x="255.2" y="14.3" width="8.0" height="41.0" rx="2" style="fill:var(--line2)"/><circle cx="259.2" cy="106.1" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><text x="259.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/14</text><rect x="275.8" y="75.1" width="8.0" height="35.3" rx="2" style="fill:var(--line2)"/><circle cx="279.8" cy="73.5" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="296.4" y="57.8" width="8.0" height="22.3" rx="2" style="fill:var(--line2)"/><circle cx="300.4" cy="71.8" r="3.6" style="fill:var(--ok)"/><text x="300.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/16</text><rect x="317.1" y="72.2" width="8.0" height="17.6" rx="2" style="fill:var(--line2)"/><circle cx="321.1" cy="58.3" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="337.7" y="34.8" width="8.0" height="22.8" rx="2" style="fill:var(--line2)"/><circle cx="341.7" cy="39.0" r="3.6" style="fill:var(--ok)"/><text x="341.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/18</text></svg><div class="sl">회색 막대 — 예상 구간 · 점 — 실제 시초가 (채움: 구간 안, 테두리만: 구간 밖) · 단위 전일 종가 대비 %</div></div>
+    <div class="cov">누적 21회차 — 구간 커버리지 55.0% (11/20) · 방향 적중 57.1% · 평균 구간폭 2.10%p</div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>지난 회차</h2></div>
+    <div class="arch"><a href="./archive/2026-09-18.html">9/18 (금)</a> <a href="./archive/2026-09-17.html">9/17 (목)</a> <a href="./archive/2026-09-16.html">9/16 (수)</a> <a href="./archive/">전체 보기</a></div>
+  </section>
+
+  <footer>
+    출처 — Google Finance(코스피·국내 6종·미국 4종·달러원 현재가, 9/18 기준) · 한국경제 markets(국내 6종 2026.09.18 장마감, 코스피200 선물 2026.09.18 장마감) · kr.investing.com(코스피·코스닥·SOX·달러원·미 10년물) · stockanalysis.com(NVDA·MU·EWY·SKHY, Sep 18 2026 4:00 PM EDT) · sonmul.co.kr(코스피200 야간선물) · Businesskorea·서울신문 9/18 마감시황(수급·서울 환율 종가) · WOWT/CNN 9/19~20(AI 속도조절 집단소송) · 뉴스핌 9/18(미 국채금리·유가). 국내 6종과 코스피는 Google Finance 와 한국경제·investing 두 소스를 대조했고, 미국 4종은 Google Finance 와 stockanalysis.com 을 대조했습니다.<br>
+    16개 종가는 Google Finance 와 대조 소스에서 모두 일치했고, 환율 기준과 SK하이닉스 종가 표기 두 가지가 갈렸습니다.<details><summary>대조 내역</summary><div class="dbody"><p>달러원은 서울 외환시장 종가 1,383.3원을 썼습니다. Google Finance 와 investing.com 은 월요일 아침 1,386.0원대를 보여 주는데, 뉴욕 마감 뒤 역외 호가라 기준이 다릅니다. 직전 회차와 기준을 맞추려고 서울 종가를 채택했습니다.</p><p>Businesskorea 마감시황은 SK하이닉스 종가를 186만7천원으로 적었습니다. Google Finance 와 한국경제는 185만7천원이고 전일 종가 174만5천원에 6.42%를 더한 값도 185만7천원입니다. 185만7천원을 채택했습니다.</p><p>sonmul.co.kr 은 야간선물 기준시각을 9월 21일 05시로 찍었습니다. CONTEXT.md 가 일요일 밤 세션은 없다고 적고 있어 금요일 밤 세션이 끝난 9월 19일 05시로 고쳐 적었습니다. 값 1,094.80 과 주간 종가 1,092.45 는 한국경제와 일치합니다.</p><p>Google Finance 는 WebFetch 로 기기 미지원 오류를 냈습니다. 같은 주소를 curl 로 받아 값을 확인했습니다.</p></div></details><br>
+    개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+  </footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  function apply(mode){
+    var d=(mode==='dark')||(mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-jj',d?'dark':'light');
+    root.setAttribute('data-jj-mode',mode);
+    var bs=document.querySelectorAll('.theme button');
+    for(var i=0;i<bs.length;i++){bs[i].setAttribute('aria-pressed',bs[i].dataset.set===mode?'true':'false');}
+  }
+  var saved='system';
+  try{saved=localStorage.getItem('jj-theme')||'system';}catch(e){}
+  apply(saved);
+  var bs=document.querySelectorAll('.theme button');
+  for(var i=0;i<bs.length;i++){
+    bs[i].addEventListener('click',function(){
+      var m=this.dataset.set;
+      try{localStorage.setItem('jj-theme',m);}catch(e){}
+      apply(m);
+    });
+  }
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var onch=function(){if(root.getAttribute('data-jj-mode')==='system')apply('system');};
+  if(mq.addEventListener)mq.addEventListener('change',onch);else if(mq.addListener)mq.addListener(onch);
+
+  var btn=document.getElementById('expandAll'),open=false;
+  if(btn)btn.addEventListener('click',function(){
+    open=!open;
+    var ds=document.querySelectorAll('details');
+    for(var j=0;j<ds.length;j++){ds[j].open=open;}
+    btn.textContent=open?'전부 접기':'전부 펼치기';
+  });
+})();
+</script>
+</body>
+</html>
