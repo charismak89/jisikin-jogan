@@ -419,6 +419,32 @@
     "news_flag": "9월 18일 캘리포니아 북부연방지법에 접수된 AI 4사 담합 집단소송은 이후 새 보도를 찾지 못했습니다"
    },
    "source": "2026-09-23 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-09-23",
+   "forecast_dir": "갭상승",
+   "low": 7060.0,
+   "high": 7220.0,
+   "band_width_pct": 2.28,
+   "prev_close": 7017.91,
+   "actual_open": 7153.99,
+   "gap_pct": 1.94,
+   "in_range": true,
+   "dir_hit": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": 1.74,
+   "center_err_pct": 0.2,
+   "signals": {
+    "k200n_pct": 2.58,
+    "k200n_close": 1140.7,
+    "k200n_asof": "9/23 05:00",
+    "k200f_close": 1112.0,
+    "ewy_implied_pct": 0.0,
+    "adr_implied_pct": 3.29,
+    "news_flag": "오픈AI 올트먼과 앤트로픽 아모데이가 23일 유엔 안보리에서 연설합니다. 연휴 중 발언이 나옵니다"
+   },
+   "source": "2026-09-28 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
