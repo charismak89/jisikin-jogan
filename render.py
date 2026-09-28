@@ -131,6 +131,19 @@ def holiday_of(d):
     if d.weekday() >= 5: return '주말'
     return h.get(d.isoformat())
 
+def night_session_skipped(d):
+    """직전 영업일~발행일 사이(양끝 제외)에 holidays.json 휴장일이 있으면 그 목록. 없으면 [].
+    휴장 전날 밤에는 야간선물 세션이 없어서 이런 회차는 야간선물을 못 받는 게 정상이다.
+    주말만 끼면 [] 다 — 평범한 월요일은 금요일 밤 세션이 있다."""
+    cur = d - timedelta(days=1)
+    while holiday_of(cur): cur -= timedelta(days=1)
+    out, x = [], cur + timedelta(days=1)
+    while x < d:
+        h = holiday_of(x)
+        if h and h != '주말': out.append('%s %s' % (x.isoformat(), h))
+        x += timedelta(days=1)
+    return out
+
 def context_section(title_prefix):
     """CONTEXT.md 에서 '## <title_prefix>…' 절의 본문만 돌려준다 (다음 ## 전까지)."""
     try:
@@ -270,7 +283,13 @@ def main():
     if not tags.get('global') or not tags.get('domestic'): warn('tags.global / tags.domestic 비어 있음')
 
     # ----- 시사 갭 (스크립트 계산) -----
+    # 미국 종가가 직전 기록과 똑같으면 미국 휴장(또는 값 재사용)이다. 그대로 계산하면 한국 쪽 움직임만
+    # 뒤집혀 허위 갭이 나오므로 그 시사 갭은 뺀다.
+    us_same = [k for k in ('EWY', 'SKHY')
+               if close.get(k) is not None and prev_closes.get(k) is not None and close[k] == prev_closes.get(k)]
+    for k in us_same: warn('%s 종가가 직전 기록과 같음 — 미국 휴장으로 보고 시사 갭에서 제외' % k)
     def implied(fx_key, us_key, kr_key):
+        if us_key in us_same: return None
         a, b, c = pct.get(us_key), pct.get(fx_key), pct.get(kr_key)
         if a is None or b is None or c is None: return None
         return ((1 + a / 100) * (1 + b / 100) / (1 + c / 100) - 1) * 100
@@ -283,10 +302,16 @@ def main():
         'ewy_implied_pct': implied('USDKRW', 'EWY', 'KOSPI'),
         'adr_implied_pct': implied('USDKRW', 'SKHY', '000660'),
         'news_flag': sig_in.get('news_flag'),
+        'night_skipped': night_session_skipped(d),
+        'us_holiday': len(us_same) == 2,
     }
     for k in ('ewy_implied_pct', 'adr_implied_pct'):
         if signals[k] is not None: signals[k] = round(signals[k], 2)
-    if signals['k200n_pct'] is None: warn('야간선물(K200N) 미확보 — 자동 발행 게이트에 걸린다')
+    if signals['k200n_pct'] is None:
+        if signals['night_skipped']:
+            warn('야간선물(K200N) 미확보 — 휴장(%s) 뒤 회차라 야간 세션이 없다. 게이트에서 제외' % ', '.join(signals['night_skipped']))
+        else:
+            warn('야간선물(K200N) 미확보 — 자동 발행 게이트에 걸린다')
     if signals['k200n_pct'] is not None and close.get('K200N') and close.get('K200F'):
         calc = (close['K200N'] / close['K200F'] - 1) * 100
         if abs(calc - signals['k200n_pct']) >= 0.05:
@@ -607,7 +632,7 @@ def main():
     if any(w.startswith('금지 표현') or '(상한 ' in w and '회' in w for w in WARNS): hold.append('금지 표현·횟수 초과')
     if any('(상한' in w for w in WARNS): hold.append('글자 초과')
     if any('4,000자 초과' in w for w in WARNS): hold.append('접힘 4,000자 초과')
-    if signals['k200n_pct'] is None: hold.append('야간선물 미확보')
+    if signals['k200n_pct'] is None and not signals['night_skipped']: hold.append('야간선물 미확보')
     dv = as_num(dn.get('diverged'), 'data_note.diverged')
     if dv is None or dv > 2: hold.append('종가 대조 불일치 %s건' % ('미기재' if dv is None else int(dv)))
     if any(w.startswith('issue_date') for w in WARNS): hold.append('발행일이 오늘이 아님')

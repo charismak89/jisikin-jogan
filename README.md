@@ -8,10 +8,11 @@
 
 | 경로 | 역할 | 손대는 사람 |
 |---|---|---|
+| `HANDOFF.md` | 운영 상태·루틴 설정·남은 할 일. 새 관리 세션이 먼저 읽는다 | 사람 |
 | `RUNBOOK.md` | 회차 절차. 예약작업 프롬프트는 이 파일을 clone 해 읽는다 | 사람 |
 | `CONTEXT.md` | 종목 사실·표기명·소스 우선순위·금지 표현·이슈 수집 범위 | 사람 |
 | `CALIBRATION.md` / `calibration.json` | 채점 규칙·기록. records 는 score.py 가 append | score.py |
-| `holidays.json` | 휴장일. 임시공휴일이 생기면 한 줄 추가 | 사람 |
+| `holidays.json` | 휴장일. 임시공휴일이 생기면 한 줄 추가. 휴장 다음 회차의 야간선물 게이트 면제도 이 파일로 판정 | 사람 |
 | `template-v4.html` / `style.css` | 뼈대와 디자인 (인라인 CSS 와 style.css 는 같은 내용) | 사람 |
 | `render.py` | fill.json → `out/index.html` · `out/state.json` · `out/calibration.json` | — |
 | `score.py` | 직전 전망 채점 → calibration.json append | — |

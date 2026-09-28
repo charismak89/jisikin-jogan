@@ -21,11 +21,26 @@
 ## 2. 시세 — 병렬 3턴
 **턴 A · Google Finance 12개를 한 턴에 병렬로.** 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
 `KOSPI:KRX` `005930:KRX` `000660:KRX` `402340:KRX` `009150:KRX` `0167A0:KRX` `442580:KRX` `NVDA:NASDAQ` `MU:NASDAQ` `EWY:NYSEARCA` `SKHY:NASDAQ` `USD-KRW` (`https://www.google.com/finance/quote/…`)
+
+**curl 폴백** — WebFetch 가 `Your device isn't supported` 만 돌려주면(2026-09-21 회차 실측) 같은 턴을 다시 부르지 말고 데스크톱 User-Agent 를 단 curl 로 12개를 한 번에 받는다.
+```
+UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+for q in KOSPI:KRX 005930:KRX 000660:KRX 402340:KRX 009150:KRX 0167A0:KRX 442580:KRX NVDA:NASDAQ MU:NASDAQ EWY:NYSEARCA SKHY:NASDAQ USD-KRW; do
+  curl -sSL -A "$UA" "https://www.google.com/finance/quote/$q" -o "gf_${q/:/_}.html" &
+done; wait
+```
+curl 로 받은 HTML 은 숫자만 평문이고 `Previous close`·`Open` 같은 라벨과 시각 표기는 JS 렌더라 없다. 그래서 이 경우 Google Finance 는 **대조용**으로만 쓴다.
+- 라벨이 붙은 값(종가·시가·고저·기준일)은 턴 B 의 한국경제·investing.com·stockanalysis.com 에서 받는다.
+- 그 값이 HTML 안에 문자열로 있는지 `grep` 해서 두 소스 일치를 확인한다. 예: `grep -c '1,857,000' gf_000660_KRX.html`
+- 예외로 KOSPI 페이지는 종가·시가·고가·저가 네 숫자가 평문으로 다 나온다. `grep -oE '[0-9],[0-9]{3}\.[0-9]{2}' gf_KOSPI_KRX.html` 로 뽑아 investing.com 값과 맞춘다.
+- 이때는 아래 판정 규칙의 "Google Finance 시각 15:30 대" 대신 한국경제의 `장마감` 표기로 종가 여부를 판단한다.
+- `gf_*.html` 은 `.gitignore` 에 있다. publish.py 가 `git add -A` 를 써도 커밋되지 않는다.
 KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드시 챙기고, 그 세션 날짜를 `open_date` 에 적는다. `state.forecast.date` 와 다르면(회차를 건너뛴 날) 그 날짜의 시가를 마감시황 기사에서 찾아 `score.actual_open`·`score.actual_open_date` 에 넣는다. 못 찾으면 채점 불가로 두고 억지로 채점하지 않는다.
 
 **턴 B · 대조와 보완, 한 턴에 병렬로.**
 - 한국경제 `https://markets.hankyung.com/stock/<코드>` 국내 6종 + 코스피 — `2026.09.11 장마감` 처럼 상태와 기준일이 찍힌다. `장중` 이면 종가가 아니다.
 - **야간선물** `https://sonmul.co.kr/` — 야간 종가·등락률·기준시각·주간선물 종가. 월요일 값은 금요일 밤 세션이다(일요일 밤 세션은 없다).
+  - 휴장일 전날 밤에는 세션이 없다. 직전 영업일과 발행일 사이에 `holidays.json` 휴장일이 끼면(예: 10/6·10/12·12/28·2027-01-04) 페이지에 연휴 전 세션 값이 남아 있을 수 있다. `asof` 가 직전 영업일 밤 세션이 아니면 `K200N.close: null` 로 두고 `asof` 에 `연휴 휴장` 이라고 적는다. render.py 가 이 회차는 야간선물 누락을 경고로만 남기고 게이트에서 뺀다.
 - 주간 선물 `https://markets.hankyung.com/indices/kospi-future` (기준일 확인) · SOX `https://kr.investing.com/indices/phlx-semiconductor`
 - WebSearch 1회: 직전 영업일 마감시황 기사 → 외국인·기관·개인 순매수, 코스닥 종가, 원달러 서울 종가
 
@@ -103,7 +118,7 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 ```
 
 ## 8. 발행
-게이트 — `render.py` 마지막 줄이 `GATE PASS` 일 때만 자동 발행한다. (조건: FAIL 없음 · 금지 표현·글자 초과 경고 0 · 야간선물 확보 · `data_note.diverged` ≤ 2). `GATE HOLD` 면 수동 경로다.
+게이트 — `render.py` 마지막 줄이 `GATE PASS` 일 때만 자동 발행한다. (조건: FAIL 없음 · 금지 표현·글자 초과 경고 0 · 야간선물 확보(휴장 다음 회차는 면제, `signals.night_skipped`) · `data_note.diverged` ≤ 2). `GATE HOLD` 면 수동 경로다.
 자격증명 — 토큰을 찾거나 넣지 않는다. 루틴에 저장소 `charismak89/jisikin-jogan` 이 붙어 있으면 git 프록시가 push 에 자격증명을 넣어 준다(클라우드 세션은 PAT 를 통과시키지 않는다).
 - 게이트 통과: `python3 publish.py --push`. `main` 에 올라가면 커밋 SHA 를 응답에 적는다. main 이 거부돼 `claude/publish-<날짜>` 브랜치로 올라갔으면 응답 첫 줄에 **"브랜치 claude/publish-<날짜> — GitHub 에서 main 으로 merge 필요"** 라고 적는다.
 - GATE HOLD: `python3 publish.py --push --branch claude/hold-<날짜>` 로 브랜치에만 올린다(사이트에는 반영되지 않는다). 응답 첫 줄에 HOLD 사유와 브랜치 이름을 적는다. 사람이 세션 diff 를 보고 merge 여부를 정한다.
