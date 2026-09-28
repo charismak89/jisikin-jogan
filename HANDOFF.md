@@ -5,8 +5,8 @@
 
 ## 0. 현재 상태 (2026-09-28)
 - 루틴 정상 가동. 9/15~9/23 대부분 main 직접 반영. 9/21(PR #1)·9/28(PR #2)은 브랜치로 올라가 사람이 머지했다.
-- 9/28 HOLD 원인(연휴 뒤 야간선물 부재)은 render.py `night_session_skipped()` 로 고쳤다. 9/14 에 고쳤다고 기록된 미국 휴장 시사 갭(`signals.us_holiday`)은 실제로 main 에 없어서 같이 넣었다. PR 이 머지돼야 10/6 회차부터 적용된다.
-- 윈도우 로컬의 미push 커밋 `9474bce` 는 같은 수정이다. 이 PR 머지 뒤 로컬 폴더에서 `git fetch origin && git reset --hard origin/main` 으로 버린다(push 하면 충돌).
+- PR #3 머지(`3848092`). 9/28 HOLD 원인(연휴 뒤 야간선물 부재)은 render.py `night_session_skipped()` 로 고쳤다. 9/14 에 고쳤다고 기록된 미국 휴장 시사 갭(`signals.us_holiday`)은 실제로 main 에 없어서 같이 넣었다. 10/6 회차부터 적용된다.
+- 윈도우 로컬의 미push 커밋 `9474bce` 는 같은 수정이다. 로컬 폴더에서 `git fetch origin && git reset --hard origin/main` 으로 버린다(push 하면 충돌).
 
 ## 1. 루틴
 | 항목 | 값 |
@@ -29,7 +29,7 @@
 | 회차 세션 상세 | `get_session` 에 `cse_…` 를 넣으면 된다(상태·브랜치·비용). 대화 본문은 웹 UI |
 | 저장소 수정 | 세션 지정 브랜치에 커밋·push → PR → 머지(GitHub MCP) |
 | 루틴 편집·Run now·저장소 부착·환경 | **웹 UI(claude.ai/code/routines)만.** `update_trigger`·`fire_trigger` 는 http_api 루틴에 안 먹힌다 |
-| 원격 브랜치 삭제 | 세션 git 프록시는 지정 브랜치만 push 허용 [검증필요]. GitHub 웹에서 지우거나 "Automatically delete head branches" 로 해결 |
+| 원격 브랜치 삭제 | 세션에서 `git push --delete` 는 auto mode 권한 판정에 막힘(09-28 실측). 사람이 월 1회 정리(UPDATE.md). PR 머지 브랜치는 자동 삭제 |
 | 코워크 세션 대화 | 여기서 조회 불가(세션 목록에서 빠짐) |
 
 ## 3. 회차 판독법
@@ -56,9 +56,9 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 - 재배포 제약(미해결, 판단 보류): public GitHub Pages. KRX 이용약관 제12조 제2항. 완화책 noindex · "개인 학습용" · 출처 명시
 
 ## 7. 남은 할 일
-1. 이 PR 머지 → 10/6 회차가 PASS 로 main 에 올라가는지 확인
-2. 윈도우 로컬 `9474bce` 버리기(0절)
-3. 원격 claude/* 브랜치 정리(7개 머지됨, `laughing-sagan-pc110t` 는 반영 안 하기로 한 7ab4fbc 포함) + 저장소 설정 "Automatically delete head branches" 켜기
+1. 10/6 회차가 PASS 로 main 에 올라가는지 확인 — 10/6 08:30 KST 자동 확인 예약(`send_later`, `trig_01FMVJVNnpdG6wHou3GXPuds`)
+2. 윈도우 로컬 `9474bce` 버리기(0절) — 사용자 수행, 세션에서 확인 불가 [검증필요]
+3. ~~원격 claude/* 브랜치 정리 + "Automatically delete head branches"~~ 2026-09-28 완료(원격은 main 만, `delete_branch_on_merge: true`). 이후 월 1회 정리는 UPDATE.md
 4. 임시공휴일 지정 시 `holidays.json` 에 추가
 5. `template.html` · `fill.py`(v1 잔재) 삭제. 모델 변경 시험은 금요일 한 변수 규칙
 6. 9/21 PR #1 이 main 거부 폴백이었는지 [검증필요]. 9/22·9/23 은 main 직접 push 가 됐으므로 "클라우드 세션은 main push 불가" 규칙(7ab4fbc)은 반영하지 않았다
@@ -69,6 +69,6 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 - 급한 수동 발행은 여전히 윈도우 `publish.bat`(UPDATE.md)
 
 ## 이력
-- 2026-09-14 v2 전환. 1차 Run now 는 환경 Trusted 라 EGRESS_BLOCKED, Network Full 로 바꾼 2차는 정상(기록상 last_run FAILED 17초는 불일치). 미국 휴장일 허위 시사 갭 결함을 찾았으나 수정이 main 에 들어가지 않았다(09-28 확인) → 이 PR 에서 구현
+- 2026-09-14 v2 전환. 1차 Run now 는 환경 Trusted 라 EGRESS_BLOCKED, Network Full 로 바꾼 2차는 정상(기록상 last_run FAILED 17초는 불일치). 미국 휴장일 허위 시사 갭 결함을 찾았으나 수정이 main 에 들어가지 않았다(09-28 확인) → PR #3 에서 구현
 - 2026-09-21 Google Finance WebFetch 차단 → 회차가 curl 우회, PR #1
-- 2026-09-28 연휴 뒤 야간선물 null → HOLD → PR #2. 게이트 예외·curl 폴백을 main 반영(이 PR). 관리 주체 Claude Code 로 이전
+- 2026-09-28 연휴 뒤 야간선물 null → HOLD → PR #2. 게이트 예외·curl 폴백을 main 반영(PR #3). 관리 주체 Claude Code 로 이전
