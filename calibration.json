@@ -445,6 +445,32 @@
     "news_flag": "오픈AI 올트먼과 앤트로픽 아모데이가 23일 유엔 안보리에서 연설합니다. 연휴 중 발언이 나옵니다"
    },
    "source": "2026-09-28 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-09-28",
+   "forecast_dir": "갭하락",
+   "low": 6880.0,
+   "high": 7080.0,
+   "band_width_pct": 2.82,
+   "prev_close": 7080.92,
+   "actual_open": 7057.86,
+   "gap_pct": -0.33,
+   "in_range": true,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -1.43,
+   "center_err_pct": 1.1,
+   "signals": {
+    "k200n_pct": null,
+    "k200n_close": null,
+    "k200n_asof": "연휴 휴장",
+    "k200f_close": 1127.75,
+    "ewy_implied_pct": -3.97,
+    "adr_implied_pct": -3.39,
+    "news_flag": "연휴 중 미 30년물 금리 5.5%로 2004년 이후 최고, 10년물 장중 5.22%. 9/23 올트먼·아모데이 유엔 안보리 연설"
+   },
+   "source": "2026-09-29 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
