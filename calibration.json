@@ -499,6 +499,34 @@
     "us_holiday": false
    },
    "source": "2026-09-30 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-09-30",
+   "forecast_dir": "갭상승",
+   "low": 6875.0,
+   "high": 6985.0,
+   "band_width_pct": 1.6,
+   "prev_close": 6870.81,
+   "actual_open": 6943.47,
+   "gap_pct": 1.06,
+   "in_range": true,
+   "dir_hit": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": 0.86,
+   "center_err_pct": 0.2,
+   "signals": {
+    "k200n_pct": 0.95,
+    "k200n_close": 1106.55,
+    "k200n_asof": "9/30 05:00",
+    "k200f_close": 1096.09,
+    "ewy_implied_pct": 1.57,
+    "adr_implied_pct": 2.16,
+    "news_flag": "미 10년물 5.24%대 고금리 지속, 외국인 이틀째 2.9조 순매도, 마이크론 9/30(현지) 실적 대기",
+    "night_skipped": [],
+    "us_holiday": false
+   },
+   "source": "2026-10-01 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
