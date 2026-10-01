@@ -294,6 +294,8 @@ def main():
         if a is None or b is None or c is None: return None
         return ((1 + a / 100) * (1 + b / 100) / (1 + c / 100) - 1) * 100
     sig_in = fill.get('signals') or {}
+    uf = sig_in.get('us_fut') or {}
+    es_pct, nq_pct = as_num(uf.get('es_pct'), 'signals.us_fut.es_pct'), as_num(uf.get('nq_pct'), 'signals.us_fut.nq_pct')
     signals = {
         'k200n_pct': pct.get('K200N'),
         'k200n_close': close.get('K200N'),
@@ -304,7 +306,15 @@ def main():
         'news_flag': sig_in.get('news_flag'),
         'night_skipped': night_session_skipped(d),
         'us_holiday': len(us_same) == 2,
+        # 미국 지수선물(ES·NQ) 직전 정산가 대비 — 야간선물 마감 뒤 ~ 회차 시점의 움직임. 기록만 하고 게이트·전망에 쓰지 않는다
+        'es_pct': es_pct,
+        'nq_pct': nq_pct,
+        'us_fut_asof': uf.get('asof'),
     }
+    if es_pct is None and nq_pct is None:
+        warn('미국 지수선물(signals.us_fut) 미확보 — 기록만 비운다(게이트 무관)')
+    for k, v in (('ES', es_pct), ('NQ', nq_pct)):
+        if v is not None and abs(v) > 5: warn('%s 선물 %+.2f%% — 등락률이 아니라 포인트 변화를 넣었는지 확인' % (k, v))
     for k in ('ewy_implied_pct', 'adr_implied_pct'):
         if signals[k] is not None: signals[k] = round(signals[k], 2)
     if signals['k200n_pct'] is None:
@@ -321,7 +331,8 @@ def main():
         return '<span class="%s">%s %s%s</span>' % (cls(p) or '', label, pct_str(p), ('<small>%s</small>' % esc(note)) if note else '')
     V['SIGNAL_STRIP'] = (chip('야간선물', signals['k200n_pct'], signals['k200n_asof'] or '') +
                          chip('EWY 시사', signals['ewy_implied_pct']) +
-                         chip('ADR 시사', signals['adr_implied_pct']))
+                         chip('ADR 시사', signals['adr_implied_pct']) +
+                         (chip('미국선물 ES', es_pct, uf.get('asof') or '') if es_pct is not None else ''))
 
     # ----- 전망 -----
     fc = fill.get('forecast') or {}

@@ -58,3 +58,13 @@ if len(N) >= 5:
         sum(bool(r['in_range']) for r in N), len(N), sum(r['verdict'] == 'hit' for r in N), len(N)))
     res = [abs(r['gap_pct'] - r['signals']['k200n_pct']) for r in N]
     print('\n후보 2 반폭 제안 = |갭 − 야간| 80퍼센타일 %.2f%% (n=%d)' % (q80(res), len(N)))
+
+# 후보 3 — 미국 지수선물(야간 마감 뒤 움직임)이 야간선물 잔차를 설명하는가. 2026-10-02 회차부터 기록
+E = [r for r in N if r['signals'].get('es_pct') is not None]
+print('\n미국 지수선물 기록 %d건' % len(E))
+if len(E) >= 5:
+    xs = [r['signals']['es_pct'] for r in E]; ys = [r['gap_pct'] - r['signals']['k200n_pct'] for r in E]
+    print('잔차(갭 − 야간) vs ES 상관 r=%.2f' % st.correlation(xs, ys))
+    for k in (0.5, 1.0):
+        e = [abs(r['gap_pct'] - r['signals']['k200n_pct'] - k * r['signals']['es_pct']) for r in E]
+        print('야간 + %.1f×ES  MAE %.2f  (야간 단독 %.2f)' % (k, st.mean(e), st.mean(abs(y) for y in ys)))
