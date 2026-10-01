@@ -527,6 +527,34 @@
     "us_holiday": false
    },
    "source": "2026-10-01 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-01",
+   "forecast_dir": "갭하락",
+   "low": 6750.0,
+   "high": 6835.0,
+   "band_width_pct": 1.24,
+   "prev_close": 6838.04,
+   "actual_open": 6814.49,
+   "gap_pct": -0.34,
+   "in_range": true,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -0.67,
+   "center_err_pct": 0.32,
+   "signals": {
+    "k200n_pct": -0.46,
+    "k200n_close": 1086.45,
+    "k200n_asof": "10/1 05:00",
+    "k200f_close": 1091.5,
+    "ewy_implied_pct": -2.12,
+    "adr_implied_pct": -2.25,
+    "news_flag": "마이크론 실적 예상치 상회에도 시간외 반응 미미, 미 10년물 5.29%, 미 FTC 가 AI 기업 조사 착수",
+    "night_skipped": [],
+    "us_holiday": false
+   },
+   "source": "2026-10-02 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
