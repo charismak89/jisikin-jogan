@@ -51,6 +51,7 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 ## 6. 데이터 소스
 - 한국경제·stockanalysis·kr.investing·sonmul.co.kr 은 루틴(Network Full)에서 WebFetch 가능
 - Google Finance 는 9/21 부터 WebFetch 에 `Your device isn't supported` 가 나온 적이 있다 → RUNBOOK 2단계 curl 폴백(`gf_*.html` 은 .gitignore)
+- 미국 지수선물(ES·NQ): kr.investing.com 선물 페이지, WebFetch 로만 된다(curl 403). 2026-10-02 회차부터 `signals.es_pct`·`nq_pct` 기록 전용. 전망·게이트에 쓰지 않는다(CALIBRATION 후보 3)
 - 야간선물(sonmul): 18:00 이전엔 주간 종가가 0.00% 로 찍힘 → null. 휴장 전날 밤에는 세션 자체가 없음
 - 증권사 Open API 불가. 네이버·KRX·야후·stooq·FnGuide 차단
 - 재배포 제약(미해결, 판단 보류): public GitHub Pages. KRX 이용약관 제12조 제2항. 완화책 noindex · "개인 학습용" · 출처 명시

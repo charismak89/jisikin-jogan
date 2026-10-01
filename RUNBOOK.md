@@ -41,6 +41,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 - 한국경제 `https://markets.hankyung.com/stock/<코드>` 국내 6종 + 코스피 — `2026.09.11 장마감` 처럼 상태와 기준일이 찍힌다. `장중` 이면 종가가 아니다.
 - **야간선물** `https://sonmul.co.kr/` — 야간 종가·등락률·기준시각·주간선물 종가. 월요일 값은 금요일 밤 세션이다(일요일 밤 세션은 없다).
   - 휴장일 전날 밤에는 세션이 없다. 직전 영업일과 발행일 사이에 `holidays.json` 휴장일이 끼면(예: 10/6·10/12·12/28·2027-01-04) 페이지에 연휴 전 세션 값이 남아 있을 수 있다. `asof` 가 직전 영업일 밤 세션이 아니면 `K200N.close: null` 로 두고 `asof` 에 `연휴 휴장` 이라고 적는다. render.py 가 이 회차는 야간선물 누락을 경고로만 남기고 게이트에서 뺀다.
+- **미국 지수선물** `https://kr.investing.com/indices/us-spx-500-futures` (ES) · `https://kr.investing.com/indices/nq-100-futures` (NQ) — 현재가·등락률·전일 종가·표시 시각. 등락률은 직전 정산가(미국 현물 마감 무렵) 대비이므로 **야간선물 마감 뒤 ~ 회차 시점의 움직임**이다. `signals.us_fut` 에 `es_pct`·`nq_pct`(%, 페이지 등락률)·`asof`(KST 표시 시각)를 적는다. 못 받으면 null. curl 은 403 이라 WebFetch 로만 받는다(2026-10-01 확인). 2026-10-01 도입, **기록 전용** — 전망 구간을 이 값으로 옮기지 않는다(CALIBRATION.md 후보 3)
 - 주간 선물 `https://markets.hankyung.com/indices/kospi-future` (기준일 확인) · SOX `https://kr.investing.com/indices/phlx-semiconductor`
 - WebSearch 1회: 직전 영업일 마감시황 기사 → 외국인·기관·개인 순매수, 코스닥 종가, 원달러 서울 종가
 
@@ -83,7 +84,8 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
    "K200N":{"close":1085.5,"pct_screen":-0.26,"asof":"9/15 05:00","cm":"45자","more":[]},   ← 야간선물. pct 는 페이지의 주간 종가 대비 값
    "SOX":{"close":..,"pct_screen":..,"cm":"45자","more":["..",".."]},  "NVDA":{..}, "MU":{..}, "EWY":{..}, "SKHY":{..},
    "K200F":{..}, "USDKRW":{..}, "005930":{..}, "000660":{..}, "402340":{..}, "009150":{..}, "0167A0":{..}, "442580":{..}},
- "signals":{"news_flag":"주말 큰 뉴스 한 줄 또는 null"},
+ "signals":{"news_flag":"주말 큰 뉴스 한 줄 또는 null",
+            "us_fut":{"es_pct":0.12,"nq_pct":0.25,"asof":"10/2 07:38"}},     ← 미국 지수선물. 못 받으면 값 null
  "forecast":{"dir":"갭하락","low":6600,"high":6790},
  "tldr":[{"h":"결론 35자","b":"근거 45자","more":["..",".."]}, ×3 정확히],
  "sums":{"global":"50자","domestic":"50자","issue":"50자 (최근 재료 시각 포함)","scen":"50자"},
