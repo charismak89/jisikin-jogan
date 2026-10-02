@@ -144,7 +144,7 @@ def print_rule(cal, fill):
         print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% → %s %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
             k200n, hw, d, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))
     else:
-        print('규칙 적용 실패 — center_signal=%s 인데 야간선물 값 또는 반폭이 없음. 기존 방식으로 전망하고 세션 응답에 밝힌다.' % cs)
+        print('규칙 적용 실패 — center_signal=%s 인데 야간선물 값 또는 반폭이 없음. RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % cs)
 
 if __name__ == '__main__':
     sys.exit(main())
