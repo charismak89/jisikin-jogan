@@ -46,7 +46,8 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 
 ## 5. 예측 캘리브레이션
 - score.py 규칙 고정: 보합 = |갭| ≤ 0.5%, hit = 방향 AND 구간. 09-01 기록 불일치(보합 −0.52% 가 hit)는 사람이 결정
-- **규칙 동결.** 후보 `rule.center_signal="k200n"`, `half_width_pct`(잔차 p80, 없으면 1.5). 절차 `CALIBRATION.md`. 변경은 금요일 마감 뒤, 한 번에 한 변수
+- **2026-10-02 후보 2 적용**: 구간 중심 = 야간선물, 반폭 0.8%. 첫 적용 10/7(10/6 은 폴백). 롤백 기준은 적용 뒤 10회차 coverage < 8/10 (`CALIBRATION.md` 지금 상태)
+- 진단·재계산: `python3 analyze.py`. 변경은 금요일 마감 뒤, 한 번에 한 변수. 다음 후보는 야간 ×0.8, 그다음 미국 지수선물(10/2 부터 기록)
 
 ## 6. 데이터 소스
 - 한국경제·stockanalysis·kr.investing·sonmul.co.kr 은 루틴(Network Full)에서 WebFetch 가능
