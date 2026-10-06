@@ -129,6 +129,16 @@ def print_summary(cal):
     if gaps:
         print('참고 — 최근 %d회 |갭| 중앙 %.2f%% · 80퍼센타일 %.2f%%' % (len(gaps), pctl(gaps, 0.5), pctl(gaps, 0.8)))
 
+def holidays_between(fill):
+    """직전 영업일~발행일 사이 휴장일(render.night_session_skipped 와 같은 판정). 판정 못 하면 []."""
+    try:
+        from datetime import date, datetime, timedelta, timezone
+        from render import night_session_skipped
+        d = fill.get('issue_date') or datetime.now(timezone(timedelta(hours=9))).date().isoformat()
+        return night_session_skipped(date.fromisoformat(str(d)))
+    except Exception:
+        return []
+
 def print_rule(cal, fill):
     rule = cal.get('rule') or {}
     cs = rule.get('center_signal')
@@ -138,7 +148,11 @@ def print_rule(cal, fill):
         return
     k200n = num(((fill.get('prices') or {}).get('K200N') or {}).get('pct_screen'))
     prev = num(((fill.get('prices') or {}).get('KOSPI') or {}).get('close'))
-    if cs == 'k200n' and k200n is not None and prev and hw is not None:
+    hol = holidays_between(fill)
+    if cs == 'k200n' and hol:
+        # 휴장일에도 미국장은 열리는 게 보통이다. 야간선물(연휴 전 밤 세션)은 그 미국장을 담지 못한다 — 2026-10-06 회차 실측
+        print('규칙 적용 실패 — 휴장(%s) 뒤 회차라 야간선물이 휴장 중 미국장을 반영하지 못한다(값이 있어도 묵은 값). RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % ', '.join(hol))
+    elif cs == 'k200n' and k200n is not None and prev and hw is not None:
         lo, hi = prev * (1 + (k200n - hw) / 100), prev * (1 + (k200n + hw) / 100)
         d = '갭상승' if k200n > 0.5 else ('갭하락' if k200n < -0.5 else '보합')
         print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% → %s %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
