@@ -628,6 +628,37 @@
     "us_fut_asof": "10/6 07:36"
    },
    "source": "2026-10-07 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-07",
+   "forecast_dir": "갭하락",
+   "low": 6810.0,
+   "high": 6920.0,
+   "band_width_pct": 1.58,
+   "prev_close": 6941.39,
+   "actual_open": 6864.25,
+   "gap_pct": -1.11,
+   "in_range": true,
+   "dir_hit": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -1.1,
+   "center_err_pct": -0.01,
+   "signals": {
+    "k200n_pct": -1.07,
+    "k200n_close": 1091.25,
+    "k200n_asof": "10/7 05:00",
+    "k200f_close": 1103.0,
+    "ewy_implied_pct": -2.75,
+    "adr_implied_pct": -3.77,
+    "news_flag": "SKHY -6.39%, EWY -2.64% — 서울 종가 뒤 한국 반도체 디스카운트 확대. 삼성전자 10/8 잠정실적 대기",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.09,
+    "nq_pct": 0.04,
+    "us_fut_asof": "10/7 07:40"
+   },
+   "source": "2026-10-08 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
