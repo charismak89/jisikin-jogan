@@ -690,6 +690,39 @@
     "us_fut_asof": "10/8 07:36"
    },
    "source": "2026-10-12 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-12",
+   "forecast_dir": "보합",
+   "low": 6500.0,
+   "high": 6740.0,
+   "band_width_pct": 3.62,
+   "prev_close": 6625.93,
+   "actual_open": 6578.17,
+   "gap_pct": -0.72,
+   "in_range": true,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -0.09,
+   "center_err_pct": -0.63,
+   "signals": {
+    "k200n_pct": -1.84,
+    "k200n_close": 1028.95,
+    "k200n_asof": "10/9 05:00",
+    "k200f_close": 1048.25,
+    "ewy_implied_pct": -0.42,
+    "adr_implied_pct": -2.31,
+    "news_flag": "한글날 연휴 뒤 회차 · 10/8 코스피 −2.62% 저가 마감 · 미 10년물 5.2%대(10/7 24년 최고 5.37%)",
+    "night_skipped": [
+     "2026-10-09 한글날"
+    ],
+    "us_holiday": false,
+    "es_pct": 0.15,
+    "nq_pct": 0.28,
+    "us_fut_asof": "10/12 07:37"
+   },
+   "source": "2026-10-13 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
