@@ -723,6 +723,37 @@
     "us_fut_asof": "10/12 07:37"
    },
    "source": "2026-10-13 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-13",
+   "forecast_dir": "갭하락",
+   "low": 6200.0,
+   "high": 6300.0,
+   "band_width_pct": 1.57,
+   "prev_close": 6384.24,
+   "actual_open": 6186.08,
+   "gap_pct": -3.1,
+   "in_range": false,
+   "dir_hit": true,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -2.1,
+   "center_err_pct": -1.0,
+   "signals": {
+    "k200n_pct": -2.05,
+    "k200n_close": 987.6,
+    "k200n_asof": "10/13 05:00",
+    "k200f_close": 1008.25,
+    "ewy_implied_pct": -0.88,
+    "adr_implied_pct": 0.03,
+    "news_flag": "10/12 코스피 −3.65%·외국인 2조 순매도 · 미 SOX −2.67%(CXMT 차세대 D램) · 이번 주 미 9월 CPI",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.03,
+    "nq_pct": -0.01,
+    "us_fut_asof": "10/13 07:20"
+   },
+   "source": "2026-10-14 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
