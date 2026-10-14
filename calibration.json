@@ -754,6 +754,37 @@
     "us_fut_asof": "10/13 07:20"
    },
    "source": "2026-10-14 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-14",
+   "forecast_dir": "갭상승",
+   "low": 6090.0,
+   "high": 6190.0,
+   "band_width_pct": 1.66,
+   "prev_close": 6035.35,
+   "actual_open": 6062.08,
+   "gap_pct": 0.44,
+   "in_range": false,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": 1.73,
+   "center_err_pct": -1.29,
+   "signals": {
+    "k200n_pct": 1.71,
+    "k200n_close": 961.0,
+    "k200n_asof": "10/14 05:00",
+    "k200f_close": 944.8,
+    "ewy_implied_pct": 4.36,
+    "adr_implied_pct": 8.5,
+    "news_flag": "10/13 코스피 −5.46%·사이드카·외국인 4.5조 순매도(CXMT 서버 D램·AI 수익성 의문) · 10/14 밤 미 9월 CPI",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.03,
+    "nq_pct": 0.04,
+    "us_fut_asof": "10/14 07:36"
+   },
+   "source": "2026-10-15 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
