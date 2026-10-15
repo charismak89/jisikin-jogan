@@ -4,7 +4,7 @@
 
 배포 주소: https://charismak89.github.io/jisikin-jogan/
 
-## 구조 (v2 · 2026-09-15)
+## 구조 (v2 · 2026-09-15, 화면 v5 · 2026-10-15)
 
 | 경로 | 역할 | 손대는 사람 |
 |---|---|---|
@@ -13,7 +13,9 @@
 | `CONTEXT.md` | 종목 사실·표기명·소스 우선순위·금지 표현·이슈 수집 범위 | 사람 |
 | `CALIBRATION.md` / `calibration.json` | 채점 규칙·기록. records 는 score.py 가 append | score.py |
 | `holidays.json` | 휴장일. 임시공휴일이 생기면 한 줄 추가. 휴장 다음 회차의 야간선물 게이트 면제도 이 파일로 판정 | 사람 |
-| `template-v4.html` / `style.css` | 뼈대와 디자인 (인라인 CSS 와 style.css 는 같은 내용) | 사람 |
+| `template-v5.html` / `style.css` | 뼈대와 디자인. 첫 화면 대시보드 + 브리핑 탭 (인라인 CSS 와 style.css 는 같은 내용) | 사람 |
+| `template-v4.html` | v4 뼈대. 되돌릴 때 render.py 의 TEMPLATE 한 줄만 바꾼다 | — |
+| `fetch_perp.py` | 해외 24시간 추종가(Hyperliquid) → `perp.json`. 대시보드 장외 구간·종목 예측 입력 | — |
 | `render.py` | fill.json → `out/index.html` · `out/state.json` · `out/calibration.json` | — |
 | `score.py` | 직전 전망 채점 → calibration.json append | — |
 | `publish.py` | 아카이브·목록·링크 정리 + 커밋 + push (예약 세션용) | — |
@@ -36,4 +38,4 @@ git push -u origin main
 GitHub → Settings → Pages → Source: `Deploy from a branch`, Branch: `main` / `(root)`.
 
 ## 주의
-이 저장소는 Public 입니다. 대시보드 외의 파일(작업 파일·토큰)은 두지 마세요. `fill.json` 과 `out/` 은 .gitignore 로 막혀 있습니다.
+이 저장소는 Public 입니다. 대시보드 외의 파일(작업 파일·토큰)은 두지 마세요. `fill.json` · `perp.json` · `out/` 은 .gitignore 로 막혀 있습니다.

@@ -10,6 +10,10 @@
   hit       : 방향이 맞고 동시에 실제 시초가가 [low, high] 안. 그 외 전부 miss
   sign_hit  : 구간 중심(low·high 평균)의 부호와 실제 갭 부호가 같은가 (참고용, 판정에 안 씀)
 
+종목 채점 (2026-10-15 v5 추가)
+  state.stock_forecast(직전 회차 삼전·하닉 예측 구간)를 fill.json prices.<코드>.open(직전 영업일 시초가)과 대조해
+  calibration.json 의 stock_records 에 append 한다. 코스피 채점(records·rule)과 섞지 않는다. 같은 (날짜, 코드)는 두 번 기록하지 않는다.
+
 사용법
   python3 score.py            채점하고 calibration.json 에 기록
   python3 score.py --dry-run  기록하지 않고 결과만 출력
@@ -160,5 +164,47 @@ def print_rule(cal, fill):
     else:
         print('규칙 적용 실패 — center_signal=%s 인데 야간선물 값 또는 반폭이 없음. RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % cs)
 
+def score_stocks(dry):
+    """삼전·하닉 시초가 채점 → calibration.json stock_records. 코스피 채점이 끝난 뒤 파일을 다시 읽어 붙인다."""
+    try:
+        state = json.load(io.open('state.json', encoding='utf-8'))
+        fill = json.load(io.open('fill.json', encoding='utf-8'))
+        cal = json.load(io.open('calibration.json', encoding='utf-8'))
+    except Exception as e:
+        print('종목 채점 불가 — %s' % e); return
+    sf = state.get('stock_forecast') or {}
+    items, fdate = sf.get('items') or {}, sf.get('date')
+    if not items or not fdate:
+        print('종목 채점 — 직전 회차에 종목 전망 없음 (v5 이전 회차)'); return
+    recs = cal.setdefault('stock_records', [])
+    done = {(r.get('date'), r.get('code')) for r in recs}
+    added = []
+    for code, f in sorted(items.items()):
+        if (fdate, code) in done:
+            print('종목 채점 — %s %s 이미 기록됨' % (fdate, code)); continue
+        p = (fill.get('prices') or {}).get(code) or {}
+        op, od = num(p.get('open')), p.get('open_date')
+        low, high, pc = num(f.get('low')), num(f.get('high')), num(f.get('prev_close'))
+        if op is None or od != fdate or not pc:
+            print('종목 채점 불가 — %s 시초가(prices.%s.open, open_date=%s) 없음 또는 날짜 불일치' % (code, code, fdate)); continue
+        gap = (op / pc - 1) * 100
+        center = num(f.get('center_pct'))
+        rec = {'date': fdate, 'code': code, 'low': low, 'high': high, 'prev_close': pc, 'actual_open': op,
+               'gap_pct': round(gap, 2), 'in_range': bool(low <= op <= high), 'center_pct': center,
+               'center_err_pct': None if center is None else round(gap - center, 2),
+               'band_width_pct': round((high - low) / pc * 100, 2), 'inputs': f.get('inputs'),
+               'source': '%s 회차 채점 (score.py, prices.%s.open)' % (fill.get('issue_date') or '', code)}
+        recs.append(rec); added.append(rec)
+        print('종목 %s %s — 예측 %s~%s / 실제 시초가 %s (갭 %+.2f%%) → 구간 %s' % (code, fdate, '{:,.0f}'.format(low), '{:,.0f}'.format(high),
+              '{:,.0f}'.format(op), gap, '안' if rec['in_range'] else '밖'))
+    for code in sorted({r['code'] for r in recs}):
+        rr = [r for r in recs if r['code'] == code]
+        print('종목 %s 누적 %d회 — 구간 안 %d' % (code, len(rr), sum(1 for r in rr if r['in_range'])))
+    if added and not dry:
+        io.open('calibration.json', 'w', encoding='utf-8', newline='\n').write(json.dumps(cal, ensure_ascii=False, indent=1) + '\n')
+        print('calibration.json stock_records %d건' % len(recs))
+
 if __name__ == '__main__':
-    sys.exit(main())
+    rc = main()
+    score_stocks('--dry-run' in sys.argv)
+    sys.exit(rc)
