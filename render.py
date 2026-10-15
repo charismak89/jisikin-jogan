@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""render.py — 지식인 조간 v4 렌더러
+"""render.py — 지식인 조간 v5 렌더러 (2026-10-15 — 첫 화면 대시보드 + 브리핑 탭)
 
-fill.json(v2: 값과 문장만) + template-v4.html + state.json(직전 회차) + calibration.json
+fill.json(v2: 값과 문장만) + template-v5.html + state.json(직전 회차) + calibration.json + perp.json(있으면)
   -> out/index.html, out/state.json(이번 회차), out/calibration.json(복사)
+perp.json 은 fetch_perp.py 가 만든다(해외 24시간 추종가). 없어도 렌더한다 — 대시보드 장외 구간만 브라우저가 직접 받는다.
 입력 파일은 고치지 않으므로 몇 번을 다시 돌려도 안전하다.
 
 회차(LLM)는 HTML 을 쓰지 않는다. 태그·화살표·색·등락률·시사 갭·채점 표시·차트는 전부 여기서 만든다.
@@ -20,7 +21,7 @@ from datetime import datetime, timedelta, timezone, date
 
 KST = timezone(timedelta(hours=9))
 HERE = os.path.dirname(os.path.abspath(__file__)) or '.'
-TEMPLATE = os.path.join(HERE, 'template-v4.html')
+TEMPLATE = os.path.join(HERE, 'template-v5.html')   # v4 로 되돌리려면 이 줄만 바꾼다
 CONTEXT = os.path.join(HERE, 'CONTEXT.md')
 HOLIDAYS = os.path.join(HERE, 'holidays.json')
 FIRST_ISSUE = date(2026, 8, 21)   # 제1호
@@ -143,6 +144,20 @@ def night_session_skipped(d):
         if h and h != '주말': out.append('%s %s' % (x.isoformat(), h))
         x += timedelta(days=1)
     return out
+
+def prev_business_day(d):
+    x = d - timedelta(days=1)
+    while holiday_of(x): x -= timedelta(days=1)
+    return x
+
+def kst_ms(d, h, m):
+    return int(datetime(d.year, d.month, d.day, h, m, tzinfo=KST).timestamp() * 1000)
+
+def krx_tick(p):
+    """KRX 호가단위 (2023-01 개편 기준)."""
+    for lim, t in ((2000, 1), (5000, 5), (20000, 10), (50000, 50), (200000, 100), (500000, 500)):
+        if p < lim: return t
+    return 1000
 
 def context_section(title_prefix):
     """CONTEXT.md 에서 '## <title_prefix>…' 절의 본문만 돌려준다 (다음 ## 전까지)."""
@@ -577,6 +592,154 @@ def main():
     if not dn.get('lead'): fail('data_note.lead 없음 — 대조 결과를 반드시 쓴다')
     V['DATA_NOTE'] = esc_keep(dn.get('lead') or '') + details('대조 내역', dn.get('more'))
 
+    # ----- v5 대시보드 (첫 화면). 회차(LLM)가 쓰는 값은 없다 — 전부 위에서 만든 값과 perp.json 으로 만든다 -----
+    pday = prev_business_day(d)
+    t_prev, t_open, t_close, t_night = kst_ms(pday, 15, 30), kst_ms(d, 9, 0), kst_ms(d, 15, 30), kst_ms(d, 5, 0)
+    try:
+        perp = json.load(io.open('perp.json', encoding='utf-8'))
+    except Exception:
+        perp = {}
+    if perp and perp.get('issue_date') != issue_date:
+        warn('perp.json 이 %s 것 — 오늘 것이 아니라 쓰지 않는다 (fetch_perp.py 를 다시 돌릴 것)' % perp.get('issue_date')); perp = {}
+    pitems = perp.get('items') or {}
+    if not pitems:
+        warn('해외 24시간 추종가(perp.json) 미확보 — 종목 구간은 야간선물만으로, 장외 차트는 브라우저가 직접 받는다 (게이트 무관)')
+    for e in perp.get('errors') or []: warn('추종가 일부 실패 — %s' % e)
+    t_snap = min(int(perp.get('fetched_ms') or kst_ms(d, 7, 45)), kst_ms(d, 8, 59)) if pitems else kst_ms(d, 7, 45)
+    def perp_path(key):
+        it = pitems.get(key) or {}
+        b = it.get('base')
+        if not b: return None, []
+        return b, [[t, round((c / b - 1) * 100, 3)] for t, c in (it.get('candles') or []) if t_prev <= t <= t_snap]
+    def perp_at(key, t):
+        b, pth = perp_path(key)
+        v = [x for x in pth if x[0] <= t]
+        return v[-1][1] if v else None
+    k200n_now = signals['k200n_pct'] if not signals['night_skipped'] else None   # 휴장 뒤 야간선물은 묵은 값이라 종목 구간에 쓰지 않는다
+    srule = cal.get('stock_rule') or {}
+    hws = srule.get('half_width_pct') or {}
+    stock_fc = {}
+    STOCK_KEYS = ('005930', '000660')
+    for code in STOCK_KEYS:
+        pc, pp = close.get(code), perp_at(code, t_snap)
+        comps = [x for x in (k200n_now, pp) if x is not None]
+        if not pc or not comps:
+            warn('%s 예측 구간 못 냄 — 종가 또는 신호(야간선물·추종가) 없음' % code); continue
+        c = sum(comps) / len(comps)
+        hw = float(hws.get(code, 1.5)) * (1.0 if len(comps) == 2 else 1.25)
+        tk = krx_tick(pc)
+        lo_v = math.floor(pc * (1 + (c - hw) / 100) / tk) * tk
+        hi_v = math.ceil(pc * (1 + (c + hw) / 100) / tk) * tk
+        stock_fc[code] = {'low': lo_v, 'high': hi_v, 'prev_close': pc, 'center_pct': round(c, 2), 'half_width_pct': round(hw, 2),
+                          'inputs': {'k200n_pct': k200n_now, 'perp_pct': None if pp is None else round(pp, 2)}}
+    # 기록 전용 — 야간선물 마감 뒤(05:00 → 스냅샷) 추종가 움직임. 전망에는 쓰지 않는다 (CALIBRATION.md)
+    signals['perp'] = {k: {'p0500': None if perp_at(k, t_night) is None else round(perp_at(k, t_night), 2),
+                           'snap': None if perp_at(k, t_snap) is None else round(perp_at(k, t_snap), 2)} for k in pitems}
+    signals['perp_asof'] = datetime.fromtimestamp(t_snap / 1000, KST).strftime('%m/%d %H:%M') if pitems else None
+
+    pl = (lambda iso: md(iso))(fill.get('closes_as_of') or pday.isoformat())
+    ents = []
+    kb, kpath = perp_path('KOSPI')
+    ents.append({'key': 'KOSPI', 'name': '코스피', 'coin': (pitems.get('KOSPI') or {}).get('coin') or 'xyz:KR200', 'unit': '', 'approx': True,
+                 'tick': 0, 'dec': 2, 'prev': kospi_close, 'prev_label': pl, 'base': kb, 'path': kpath,
+                 'lo': None if (low is None or not kospi_close) else round((low / kospi_close - 1) * 100, 3),
+                 'hi': None if (high is None or not kospi_close) else round((high / kospi_close - 1) * 100, 3),
+                 'lo_v': low, 'hi_v': high, 'night': k200n_now})
+    DEFAULT_COIN = {'005930': 'xyz:SMSN', '000660': 'xyz:SKHX'}
+    for code in STOCK_KEYS:
+        if not close.get(code): continue
+        b, pth = perp_path(code); f = stock_fc.get(code) or {}
+        ents.append({'key': code, 'name': names[code][0], 'coin': (pitems.get(code) or {}).get('coin') or DEFAULT_COIN[code], 'unit': '원',
+                     'approx': False, 'tick': krx_tick(close[code]), 'dec': 0, 'prev': close[code], 'prev_label': pl, 'base': b, 'path': pth,
+                     'lo': None if not f else round((f['low'] / close[code] - 1) * 100, 3), 'hi': None if not f else round((f['high'] / close[code] - 1) * 100, 3),
+                     'lo_v': f.get('low'), 'hi_v': f.get('high'), 'night': None})
+    day = {'issue': issue_date, 'api': 'https://api.hyperliquid.xyz/info', 't_prev': t_prev, 't_snap': t_snap,
+           't_open': t_open, 't_close': t_close, 't_night': t_night, 'ent': [e for e in ents if e['prev']]}
+    V['DAY_DATA'] = json.dumps(day, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+
+    def sgn(p): return ('+' if p > 0 else '−' if p < 0 else '') + '%.2f%%' % abs(p)
+    def tile(e):
+        p = e['path'][-1][1] if e['path'] else None
+        v = '—' if p is None else (('≈' if e['approx'] else '') + num(round(e['prev'] * (1 + p / 100) / (e['tick'] or 1)) * (e['tick'] or 1), 0))
+        b = ''
+        if p is not None and e['lo'] is not None:
+            w = '아래' if p < e['lo'] else ('위' if p > e['hi'] else '안')
+            b = '<span class="b %s">예측 %s</span>' % ({'아래': 'lo', '위': 'hi', '안': 'in'}[w], w)
+        return '<button type="button" role="tab" aria-selected="%s"><span class="n">%s</span><span class="v num">%s</span><span class="c num %s">%s</span>%s</button>' % (
+            'true' if e['key'] == 'KOSPI' else 'false', esc(e['name']), v, cls(p) if p is not None else 'na', pct_str(p), b)
+    V['LIVE_TILES'] = ''.join(tile(e) for e in day['ent'])
+    V['CONCL'] = ''.join('<li>%s</li>' % esc_keep(t.get('h')) for t in tl[:3])
+    V['OPEN_RANGE5'] = ('%s ~ %s<small>%s ~ %s</small>' % (num(low, 0), num(high, 0), sgn((low / kospi_close - 1) * 100), sgn((high / kospi_close - 1) * 100))
+                        if (low and high and kospi_close) else '구간 없음')
+
+    # 코스피 20거래일 — 종가 선 + 회차별 예상 구간 + 실제 시초가 + 오늘 구간
+    kcl = {}
+    for r in recs:
+        try: kcl[prev_business_day(date.fromisoformat(r['date']))] = r['prev_close']
+        except Exception: pass
+    if kospi_close: kcl[pday] = kospi_close
+    rec_by = {r.get('date'): r for r in recs}
+    days20 = sorted(x for x in kcl if x <= pday)[-20:]
+    slots = days20 + [d]
+    tips = []
+    if len(days20) >= 2:
+        W, H, L, R, T, B = 360, 210, 40, 46, 14, 24
+        vals = [kcl[x] for x in days20]
+        for x in slots:
+            r = rec_by.get(x.isoformat())
+            if r and r.get('low') is not None: vals += [r['low'], r['high']] + ([r['actual_open']] if r.get('actual_open') else [])
+        if low and high: vals += [low, high]
+        span = max(vals) - min(vals); raw = span / 4; mag = 10 ** math.floor(math.log10(raw or 1))
+        stp = min(sv * mag for sv in (1, 2, 2.5, 5, 10) if sv * mag >= raw)
+        y0, y1 = math.floor(min(vals) / stp) * stp, math.ceil(max(vals) / stp) * stp
+        X = lambda i: L + i * (W - L - R) / (len(slots) - 1)
+        Y = lambda v: T + (y1 - v) / (y1 - y0) * (H - T - B)
+        o = ['<svg viewBox="0 0 %d %d" class="viz" role="img" aria-label="코스피 최근 %d거래일 종가와 회차별 예상 구간, 실제 시초가">' % (W, H, len(days20))]
+        g = y0
+        while g <= y1 + 1e-9:
+            o.append('<line x1="%d" x2="%d" y1="%.1f" y2="%.1f" class="grid"/><text x="%d" y="%.1f" class="tick" text-anchor="end">%s</text>' % (L, W - R + 8, Y(g), Y(g), L - 6, Y(g) + 3.5, num(g, 0)))
+            g += stp
+        for i, x in enumerate(slots):
+            r = rec_by.get(x.isoformat())
+            lo_, hi_ = (r['low'], r['high']) if (r and r.get('low') is not None) else ((low, high) if x == d else (None, None))
+            if lo_ is None: continue
+            o.append('<rect x="%.1f" y="%.1f" width="7" height="%.1f" rx="2" class="%s"/>' % (X(i) - 3.5, Y(hi_), max(2, Y(lo_) - Y(hi_)), 'bandnow' if x == d else 'band'))
+        o.append('<polyline points="%s" class="ln"/>' % ' '.join('%.1f,%.1f' % (X(i), Y(kcl[x])) for i, x in enumerate(days20)))
+        for i, x in enumerate(slots):
+            r = rec_by.get(x.isoformat())
+            if r and r.get('actual_open') is not None:
+                o.append('<circle cx="%.1f" cy="%.1f" r="4" class="%s"/>' % (X(i), Y(r['actual_open']), 'din' if r.get('in_range') else 'dout'))
+            tp = {'x': round(X(i), 1), 't': md(x.isoformat())}
+            if x in kcl and x <= pday: tp['c'] = num(kcl[x], 2)
+            if r and r.get('low') is not None:
+                tp.update(b='%s~%s' % (num(r['low'], 0), num(r['high'], 0)), o=num(r['actual_open'], 2) if r.get('actual_open') else '—',
+                          v='적중' if r.get('verdict') == 'hit' else ('구간 안·방향 틀림' if r.get('in_range') else '구간 밖'))
+            if x == d and low and high: tp.update(b='%s~%s' % (num(low, 0), num(high, 0)), v='오늘 전망')
+            tips.append(tp)
+        if low and high:
+            o.append('<text x="%.1f" y="%.1f" class="lab strong">오늘</text>' % (X(len(slots) - 1) + 7, Y((low + high) / 2) + 4))
+        for i in sorted({0, len(days20) // 2, len(days20) - 1}):
+            o.append('<text x="%.1f" y="%d" class="tick" text-anchor="middle">%s</text>' % (X(i), H - 6, md(days20[i].isoformat())))
+        o.append('<line class="xh" x1="0" x2="0" y1="%d" y2="%d"/></svg>' % (T, H - B))
+        V['K20_CHART'] = ''.join(o)
+    else:
+        V['K20_CHART'] = ''
+    V['K20_TIPS'] = esc(json.dumps(tips, ensure_ascii=False)).replace("'", '&#x27;')
+    V['K20_HEAD'] = ('%s <b class="%s">%s</b>' % (num(kospi_close, 2), cls(pct.get('KOSPI')), pct_str(pct.get('KOSPI')))) if kospi_close else '—'
+    l10 = scored[-10:]
+    V['K20_CAP'] = ('최근 %d회 구간 안 %d · 방향 %d' % (len(l10), sum(1 for r in l10 if r['in_range']), sum(1 for r in l10 if r.get('dir_hit')))) if l10 else '채점 기록 없음'
+
+    def mtile(k, label):
+        c, q = close.get(k), pct.get(k)
+        sub = ('<small>%s</small>' % esc((prices.get(k) or {}).get('asof') or '')) if k == 'K200N' and (prices.get(k) or {}).get('asof') else ''
+        return '<div class="t5"><div class="t5n">%s%s</div><div class="t5v num">%s</div><div class="t5c num %s">%s</div></div>' % (
+            esc(label), sub, num(c, DECIMALS.get(k, 2)) if c is not None else '—', cls(q) if c is not None else 'na', pct_str(q) if c is not None else '미확보')
+    V['MKT_TILES'] = ''.join(mtile(k, lab) for k, lab in (('K200N', 'K200 야간'), ('SOX', 'SOX'), ('NVDA', names['NVDA'][0]),
+                                                          ('MU', names['MU'][0]), ('EWY', 'EWY'), ('USDKRW', names['USDKRW'][0])))
+    hw_txt = ' · '.join('%s ±%.2f%%' % (names[c][0], float(hws.get(c, 1.5))) for c in STOCK_KEYS)
+    V['STOCK_NOTE'] = ('종목 예측 구간 = 야간선물과 해외 24시간 추종가(%s)의 평균 ± 최근 오차 80%% 범위(%s). 해외 추종가는 해외 코인거래소의 한국 종목 무기한선물 가격이라 실제 체결가와 다릅니다.' % (
+        signals['perp_asof'] or '미확보', hw_txt)) + ('' if pitems else ' 오늘은 추종가를 받지 못해 야간선물만으로 구간을 잡았습니다.')
+
     # ----- 치환 -----
     need = set(re.findall(r'\{\{([A-Z_]+)\}\}', tpl))
     missing = sorted(need - set(V))
@@ -588,6 +751,7 @@ def main():
 
     # ----- 사후 검증 -----
     body = re.sub(r'<(style|script).*?</\1>', '', out, flags=re.S)
+    body = re.sub(r'<div data-panel="dash">.*?<!--/dash-->', '', body, flags=re.S)   # 대시보드는 스크립트가 만든 화면이라 글자수에서 뺀다
     body = re.sub(r'<svg.*?</svg>', '', body, flags=re.S)
     body = re.sub(r'<div class="fwide (?:fsig num|fconf)">.*?</div>|<div class="sl">.*?</div>|<div class="legend">.*?</div>', '', body, flags=re.S)  # 스크립트가 만든 문구는 글자수에서 뺀다
     vis = re.sub(r'<details.*?</details>', '', body, flags=re.S)
@@ -620,6 +784,8 @@ def main():
         fdir, num(low, 0) if low else '—', num(high, 0) if high else '—', V['OPEN_RANGE'].split('<br>')[-1].strip('()'),
         pct_str(signals['k200n_pct']), pct_str(signals['ewy_implied_pct']), pct_str(signals['adr_implied_pct'])))
     print(V['COVERAGE'])
+    print('종목 예측 — ' + (' · '.join('%s %s~%s (중심 %+.2f%%)' % (c, num(v['low'], 0), num(v['high'], 0), v['center_pct']) for c, v in stock_fc.items()) or '없음')
+          + ' · 추종가 %s' % (signals['perp_asof'] or '미확보'))
 
     # ----- state.json (이번 회차) -----
     if not check_only:
@@ -632,6 +798,8 @@ def main():
                  'forecast': {'date': issue_date, 'dir': fdir, 'low': low, 'high': high, 'prev_close': kospi_close,
                               'note': '다음 회차가 이 전망을 실제 시초가와 대조해 채점한다'},
                  'signals': signals,
+                 'stock_forecast': {'date': issue_date, 'items': stock_fc,
+                                    'note': '다음 회차가 삼전·하닉 실제 시초가로 채점한다 (score.py → calibration.json stock_records)'},
                  'closes': closes}
         if not closes['as_of']: warn('closes.as_of 가 비어 있음 — fill.json 에 closes_as_of (YYYY-MM-DD) 를 넣을 것')
         io.open(os.path.join('out', 'state.json'), 'w', encoding='utf-8', newline='\n').write(json.dumps(state, ensure_ascii=False, indent=1) + '\n')

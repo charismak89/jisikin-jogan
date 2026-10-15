@@ -1,12 +1,13 @@
-# RUNBOOK — 지식인 조간 회차 절차 (v2 · 2026-09-15 부터)
+# RUNBOOK — 지식인 조간 회차 절차 (v2 · 2026-09-15 부터, 화면 v5 · 2026-10-15 부터)
 
 평일 07:45 KST, 개장 75분 전 반도체·메모리 브리핑. 결과물은 `render.py` 가 만드는 `out/index.html` · `out/calibration.json` · `out/state.json` 세 개.
+화면은 v5 다. 첫 화면은 대시보드(전망·예측 → 실시간·코스피 20거래일·간밤 시장), 브리핑은 두 번째 탭이다. 대시보드는 전부 스크립트가 만든다. 회차가 쓰는 fill.json 항목은 v4 와 같다(종목 시가 두 개만 추가).
 확인 질문을 받아줄 사람이 없다. 애매하면 가정을 명시하고 진행한다. 이 파일이 예약작업 프롬프트보다 우선한다.
 
-발행을 중단하는 경우는 둘뿐이다. (1) 휴장일 (2) `template-v4.html` 이 없을 때. 그 밖에 어떤 데이터가 없어도 없다고 밝히고 발행한다.
+발행을 중단하는 경우는 둘뿐이다. (1) 휴장일 (2) `template-v5.html` 이 없을 때. 그 밖에 어떤 데이터가 없어도 없다고 밝히고 발행한다.
 
 ## 토큰 규칙 (이 작업의 제약 조건)
-1. `template-v4.html` · `calibration.json` · `archive/` 를 열지 않는다. 스크립트가 처리한다. 읽는 파일은 `CONTEXT.md` 와 `state.json` 둘뿐이다.
+1. `template-v5.html` · `calibration.json` · `archive/` · `perp.json` 을 열지 않는다. 스크립트가 처리한다. 읽는 파일은 `CONTEXT.md` 와 `state.json` 둘뿐이다.
 2. `index.html` 을 직접 쓰지 않는다. 값과 문장만 `fill.json` 에 쓴다. HTML 태그·화살표·색·등락률·시사 갭·채점 문구는 `render.py` 가 만든다.
 3. 시세 WebFetch 는 **한 턴에 병렬로** 부른다. 같은 URL 을 두 번 부르지 않는다. 프롬프트는 값만 짧게.
 4. 스크린샷을 찍지 않는다. 레이아웃 검증은 `page.evaluate` 숫자만.
@@ -15,10 +16,12 @@
 `python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다.
 
 ## 1. 준비
-루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v4.html render.py score.py publish.py holidays.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
+루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py holidays.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
 모든 작업은 저장소 루트에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
 
 ## 2. 시세 — 병렬 3턴
+**턴 0 · `python3 fetch_perp.py`** — 해외 24시간 추종가(Hyperliquid 코스피200·삼성전자·SK하이닉스) 15분봉을 `perp.json` 에 받는다. WebFetch 가 아니라 스크립트라 토큰을 쓰지 않는다. 실패해도 종료 코드 0 이고 그대로 진행한다(render.py 가 경고만 남기고 대시보드는 브라우저가 직접 받는다). 출력 세 줄을 9단계 응답에 옮긴다.
+
 **턴 A · Google Finance 12개를 한 턴에 병렬로.** 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
 `KOSPI:KRX` `005930:KRX` `000660:KRX` `402340:KRX` `009150:KRX` `0167A0:KRX` `442580:KRX` `NVDA:NASDAQ` `MU:NASDAQ` `EWY:NYSEARCA` `SKHY:NASDAQ` `USD-KRW` (`https://www.google.com/finance/quote/…`)
 
@@ -36,6 +39,7 @@ curl 로 받은 HTML 은 숫자만 평문이고 `Previous close`·`Open` 같은 
 - 이때는 아래 판정 규칙의 "Google Finance 시각 15:30 대" 대신 한국경제의 `장마감` 표기로 종가 여부를 판단한다.
 - `gf_*.html` 은 `.gitignore` 에 있다. publish.py 가 `git add -A` 를 써도 커밋되지 않는다.
 KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드시 챙기고, 그 세션 날짜를 `open_date` 에 적는다. `state.forecast.date` 와 다르면(회차를 건너뛴 날) 그 날짜의 시가를 마감시황 기사에서 찾아 `score.actual_open`·`score.actual_open_date` 에 넣는다. 못 찾으면 채점 불가로 두고 억지로 채점하지 않는다.
+**삼성전자·SK하이닉스의 Open** 도 같은 식으로 `prices.005930.open`·`prices.000660.open` 과 `open_date` 에 적는다. 직전 회차 종목 예측 구간을 score.py 가 이 값으로 채점한다(2026-10-15 추가). 날짜가 다르거나 못 구하면 비워 둔다.
 
 **턴 B · 대조와 보완, 한 턴에 병렬로.**
 - 한국경제 `https://markets.hankyung.com/stock/<코드>` 국내 6종 + 코스피 — `2026.09.11 장마감` 처럼 상태와 기준일이 찍힌다. `장중` 이면 종가가 아니다.
@@ -59,6 +63,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 `CONTEXT.md` 의 "이슈 수집 범위" 를 그대로 따른다 — A 메모리 직접 재료 · B AI 내러티브(캐펙스·규제·CEO 발언과 **누가 동조했는가**) · C 매크로. 조회 창과 검색 상한도 거기 있다. 화~금은 검색 4회·본문 4건, 월요일과 연휴 뒤는 검색 6회·본문 5건. 가장 최근 재료가 몇 시 것인지 `sums.issue` 에 밝힌다.
 
 ## 4. 전망
+- **종목 예측 구간(삼전·하닉)은 render.py 가 계산한다.** `calibration.json` 의 `stock_rule`(야간선물과 추종가의 평균 ± 반폭). 회차는 fill.json 에 쓰지 않고 손대지 않는다.
 - **2026-10-02 부터 규칙 적용 중** (`rule.center_signal="k200n"`, `half_width_pct=0.8`). `score.py` 가 "규칙 적용 — …" 줄을 내면 그 방향·구간을 **그대로** `forecast` 에 쓴다. EWY 시사·ADR 시사·미국 지수선물·뉴스로 중심이나 폭을 옮기지 않는다. 그 신호들은 `why`·`checks.scenario` 에 "구간을 벗어날 위험" 으로만 쓴다.
 - `score.py` 가 "규칙 적용 실패" 를 내면(야간선물 없음, 또는 휴장 뒤 회차 — 연휴 전 밤 세션 값이 있어도 휴장 중 미국장이 빠져 있어 폴백한다) 사람 판단으로 정하되 두 가지를 지킨다. ① 반폭 1.5% 이상(폭 3%p 이상) ② EWY·ADR 시사 갭만 보고 갭 방향을 정하지 않는다. 두 신호가 같은 방향이고 미국 지수선물도 같은 방향일 때만 그쪽으로 중심을 옮기고, 아니면 보합 중심. 세션 응답에 "규칙 폴백" 이라고 밝힌다.
 - 규칙을 끄거나 바꾸는 일은 회차가 하지 않는다(금요일, 사람, `CALIBRATION.md`).
@@ -84,11 +89,11 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
    "KOSDAQ":{"close":815.2,"pct_screen":-0.66},                                   ← 표엔 안 나오고 state 에만
    "K200N":{"close":1085.5,"pct_screen":-0.26,"asof":"9/15 05:00","cm":"45자","more":[]},   ← 야간선물. pct 는 페이지의 주간 종가 대비 값
    "SOX":{"close":..,"pct_screen":..,"cm":"45자","more":["..",".."]},  "NVDA":{..}, "MU":{..}, "EWY":{..}, "SKHY":{..},
-   "K200F":{..}, "USDKRW":{..}, "005930":{..}, "000660":{..}, "402340":{..}, "009150":{..}, "0167A0":{..}, "442580":{..}},
+   "K200F":{..}, "USDKRW":{..}, "005930":{"close":..,"open":<직전 영업일 시초가>,"open_date":"YYYY-MM-DD","pct_screen":..,"cm":".."}, "000660":{..같은 형식}, "402340":{..}, "009150":{..}, "0167A0":{..}, "442580":{..}},
  "signals":{"news_flag":"주말 큰 뉴스 한 줄 또는 null",
             "us_fut":{"es_pct":0.12,"nq_pct":0.25,"asof":"10/2 07:38"}},     ← 미국 지수선물. 못 받으면 값 null
  "forecast":{"dir":"갭하락","low":6600,"high":6790},
- "tldr":[{"h":"결론 35자","b":"근거 45자","more":["..",".."]}, ×3 정확히],
+ "tldr":[{"h":"결론 35자","b":"근거 45자","more":["..",".."]}, ×3 정확히],   ← h 세 개가 대시보드 첫 화면 '결론'에 그대로 뜬다. 바로 위에 전망 구간이 있으니 1번 h 에 구간 숫자를 되풀이하지 말고 오늘의 핵심 판단을 쓴다
  "sums":{"global":"50자","domestic":"50자","issue":"50자 (최근 재료 시각 포함)","scen":"50자"},
  "flow":{"foreign":-24587,"inst":-16443,"retail":24259,"other":null,"note":"60자","more":[".."]},   ← 단위 억원, 순매도는 음수
  "bull":[{"t":"제목 25자","d":"설명 45자"},..], "bear":[..],       ← 개수 동일. 상승장이어도 bear 를 채운다
@@ -108,12 +113,13 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 
 ## 7. 실행과 검증
 ```
-python3 score.py      # 직전 전망 채점 → calibration.json append (같은 날짜는 두 번 기록하지 않는다)
+python3 fetch_perp.py # 해외 24시간 추종가 → perp.json (턴 0 에서 이미 돌렸으면 생략)
+python3 score.py      # 직전 전망 채점 → calibration.json append (같은 날짜는 두 번 기록하지 않는다). 종목 채점은 stock_records 에
 python3 render.py     # fill.json → out/index.html · out/state.json · out/calibration.json
 ```
 - `FAIL` 이 뜨면 fill.json 을 고쳐 `render.py` 만 다시 돌린다(입력을 안 고치므로 몇 번이든 안전).
 - 경고를 읽고 고칠 수 있는 것은 고친다. 특히 **금지 표현·글자 초과·등락률 불일치**. 못 고치는 경고(미확보 등)는 8단계 응답에 적는다.
-- 레이아웃: Playwright(chromium) 360·390px 두 폭에서 `out/index.html` 을 열고 `page.evaluate` 로 아래만 받는다. `doc`·`tables` 가 0 이 아니면 종목명(`CONTEXT.md` 표기명)을 줄인다. `height` 가 8,500 을 넘으면 `more` 로 더 옮긴다(2026-09-14 회차 기준 390px 에서 7,800 안팎). Playwright 가 없거나 실패해도 발행한다.
+- 레이아웃: Playwright(chromium) 360·390px 두 폭에서 `out/index.html` 을 열고 `page.evaluate` 로 아래만 받는다. `doc`·`tables` 가 0 이 아니면 종목명(`CONTEXT.md` 표기명)을 줄인다. `height` 는 브리핑 탭 기준이다 — `out/index.html#brief` 로 열어 잰다. 8,500 을 넘으면 `more` 로 더 옮긴다(2026-10-15 회차 기준 390px 에서 6,550 안팎). 대시보드(주소 그대로)는 `doc` 만 0 인지 본다. Playwright 가 없거나 실패해도 발행한다.
 ```
 ({doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
   tables: [...document.querySelectorAll('.tblwrap')].map(w => w.querySelector('table').scrollWidth - w.clientWidth),
@@ -131,6 +137,7 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 
 ## 9. 세션 응답 — 아래만. 인사말·서론·총평 금지
 - 시초가 전망 + 예상 구간 한 줄 · 야간선물 값과 시각 · EWY/ADR 시사 갭
+- 종목 예측 한 줄(render.py 의 `종목 예측 —` 줄) · 추종가 확보 여부(fetch_perp.py 출력)
 - 직전 회차 채점 한 줄 (실제 시가 숫자, hit/miss 근거) · 누적 커버리지 한 줄
 - 오늘 가장 중요한 리스크 1건
 - 종가 대조 결과 — 일치했는지, 갈린 종목

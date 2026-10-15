@@ -68,3 +68,23 @@ if len(E) >= 5:
     for k in (0.5, 1.0):
         e = [abs(r['gap_pct'] - r['signals']['k200n_pct'] - k * r['signals']['es_pct']) for r in E]
         print('야간 + %.1f×ES  MAE %.2f  (야간 단독 %.2f)' % (k, st.mean(e), st.mean(abs(y) for y in ys)))
+
+# 기록 전용 — 야간선물 마감 뒤(05:00 → 스냅샷) 코스피200 추종가 움직임. 2026-10-16 회차부터 기록 (CALIBRATION.md)
+P = [r for r in N if ((r['signals'].get('perp') or {}).get('KOSPI') or {}).get('snap') is not None
+     and r['signals']['perp']['KOSPI'].get('p0500') is not None]
+print('\n추종가(KR200) 기록 %d건' % len(P))
+if len(P) >= 5:
+    def post(r):
+        k = r['signals']['perp']['KOSPI']; return ((1 + k['snap'] / 100) / (1 + k['p0500'] / 100) - 1) * 100
+    ys = [r['gap_pct'] - r['signals']['k200n_pct'] for r in P]
+    print('잔차(갭 − 야간) vs KR200 사후 변화 상관 r=%.2f' % st.correlation([post(r) for r in P], ys))
+    for k in (0.5, 1.0):
+        print('야간 + %.1f×KR200 사후  MAE %.2f  (야간 단독 %.2f)' % (k, st.mean(abs(y - k * post(r)) for y, r in zip(ys, P)), st.mean(abs(y) for y in ys)))
+
+# 종목 채점 (stock_records)
+SR = json.load(io.open('calibration.json', encoding='utf-8')).get('stock_records') or []
+for code in sorted({r['code'] for r in SR}):
+    rr = [r for r in SR if r['code'] == code]
+    print('종목 %s %d회 — 구간 안 %d · 중심 오차 MAE %.2f · 평균 폭 %.2f%%p' % (code, len(rr), sum(r['in_range'] for r in rr),
+          st.mean(abs(r['center_err_pct']) for r in rr if r.get('center_err_pct') is not None) if any(r.get('center_err_pct') is not None for r in rr) else 0,
+          st.mean(r['band_width_pct'] for r in rr)))
