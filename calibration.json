@@ -803,6 +803,37 @@
     "us_fut_asof": "10/14 07:36"
    },
    "source": "2026-10-15 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-15",
+   "forecast_dir": "갭하락",
+   "low": 5790.0,
+   "high": 5880.0,
+   "band_width_pct": 1.5,
+   "prev_close": 6008.81,
+   "actual_open": 5673.01,
+   "gap_pct": -5.59,
+   "in_range": false,
+   "dir_hit": true,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -2.89,
+   "center_err_pct": -2.7,
+   "signals": {
+    "k200n_pct": -2.89,
+    "k200n_close": 916.95,
+    "k200n_asof": "10/15 05:00",
+    "k200f_close": 944.2,
+    "ewy_implied_pct": -4.1,
+    "adr_implied_pct": -4.95,
+    "news_flag": "10/14 밤 미 9월 CPI 3.7%(예상 3.6%)·SOX −4.3%·FT 'OpenAI 연환산 매출 500억달러' 보도 · CXMT 서버 D램 우려 지속",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.24,
+    "nq_pct": -0.56,
+    "us_fut_asof": "10/15 07:36"
+   },
+   "source": "2026-10-16 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }

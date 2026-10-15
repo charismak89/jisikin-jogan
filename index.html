@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="generated" content="2026-10-15T07:45+09:00">
+<meta name="generated" content="2026-10-16T07:45+09:00">
 <title>지식인 조간 · 반도체 모닝 대시보드</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -251,6 +251,86 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
 .schart svg{display:block;width:100%;height:auto;overflow:visible}
 .schart .sl{font-size:11.5px;color:var(--tx3);font-weight:600;margin-top:4px}
 .fv.na{color:var(--tx3)}
+/* v5 — 2026-10-15 · 첫 화면 대시보드(예측 → 실시간) + 브리핑 탭 */
+.tabs5{position:sticky;top:0;z-index:30;background:var(--sticky);border-bottom:1px solid var(--line);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.tabs5 .in{max-width:640px;margin:0 auto;padding:0 18px;display:flex;gap:4px}
+.tabs5 button{font:inherit;font-size:15px;font-weight:800;color:var(--tx3);background:none;border:0;padding:11px 12px 9px;
+  border-bottom:3px solid transparent;cursor:pointer}
+.tabs5 button[aria-selected="true"]{color:var(--tx);border-bottom-color:var(--accent)}
+html.js5 [data-panel][hidden]{display:none!important}
+[data-panel="brief"] .bar{top:48px}
+.h5{padding-top:14px}.h5 h1{font-size:24px}
+.hero5{margin-top:12px;padding:15px 16px;border-radius:14px;background:var(--warnbg);border:1px solid var(--warnline);border-left:5px solid var(--warnstrong)}
+.hero5 .hl{font-size:11.5px;font-weight:800;color:var(--warnstrong);letter-spacing:.06em}
+.hrow{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin-top:2px}
+.hv5{font-size:26px;font-weight:900;color:var(--warnstrong);letter-spacing:-.04em}
+.hr5{font-size:19px;font-weight:900;color:var(--warntx);letter-spacing:-.03em}
+.hr5 small{display:block;font-size:12.5px;font-weight:700;text-align:right}
+.concl{margin:10px 0 0;padding:0;list-style:none;counter-reset:c}
+.concl li{position:relative;padding-left:20px;font-size:15px;font-weight:700;color:var(--warntx);line-height:1.5;margin-top:5px}
+.concl li::before{counter-increment:c;content:counter(c);position:absolute;left:0;top:2px;font-size:11px;font-weight:900;
+  width:15px;height:15px;border-radius:50%;background:var(--warnstrong);color:var(--warnbg);text-align:center;line-height:15px}
+.more5{margin-top:10px;font:inherit;font-size:13px;font-weight:800;color:var(--warnstrong);background:none;border:0;padding:0;cursor:pointer}
+.card5{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 13px 10px;box-shadow:var(--shadow)}
+.ch5{display:flex;justify-content:space-between;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
+.ch5 h2{font-size:15.5px;font-weight:900;letter-spacing:-.03em}
+.ch5>span{font-size:12px;color:var(--tx3);font-weight:700}
+.cap{font-size:11.5px;color:var(--tx3);font-weight:600;line-height:1.5;margin-top:4px}
+.lv5{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--tx3);font-weight:800}
+.lv5 i{width:7px;height:7px;border-radius:50%;background:var(--line2);display:inline-block}
+.lv5.ok i{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.lv5.err i{background:var(--warnstrong)}
+.sel5{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.sel5 button{font:inherit;text-align:left;background:var(--panel2);border:1.5px solid transparent;border-radius:11px;padding:7px 8px 6px;cursor:pointer;color:var(--tx);min-width:0}
+.sel5 button[aria-selected="true"]{border-color:var(--tx2);background:var(--panel)}
+.sel5 .n{font-size:11.5px;font-weight:800;color:var(--tx3);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel5 .v{font-size:15px;font-weight:900;letter-spacing:-.03em;display:block;margin-top:1px;white-space:nowrap}
+@media(max-width:374px){.sel5 .v{font-size:14px}.sel5 button{padding:7px 6px 6px}}
+.sel5 .c{font-size:12px;font-weight:800;display:block;white-space:nowrap}
+.sel5 .b{font-size:10.5px;font-weight:800;display:inline-block;margin-top:3px;padding:1px 5px;border-radius:5px;background:var(--panel2);color:var(--tx3);white-space:nowrap}
+.sel5 .b.in{background:color-mix(in srgb,var(--ok) 14%,var(--panel));color:var(--ok)}
+.sel5 .b.lo{background:color-mix(in srgb,var(--down) 14%,var(--panel));color:var(--down)}
+.sel5 .b.hi{background:color-mix(in srgb,var(--up) 14%,var(--panel));color:var(--up)}
+.verd5{font-size:13px;font-weight:700;color:var(--tx2);margin-top:6px;line-height:1.55}
+.verd5 b{font-weight:900}
+.tiles5{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}
+.t5{background:var(--panel2);border-radius:10px;padding:8px 9px;min-width:0}
+.t5n{font-size:11.5px;color:var(--tx3);font-weight:800;line-height:1.35}.t5n small{display:block;font-weight:600;font-size:10.5px}
+.t5v{font-size:15px;font-weight:900;letter-spacing:-.03em;margin-top:2px}
+.t5c{font-size:12.5px;font-weight:800}
+.note5{font-size:12px;color:var(--tx3);margin-top:12px;line-height:1.6}
+.vizbox{position:relative;margin-top:6px;touch-action:pan-y}
+.viz{display:block;width:100%;height:auto;overflow:visible}
+.viz .grid{stroke:var(--line);stroke-width:1}
+.viz .base{stroke:var(--line2);stroke-width:1.2;stroke-dasharray:3 3}
+.viz .vmark{stroke:var(--line2);stroke-width:1;stroke-dasharray:2 3}
+.viz .tick{font-size:9.5px;fill:var(--tx3);font-variant-numeric:tabular-nums}
+.viz .lab{font-size:10px;fill:var(--tx2);font-weight:700;font-variant-numeric:tabular-nums}
+.viz .lab.strong{fill:var(--warnstrong);font-weight:900}
+.viz .ph{font-size:11px;fill:var(--tx3);font-weight:700}
+.viz .ln{fill:none;stroke:var(--tx2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.viz .pre{fill:none;stroke:var(--tx3);stroke-width:1.6;stroke-linejoin:round}
+.viz .tail{fill:none;stroke:var(--tx2);stroke-width:1.6;stroke-dasharray:3 2}
+.viz .ses{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.viz .ses.dn{stroke:var(--down)} .viz .ses.upl{stroke:var(--up)}
+.viz .end{stroke:var(--panel);stroke-width:2} .viz .end.dn{fill:var(--down)} .viz .end.upl{fill:var(--up)}
+.viz .open{fill:var(--panel);stroke-width:2.2} .viz .open.dn{stroke:var(--down)} .viz .open.upl{stroke:var(--up)}
+.viz .sess{fill:var(--panel2)}
+.viz .div9{stroke:var(--tx3);stroke-width:1.2}
+.viz .night{fill:var(--warnstrong)}
+.viz .band{fill:var(--line2)}
+.viz .bandnow{fill:var(--warnstrong);opacity:.6}
+.viz .din{fill:var(--ok);stroke:var(--panel);stroke-width:2}
+.viz .dout{fill:var(--panel);stroke:var(--tx2);stroke-width:1.8}
+.viz .xh{stroke:var(--tx3);stroke-width:1;opacity:0}
+.vizbox.on .xh{opacity:.6}
+.tip{position:absolute;top:0;pointer-events:none;background:var(--tx);color:var(--bg);font-size:12px;font-weight:700;line-height:1.45;
+  padding:6px 8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:5}
+.tip b{font-weight:900}
+@media(min-width:600px){
+  .live5 .lgrid{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start}
+  .live5 .sel5{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -268,24 +348,58 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
     </div>
   </div>
 
-  <header>
-    <div class="kick">제 40 호</div>
-    <h1>2026년 10월 15일 (목)</h1>
-    <div class="meta"><span>07:45 KST · 전일 종가 &amp; 간밤 미국장 반영</span></div>
-    <div class="fbanner">
-      <div><span class="fl">09:00 시초가 전망</span><span class="fv">갭하락 출발</span></div>
-      <div class="fr num">코스피 5,790 ~ 5,880<br>(−3.64% ~ −2.14%)</div>
-      <div class="fwide fband" aria-label="예상 구간과 전일 종가"><svg viewBox="0 0 360 46" role="img" aria-label="예상 구간 5,790 ~ 5,880, 전일 종가 6,008.81"><line x1="22" x2="338" y1="26" y2="26" style="stroke:var(--line2)" stroke-width="2"/><rect x="64.9" y="12" width="47.3" height="16" rx="4" style="fill:var(--warnstrong);opacity:.55"/><line x1="180.0" x2="180.0" y1="4" y2="34" style="stroke:var(--tx)" stroke-width="2"/><text x="180.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx2)" font-weight="700">전일 종가</text><text x="22.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-5%</text><text x="85.2" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-3%</text><text x="148.4" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-1%</text><text x="211.6" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+1%</text><text x="274.8" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+3%</text><text x="338.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+5%</text><line x1="88.7" x2="88.7" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/><text x="88.7" y="7" font-size="9" text-anchor="middle" style="fill:var(--tx3)">야간</text><line x1="50.4" x2="50.4" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/><text x="50.4" y="7" font-size="9" text-anchor="middle" style="fill:var(--tx3)">EWY</text></svg></div>
-      <div class="fwide fsig num"><span class="down">야간선물 ▼ −2.89%<small>10/15 05:00</small></span><span class="down">EWY 시사 ▼ −4.10%</span><span class="down">ADR 시사 ▼ −4.95%</span><span class="down">미국선물 ES ▼ −0.24%<small>10/15 07:36</small></span></div>
-      <div class="fwide fconf">최근 10회 — 구간 안 8 · 방향 6 · 중심 오차 중앙 0.59%p</div>
-    </div>
+</div>
+
+<nav class="tabs5" aria-label="보기 전환"><div class="in">
+  <button type="button" data-go="dash" aria-selected="true">대시보드</button>
+  <button type="button" data-go="brief" aria-selected="false">브리핑 전문</button>
+</div></nav>
+
+<div data-panel="dash">
+<div class="wrap">
+  <header class="h5">
+    <div class="kick">제 41 호 · 07:45 발행</div>
+    <h1>2026년 10월 16일 (금)</h1>
   </header>
 
-  <div class="kpi">
-<div class="k"><div class="n">KOSPI</div><div class="v num down">6,008.81</div><div class="c down num">▼ −0.44%</div></div><div class="k"><div class="n">SOX</div><div class="v num down">11,684.40</div><div class="c down num">▼ −4.30%</div></div><div class="k"><div class="n">삼성전자</div><div class="v num ">232,000</div><div class="c  num">0.00%</div></div><div class="k"><div class="n">SK하이닉스</div><div class="v num down">1,419,000</div><div class="c down num">▼ −1.66%</div></div>
-  </div>
-  <div class="legend">▲ 상승 · ▼ 하락 (국내 관행)</div>
+  <section class="hero5" aria-label="시초가 전망">
+    <div class="hl">09:00 코스피 시초가 전망</div>
+    <div class="hrow"><span class="hv5">갭상승 출발</span><span class="hr5 num">5,730 ~ 5,820<small>+3.16% ~ +4.79%</small></span></div>
+    <div class="fband" aria-label="예상 구간과 전일 종가"><svg viewBox="0 0 360 46" role="img" aria-label="예상 구간 5,730 ~ 5,820, 전일 종가 5,554.22"><line x1="22" x2="338" y1="26" y2="26" style="stroke:var(--line2)" stroke-width="2"/><rect x="263.3" y="12" width="42.7" height="16" rx="4" style="fill:var(--warnstrong);opacity:.55"/><line x1="180.0" x2="180.0" y1="4" y2="34" style="stroke:var(--tx)" stroke-width="2"/><text x="180.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx2)" font-weight="700">전일 종가</text><text x="22.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-6%</text><text x="74.7" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-4%</text><text x="127.3" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-2%</text><text x="232.7" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+2%</text><text x="285.3" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+4%</text><text x="338.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+6%</text><line x1="283.0" x2="283.0" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/><text x="283.0" y="7" font-size="9" text-anchor="middle" style="fill:var(--tx3)">야간</text><line x1="337.5" x2="337.5" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/><text x="337.5" y="7" font-size="9" text-anchor="middle" style="fill:var(--tx3)">EWY</text></svg></div>
+    <div class="fsig num"><span class="up">야간선물 ▲ +3.91%<small>10/16 05:00</small></span><span class="up">EWY 시사 ▲ +5.98%</span><span class="up">ADR 시사 ▲ +11.59%</span><span class="up">미국선물 ES ▲ +0.03%<small>10/16 07:25</small></span></div>
+    <ol class="concl"><li>폭락 다음 날, 야간선물은 반등을 가리킵니다</li><li>반등 재료는 금리이고 AI 우려는 그대로입니다</li><li>마이크론 반등이 메모리에는 위안입니다</li></ol>
+    <button type="button" class="more5" data-go="brief">근거와 시나리오는 브리핑에서 →</button>
+  </section>
+
+  <section class="card5 live5" aria-label="예측과 실시간">
+    <div class="ch5"><h2>예측 → 실시간</h2><span class="lv5" id="lvStat"><i></i>07:45 값</span></div>
+    <div class="lgrid">
+      <div class="sel5" role="tablist" id="sel5"><button type="button" role="tab" aria-selected="true"><span class="n">코스피</span><span class="v num">≈5,761</span><span class="c num up">▲ +3.72%</span><span class="b in">예측 안</span></button><button type="button" role="tab" aria-selected="false"><span class="n">삼성전자</span><span class="v num">219,500</span><span class="c num up">▲ +4.52%</span><span class="b in">예측 안</span></button><button type="button" role="tab" aria-selected="false"><span class="n">SK하이닉스</span><span class="v num">1,310,000</span><span class="c num up">▲ +3.77%</span><span class="b in">예측 안</span></button></div>
+      <div>
+        <div class="vizbox" id="dayBox"><svg viewBox="0 0 360 236" class="viz" id="daySvg" role="img" aria-label="예측과 실시간"></svg><div class="tip" hidden></div></div>
+        <div class="verd5" id="verd5"></div>
+      </div>
+    </div>
+    <div class="cap">왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가(밤사이 압축) · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중 · 오른쪽 위 표시가 KRX 면 실제 시세, 아니면 해외 추종가(실제가와 ±0.5% 안팎 차이) · 15초마다 갱신</div>
+  </section>
+
+  <section class="card5" aria-label="코스피 최근 20거래일과 예측 기록">
+    <div class="ch5"><h2>코스피 20거래일 · 예측 기록</h2><span class="num">5,554.22 <b class="down">▼ −7.57%</b></span></div>
+    <div class="vizbox" data-tips='[{"x": 40.0, "t": "9/14", "c": "6,684.37", "b": "6,990~7,230", "o": "6,692.61", "v": "구간 밖"}, {"x": 53.7, "t": "9/15", "c": "6,627.26", "b": "6,450~6,650", "o": "6,659.25", "v": "구간 밖"}, {"x": 67.4, "t": "9/16", "c": "6,717.97", "b": "6,565~6,690", "o": "6,611.24", "v": "적중"}, {"x": 81.1, "t": "9/17", "c": "6,715.41", "b": "6,600~6,700", "o": "6,779.02", "v": "구간 밖"}, {"x": 94.8, "t": "9/18", "c": "6,894.23", "b": "6,780~6,910", "o": "6,885.70", "v": "적중"}, {"x": 108.5, "t": "9/21", "c": "7,007.72", "b": "6,770~6,914", "o": "6,938.34", "v": "구간 밖"}, {"x": 122.2, "t": "9/22", "c": "7,017.91", "b": "7,045~7,180", "o": "7,161.61", "v": "적중"}, {"x": 135.9, "t": "9/23", "c": "7,080.92", "b": "7,060~7,220", "o": "7,153.99", "v": "적중"}, {"x": 149.6, "t": "9/28", "c": "6,889.74", "b": "6,880~7,080", "o": "7,057.86", "v": "구간 안·방향 틀림"}, {"x": 163.3, "t": "9/29", "c": "6,870.81", "b": "6,810~6,960", "o": "6,844.41", "v": "구간 안·방향 틀림"}, {"x": 177.0, "t": "9/30", "c": "6,838.04", "b": "6,875~6,985", "o": "6,943.47", "v": "적중"}, {"x": 190.7, "t": "10/1", "c": "6,971.35", "b": "6,750~6,835", "o": "6,814.49", "v": "구간 안·방향 틀림"}, {"x": 204.4, "t": "10/2", "c": "7,003.74", "b": "6,925~7,025", "o": "6,938.27", "v": "적중"}, {"x": 218.1, "t": "10/6", "c": "6,941.39", "b": "7,040~7,150", "o": "7,044.67", "v": "적중"}, {"x": 231.8, "t": "10/7", "c": "6,803.90", "b": "6,810~6,920", "o": "6,864.25", "v": "적중"}, {"x": 245.5, "t": "10/8", "c": "6,625.93", "b": "6,750~6,860", "o": "6,808.68", "v": "적중"}, {"x": 259.2, "t": "10/12", "c": "6,384.24", "b": "6,500~6,740", "o": "6,578.17", "v": "구간 안·방향 틀림"}, {"x": 272.9, "t": "10/13", "c": "6,035.35", "b": "6,200~6,300", "o": "6,186.08", "v": "구간 밖"}, {"x": 286.6, "t": "10/14", "c": "6,008.81", "b": "6,090~6,190", "o": "6,062.08", "v": "구간 밖"}, {"x": 300.3, "t": "10/15", "c": "5,554.22", "b": "5,790~5,880", "o": "5,673.01", "v": "구간 밖"}, {"x": 314.0, "t": "10/16", "b": "5,730~5,820", "v": "오늘 전망"}]'><svg viewBox="0 0 360 210" class="viz" role="img" aria-label="코스피 최근 20거래일 종가와 회차별 예상 구간, 실제 시초가"><line x1="40" x2="322" y1="186.0" y2="186.0" class="grid"/><text x="34" y="189.5" class="tick" text-anchor="end">5,500</text><line x1="40" x2="322" y1="143.0" y2="143.0" class="grid"/><text x="34" y="146.5" class="tick" text-anchor="end">6,000</text><line x1="40" x2="322" y1="100.0" y2="100.0" class="grid"/><text x="34" y="103.5" class="tick" text-anchor="end">6,500</text><line x1="40" x2="322" y1="57.0" y2="57.0" class="grid"/><text x="34" y="60.5" class="tick" text-anchor="end">7,000</text><line x1="40" x2="322" y1="14.0" y2="14.0" class="grid"/><text x="34" y="17.5" class="tick" text-anchor="end">7,500</text><rect x="36.5" y="37.2" width="7" height="20.6" rx="2" class="band"/><rect x="50.2" y="87.1" width="7" height="17.2" rx="2" class="band"/><rect x="63.9" y="83.7" width="7" height="10.8" rx="2" class="band"/><rect x="77.6" y="82.8" width="7" height="8.6" rx="2" class="band"/><rect x="91.3" y="64.7" width="7" height="11.2" rx="2" class="band"/><rect x="105.0" y="64.4" width="7" height="12.4" rx="2" class="band"/><rect x="118.7" y="41.5" width="7" height="11.6" rx="2" class="band"/><rect x="132.4" y="38.1" width="7" height="13.8" rx="2" class="band"/><rect x="146.1" y="50.1" width="7" height="17.2" rx="2" class="band"/><rect x="159.8" y="60.4" width="7" height="12.9" rx="2" class="band"/><rect x="173.5" y="58.3" width="7" height="9.5" rx="2" class="band"/><rect x="187.2" y="71.2" width="7" height="7.3" rx="2" class="band"/><rect x="200.9" y="54.9" width="7" height="8.6" rx="2" class="band"/><rect x="214.6" y="44.1" width="7" height="9.5" rx="2" class="band"/><rect x="228.3" y="63.9" width="7" height="9.5" rx="2" class="band"/><rect x="242.0" y="69.0" width="7" height="9.5" rx="2" class="band"/><rect x="255.7" y="79.4" width="7" height="20.6" rx="2" class="band"/><rect x="269.4" y="117.2" width="7" height="8.6" rx="2" class="band"/><rect x="283.1" y="126.7" width="7" height="8.6" rx="2" class="band"/><rect x="296.8" y="153.3" width="7" height="7.7" rx="2" class="band"/><rect x="310.5" y="158.5" width="7" height="7.7" rx="2" class="bandnow"/><polyline points="40.0,84.1 53.7,89.1 67.4,81.3 81.1,81.5 94.8,66.1 108.5,56.3 122.2,55.5 135.9,50.0 149.6,66.5 163.3,68.1 177.0,70.9 190.7,59.5 204.4,56.7 218.1,62.0 231.8,73.9 245.5,89.2 259.2,110.0 272.9,140.0 286.6,142.2 300.3,181.3" class="ln"/><circle cx="40.0" cy="83.4" r="4" class="dout"/><circle cx="53.7" cy="86.3" r="4" class="dout"/><circle cx="67.4" cy="90.4" r="4" class="din"/><circle cx="81.1" cy="76.0" r="4" class="dout"/><circle cx="94.8" cy="66.8" r="4" class="din"/><circle cx="108.5" cy="62.3" r="4" class="dout"/><circle cx="122.2" cy="43.1" r="4" class="din"/><circle cx="135.9" cy="43.8" r="4" class="din"/><circle cx="149.6" cy="52.0" r="4" class="din"/><circle cx="163.3" cy="70.4" r="4" class="din"/><circle cx="177.0" cy="61.9" r="4" class="din"/><circle cx="190.7" cy="73.0" r="4" class="din"/><circle cx="204.4" cy="62.3" r="4" class="din"/><circle cx="218.1" cy="53.2" r="4" class="din"/><circle cx="231.8" cy="68.7" r="4" class="din"/><circle cx="245.5" cy="73.5" r="4" class="din"/><circle cx="259.2" cy="93.3" r="4" class="din"/><circle cx="272.9" cy="127.0" r="4" class="dout"/><circle cx="286.6" cy="137.7" r="4" class="dout"/><circle cx="300.3" cy="171.1" r="4" class="dout"/><text x="321.0" y="166.3" class="lab strong">오늘</text><text x="40.0" y="204" class="tick" text-anchor="middle">9/14</text><text x="177.0" y="204" class="tick" text-anchor="middle">9/30</text><text x="300.3" y="204" class="tick" text-anchor="middle">10/15</text><line class="xh" x1="0" x2="0" y1="14" y2="186"/></svg><div class="tip" hidden></div></div>
+    <div class="cap">선 — 종가 · 막대 — 그날 아침 예상 구간(노란색이 오늘) · 점 — 실제 시초가(채움: 구간 안, 테두리: 구간 밖) · 최근 10회 구간 안 7 · 방향 7</div>
+  </section>
+
+  <section class="card5" aria-label="간밤 시장">
+    <div class="ch5"><h2>간밤 시장</h2><span>10/15(목) 미국장 마감</span></div>
+    <div class="tiles5"><div class="t5"><div class="t5n">K200 야간<small>10/16 05:00</small></div><div class="t5v num">894.95</div><div class="t5c num up">▲ +3.91%</div></div><div class="t5"><div class="t5n">SOX</div><div class="t5v num">11,581.20</div><div class="t5c num down">▼ −0.88%</div></div><div class="t5"><div class="t5n">엔비디아</div><div class="t5v num">217.23</div><div class="t5c num down">▼ −1.84%</div></div><div class="t5"><div class="t5n">마이크론</div><div class="t5v num">931.24</div><div class="t5c num up">▲ +1.87%</div></div><div class="t5"><div class="t5n">EWY</div><div class="t5v num">156.22</div><div class="t5c num down">▼ −2.26%</div></div><div class="t5"><div class="t5n">원달러</div><div class="t5v num">1,341.28</div><div class="t5c num up">▲ +0.22%</div></div></div>
+  </section>
+
+  <p class="note5">종목 예측 구간 = 야간선물과 해외 24시간 추종가(10/16 07:46)의 평균 ± 최근 오차 80% 범위(삼성전자 ±1.36% · SK하이닉스 ±1.22%). 해외 추종가는 해외 코인거래소의 한국 종목 무기한선물 가격이라 실제 체결가와 다릅니다.</p>
 </div>
+</div><!--/dash-->
+<script id="day-data" type="application/json">{"issue":"2026-10-16","api":"https://api.hyperliquid.xyz/info","relay":"https://129-225-146-153.sslip.io","t_prev":1792045800000,"t_snap":1792104403490,"t_open":1792108800000,"t_close":1792132200000,"t_night":1792094400000,"ent":[{"key":"KOSPI","name":"코스피","coin":"xyz:KR200","unit":"","approx":true,"tick":0,"dec":2,"prev":5554.22,"prev_label":"10/15","base":864.52,"path":[[1792045800000,0.0],[1792046700000,-0.452],[1792047600000,-0.013],[1792048500000,-0.481],[1792049400000,-0.344],[1792050300000,-0.04],[1792051200000,-0.052],[1792052100000,-0.052],[1792053000000,-0.088],[1792053900000,-0.087],[1792054800000,0.022],[1792055700000,0.403],[1792056600000,-0.179],[1792057500000,-0.4],[1792058400000,-0.455],[1792059300000,-0.222],[1792060200000,-0.4],[1792061100000,-0.291],[1792062000000,-0.743],[1792062900000,-0.674],[1792063800000,-0.371],[1792064700000,-0.153],[1792065600000,-0.281],[1792066500000,-0.396],[1792067400000,-0.242],[1792068300000,-0.099],[1792069200000,-0.458],[1792070100000,-0.436],[1792071000000,-0.699],[1792071900000,0.695],[1792072800000,-0.207],[1792073700000,0.544],[1792074600000,0.915],[1792075500000,1.859],[1792076400000,2.068],[1792077300000,2.524],[1792078200000,2.402],[1792079100000,2.419],[1792080000000,2.536],[1792080900000,2.438],[1792081800000,2.13],[1792082700000,2.66],[1792083600000,2.67],[1792084500000,2.691],[1792085400000,2.597],[1792086300000,3.177],[1792087200000,3.044],[1792088100000,2.328],[1792089000000,2.571],[1792089900000,2.629],[1792090800000,2.782],[1792091700000,3.35],[1792092600000,3.656],[1792093500000,4.048],[1792094400000,4.08],[1792095300000,4.184],[1792096200000,5.492],[1792097100000,4.274],[1792098000000,3.743],[1792098900000,3.183],[1792099800000,3.858],[1792100700000,4.658],[1792101600000,3.631],[1792102500000,3.743],[1792103400000,3.593],[1792104300000,3.721]],"lo":3.165,"hi":4.785,"lo_v":5730.0,"hi_v":5820.0,"night":3.91},{"key":"005930","name":"삼성전자","coin":"xyz:SMSN","unit":"원","approx":false,"tick":500,"dec":0,"prev":210000.0,"prev_label":"10/15","base":156.06,"path":[[1792045800000,0.0],[1792046700000,0.0],[1792047600000,-0.237],[1792048500000,-0.013],[1792049400000,-0.199],[1792050300000,0.34],[1792051200000,0.16],[1792052100000,-0.256],[1792053000000,-0.006],[1792053900000,-0.282],[1792054800000,0.243],[1792055700000,0.577],[1792056600000,-0.006],[1792057500000,-0.096],[1792058400000,-0.308],[1792059300000,0.064],[1792060200000,-0.199],[1792061100000,-0.666],[1792062000000,-1.192],[1792062900000,-0.788],[1792063800000,-0.32],[1792064700000,-0.115],[1792065600000,-0.506],[1792066500000,-0.602],[1792067400000,0.019],[1792068300000,-0.314],[1792069200000,-0.237],[1792070100000,-0.32],[1792071000000,-0.801],[1792071900000,0.493],[1792072800000,-0.666],[1792073700000,0.199],[1792074600000,0.692],[1792075500000,1.98],[1792076400000,2.48],[1792077300000,3.287],[1792078200000,3.146],[1792079100000,3.262],[1792080000000,3.614],[1792080900000,3.05],[1792081800000,2.967],[1792082700000,3.55],[1792083600000,3.332],[1792084500000,3.736],[1792085400000,3.563],[1792086300000,3.672],[1792087200000,3.511],[1792088100000,2.685],[1792089000000,3.057],[1792089900000,3.165],[1792090800000,3.39],[1792091700000,4.152],[1792092600000,4.159],[1792093500000,4.159],[1792094400000,4.55],[1792095300000,4.844],[1792096200000,4.703],[1792097100000,4.838],[1792098000000,4.293],[1792098900000,3.793],[1792099800000,4.607],[1792100700000,4.812],[1792101600000,4.684],[1792102500000,5.242],[1792103400000,4.844],[1792104300000,4.524]],"lo":2.619,"hi":5.714,"lo_v":215500,"hi_v":222000,"night":null},{"key":"000660","name":"SK하이닉스","coin":"xyz:SKHX","unit":"원","approx":false,"tick":1000,"dec":0,"prev":1262000.0,"prev_label":"10/15","base":944.96,"path":[[1792045800000,0.0],[1792046700000,-0.299],[1792047600000,-0.143],[1792048500000,-0.069],[1792049400000,-0.538],[1792050300000,-0.502],[1792051200000,-0.842],[1792052100000,-1.024],[1792053000000,-1.155],[1792053900000,-1.269],[1792054800000,-0.737],[1792055700000,-0.119],[1792056600000,-0.527],[1792057500000,-0.7],[1792058400000,-0.708],[1792059300000,-0.619],[1792060200000,-0.764],[1792061100000,-1.209],[1792062000000,-1.928],[1792062900000,-1.265],[1792063800000,-0.901],[1792064700000,-0.717],[1792065600000,-1.039],[1792066500000,-0.955],[1792067400000,-0.709],[1792068300000,-0.803],[1792069200000,-1.087],[1792070100000,-0.933],[1792071000000,-0.89],[1792071900000,0.731],[1792072800000,-0.156],[1792073700000,0.362],[1792074600000,0.843],[1792075500000,1.98],[1792076400000,2.231],[1792077300000,2.974],[1792078200000,2.465],[1792079100000,2.273],[1792080000000,2.74],[1792080900000,2.482],[1792081800000,1.957],[1792082700000,2.349],[1792083600000,2.312],[1792084500000,2.606],[1792085400000,2.585],[1792086300000,2.873],[1792087200000,2.847],[1792088100000,2.031],[1792089000000,2.375],[1792089900000,2.528],[1792090800000,2.911],[1792091700000,3.63],[1792092600000,3.372],[1792093500000,3.468],[1792094400000,3.75],[1792095300000,3.742],[1792096200000,3.676],[1792097100000,3.768],[1792098000000,3.272],[1792098900000,2.942],[1792099800000,3.383],[1792100700000,3.68],[1792101600000,3.902],[1792102500000,4.149],[1792103400000,4.028],[1792104300000,3.772]],"lo":2.615,"hi":5.071,"lo_v":1295000,"hi_v":1326000,"night":null}]}</script>
+
+<div data-panel="brief">
 
 <div class="bar">
   <div class="bar-in">
@@ -304,99 +418,104 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
 
   <div class="tldr">
     <div class="tt">오늘 한눈에</div>
-<div class="tl"><div class="tn">1</div><div><div class="th">갭하락 출발, 예상 구간 5,790~5,880</div><div class="tb">야간선물이 2.89% 빠져 규칙대로 구간을 잡았습니다.</div><details><summary>더 보기</summary><div class="dbody"><p>규칙은 야간선물 등락률을 중심으로 반폭 0.8%를 둡니다. EWY·ADR 은 이보다 더 깊은 하락을 가리켜 구간 아래로 벗어날 위험이 있습니다.</p></div></details></div></div><div class="tl"><div class="tn">2</div><div><div class="th">미국 물가가 예상보다 높았습니다</div><div class="tb">CPI 3.7%로 금리 인상 경계가 커지며 기술주가 밀렸습니다.</div><details><summary>더 보기</summary><div class="dbody"><p>근원 CPI 도 2.6%로 예상 2.5%를 넘었습니다. 미 10년물 금리는 5.2%대로 24년 만의 고점권입니다. 금리가 높을수록 성장주 밸류에이션 부담이 커집니다.</p></div></details></div></div><div class="tl"><div class="tn">3</div><div><div class="th">메모리 악재가 사흘째 겹쳤습니다</div><div class="tb">CXMT 서버 D램 우려에 OpenAI 매출 보도까지 더해졌습니다.</div><details><summary>더 보기</summary><div class="dbody"><p>CXMT 는 4F² 구조 DDR5 서버 모듈을 연내 내놓겠다고 밝혔습니다. HBM 이 아닌 범용 D램이라는 분석도 함께 나왔습니다. FT 는 OpenAI 연환산 매출이 기존 보도보다 200억달러 적은 500억달러라고 전했습니다.</p></div></details></div></div>
+<div class="tl"><div class="tn">1</div><div><div class="th">폭락 다음 날, 야간선물은 반등을 가리킵니다</div><div class="tb">야간선물 +3.91%, 추종가도 3~4% 올랐습니다</div><details><summary>더 보기</summary><div class="dbody"><p>어제 코스피는 7.57% 내려 5,554.22로 끝났습니다. 밤사이 해외 가격은 일제히 그 낙폭 일부를 회복했습니다.</p><p>다만 반등 폭이 그대로 시가가 될지는 개장 직후 외국인 수급에 달려 있습니다.</p></div></details></div></div><div class="tl"><div class="tn">2</div><div><div class="th">반등 재료는 금리이고 AI 우려는 그대로입니다</div><div class="tb">미 10년물이 0.1%p 내렸고 엔비디아는 또 내렸습니다</div><details><summary>더 보기</summary><div class="dbody"><p>금리가 내렸다는 건 신흥국 주식에서 빠지던 자금 압력이 잠시 줄었다는 뜻입니다.</p><p>오픈AI 매출 보도와 가트너의 투자 수익성 경고는 밤사이 해소되지 않았습니다.</p></div></details></div></div><div class="tl"><div class="tn">3</div><div><div class="th">마이크론 반등이 메모리에는 위안입니다</div><div class="tb">SOX −0.88% 속에서 마이크론만 +1.87%였습니다</div><details><summary>더 보기</summary><div class="dbody"><p>SK하이닉스 ADR도 −0.98%로 서울 원주 낙폭(−11.06%)보다 훨씬 작았습니다.</p></div></details></div></div>
   </div>
 
   <section id="s-global">
-    <div class="sh"><h2>간밤 글로벌</h2><span class="stag">10/14(수) 미국장 마감</span></div>
-    <div class="sum">CPI 3.7% 충격에 나스닥 −1.9%, SOX −4.3%로 반도체가 크게 밀렸습니다.</div>
+    <div class="sh"><h2>간밤 글로벌</h2><span class="stag">10/15(목) 미국장 마감</span></div>
+    <div class="sum">다우 +1.08%, 나스닥 +0.08%로 반등했습니다. SOX는 −0.88%, 마이크론은 +1.87%였습니다.</div>
     <div class="tblwrap"><table class="q">
       <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
-<tbody class="st"><tr><td class="nm">K200 야간선물<span class="cd">야간 · 10/15 05:00</span></td><td class="pr num down">916.95</td><td class="ch down num">▼ −2.89%</td></tr><tr><td class="cm" colspan="3">CPI 발표 뒤 반도체가 무너지며 주간 종가보다 2.89% 낮게 끝났습니다.<details><summary>근거</summary><div class="dbody"><p>sonmul 위젯 기준 고가 951.00·저가 910.60입니다. 같은 페이지 뉴스는 921.2(−2.44%)로 적어 두 값이 다릅니다. 위젯이 '야간장 마감' 상태와 고저가를 함께 보여 위젯 값을 썼습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SOX<span class="cd">PHLX</span></td><td class="pr num down">11,684.40</td><td class="ch down num">▼ −4.30%</td></tr><tr><td class="cm" colspan="3">물가 충격과 CXMT 경쟁 우려가 겹쳐 반도체 지수가 4% 넘게 빠졌습니다.<details><summary>근거</summary><div class="dbody"><p>10/13 −2.67%에 이은 이틀 연속 급락입니다. 장비주 ASML 은 3분기 사상 최대 매출을 냈지만 지수 하락을 막지 못했습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">엔비디아<span class="cd">NVDA</span></td><td class="pr num down">221.30</td><td class="ch down num">▼ −3.16%</td></tr><tr><td class="cm" colspan="3">OpenAI 매출 우려와 금리 부담이 겹쳐 3% 넘게 내렸습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">마이크론<span class="cd">MU</span></td><td class="pr num down">914.13</td><td class="ch down num">▼ −4.10%</td></tr><tr><td class="cm" colspan="3">CXMT 서버 D램 우려가 이어지며 사흘째 4% 안팎 하락했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">MSCI 한국 ETF<span class="cd">EWY</span></td><td class="pr num down">159.83</td><td class="ch down num">▼ −4.04%</td></tr><tr><td class="cm" colspan="3">코스피 종가보다 훨씬 깊게 빠져 오늘 아침 추가 하락을 시사합니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스 ADR<span class="cd">SKHY</span></td><td class="pr num down">147.55</td><td class="ch down num">▼ −6.06%</td></tr><tr><td class="cm" colspan="3">서울 종가 −1.66%보다 낙폭이 네 배 가까이 커 디스카운트가 벌어졌습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">코스피200 선물<span class="cd">K200F · 주간</span></td><td class="pr num down">944.20</td><td class="ch down num">▼ −0.06%</td></tr><tr><td class="cm" colspan="3">주간 선물은 보합권이었고 하락은 야간 세션에서 나왔습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">원달러<span class="cd">USD/KRW</span></td><td class="pr num down">1,338.30</td><td class="ch down num">▼ −0.51%</td></tr><tr><td class="cm" colspan="3">서울 종가 기준 6.8원 내렸습니다. 원화가 강해졌다는 뜻입니다.</td></tr></tbody>
+<tbody class="st"><tr><td class="nm">K200 야간선물<span class="cd">야간 · 10/16 05:00</span></td><td class="pr num up">894.95</td><td class="ch up num">▲ +3.91%</td></tr><tr><td class="cm" colspan="3">주간 종가 861.30보다 3.91% 높게 끝나 낙폭 일부를 회복했습니다.<details><summary>근거</summary><div class="dbody"><p>야간 세션은 미국 금리 하락과 다우 반등을 반영한 값입니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SOX<span class="cd">PHLX</span></td><td class="pr num down">11,581.20</td><td class="ch down num">▼ −0.88%</td></tr><tr><td class="cm" colspan="3">7거래일 연속 약세지만 낙폭은 1% 안으로 줄었습니다.<details><summary>근거</summary><div class="dbody"><p>일일 범위는 11,171.5~11,620.1로 장중 저점에서 크게 반등해 끝났습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">엔비디아<span class="cd">NVDA</span></td><td class="pr num down">217.23</td><td class="ch down num">▼ −1.84%</td></tr><tr><td class="cm" colspan="3">AI 투자 수익성 우려가 이어지며 이틀째 약세로 끝났습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">마이크론<span class="cd">MU</span></td><td class="pr num up">931.24</td><td class="ch up num">▲ +1.87%</td></tr><tr><td class="cm" colspan="3">메모리 대표주는 반도체 약세 속에서도 상대강세로 반등했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">MSCI 한국 ETF<span class="cd">EWY</span></td><td class="pr num down">156.22</td><td class="ch down num">▼ −2.26%</td></tr><tr><td class="cm" colspan="3">서울 폭락분보다 낙폭이 훨씬 작아 갭상승 쪽 신호입니다.<details><summary>근거</summary><div class="dbody"><p>시가 150.26에서 출발해 고가 부근 156.22에 끝났습니다. 장중 저가 대비 4% 넘게 반등했습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스 ADR<span class="cd">SKHY</span></td><td class="pr num down">146.11</td><td class="ch down num">▼ −0.98%</td></tr><tr><td class="cm" colspan="3">서울 원주가 11% 빠진 날 뉴욕에서는 1% 안쪽 하락에 그쳤습니다.<details><summary>근거</summary><div class="dbody"><p>장중 저가 137.88에서 6% 가까이 반등해 끝났습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">코스피200 선물<span class="cd">K200F · 주간</span></td><td class="pr num down">861.30</td><td class="ch down num">▼ −8.78%</td></tr><tr><td class="cm" colspan="3">현물 코스피보다 낙폭이 컸고 사이드카가 개장 7분 만에 발동했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">원달러<span class="cd">USD/KRW</span></td><td class="pr num up">1,341.28</td><td class="ch up num">▲ +0.22%</td></tr><tr><td class="cm" colspan="3">외국인이 3조원 넘게 팔았는데도 환율 상승은 작았습니다. 원화 약세가 크지 않았다는 뜻입니다.</td></tr></tbody>
     </table></div>
     <div class="chk soft">
       <div class="ct">하방 체크</div>
-<div class="cl">CPI 상회와 OpenAI 매출 보도가 겹쳐 나스닥 −1.9%, SOX −4.3%로 마쳤습니다.</div><details><summary>근거</summary><div class="dbody"><p>다우는 −0.1%로 버텨 하락이 기술주에 몰렸습니다. 브렌트유는 후티의 사우디 시설 공격으로 배럴당 105달러 위에 머물렀습니다.</p><p>젠슨 황 엔비디아 CEO 는 위험한 AI 를 만드는 고객에게 칩 공급을 끊을 수 있다고 말했습니다. 다른 CEO 의 동조는 아직 확인되지 않았습니다.</p></div></details>
+<div class="cl">미국장은 금리 하락으로 반등했지만 AI 반도체는 엔비디아·SOX 모두 약세였습니다.</div><details><summary>근거</summary><div class="dbody"><p>다우 52,177.69(+1.08%), S&amp;P500 7,744.06(+0.33%), 나스닥 +0.08%로 마감했습니다.</p><p>코어위브는 젠슨 황 CEO가 구제 필요가 없다고 말한 뒤 5.94% 반등했습니다.</p><p>WTI는 원유 재고 감소로 3.0% 올랐고 브렌트유는 0.1% 내렸습니다.</p></div></details>
     </div>
   </section>
 
   <section id="s-dom">
-    <div class="sh"><h2>국내 종목 &amp; ETF</h2><span class="stag">10/14 종가</span></div>
-    <div class="sum">코스피 6,008.81(−0.44%), 외국인 1.16조원 순매도가 이어졌습니다.</div>
+    <div class="sh"><h2>국내 종목 &amp; ETF</h2><span class="stag">10/15 종가</span></div>
+    <div class="sum">코스피 −7.57%, 코스닥 −7.65%로 서킷브레이커가 발동했습니다. 외국인이 3.6조원 팔았습니다.</div>
     <div class="tblwrap"><table class="q">
       <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
-<tbody class="st"><tr><td class="nm">삼성전자<span class="cd">005930</span></td><td class="pr num">232,000</td><td class="ch num">0.00%</td></tr><tr><td class="cm" colspan="3">장중 241,500원까지 올랐지만 상승분을 모두 반납하고 보합으로 마쳤습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스<span class="cd">000660</span></td><td class="pr num down">1,419,000</td><td class="ch down num">▼ −1.66%</td></tr><tr><td class="cm" colspan="3">장중 1,497,000원 고점에서 밀려 이틀째 약세로 끝났습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK스퀘어<span class="cd">402340</span></td><td class="pr num down">852,000</td><td class="ch down num">▼ −0.58%</td></tr><tr><td class="cm" colspan="3">하이닉스 지분 가치에 연동돼 장중 892,000원에서 밀렸습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">삼성전기<span class="cd">009150</span></td><td class="pr num up">1,374,000</td><td class="ch up num">▲ +0.81%</td></tr><tr><td class="cm" colspan="3">메모리 약세 속에서도 기판·부품 기대로 소폭 상승한 상대강세 종목입니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SOL AI반도체TOP2<span class="cd">0167A0</span></td><td class="pr num down">16,165</td><td class="ch down num">▼ −1.67%</td></tr><tr><td class="cm" colspan="3">두 대형주 비중이 커 하이닉스 약세가 그대로 들어갔습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">PLUS 글로벌HBM<span class="cd">442580</span></td><td class="pr num down">91,095</td><td class="ch down num">▼ −1.47%</td></tr><tr><td class="cm" colspan="3">글로벌 HBM 종목 묶음이라 마이크론 하락 전에 마감한 값입니다.</td></tr></tbody>
+<tbody class="st"><tr><td class="nm">삼성전자<span class="cd">005930</span></td><td class="pr num down">210,000</td><td class="ch down num">▼ −9.48%</td></tr><tr><td class="cm" colspan="3">이달 들어 21.8% 내렸고 자사주 매입도 마무리 단계입니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스<span class="cd">000660</span></td><td class="pr num down">1,262,000</td><td class="ch down num">▼ −11.06%</td></tr><tr><td class="cm" colspan="3">외국인이 이달 9조원 넘게 순매도해 낙폭이 가장 컸습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK스퀘어<span class="cd">402340</span></td><td class="pr num down">765,000</td><td class="ch down num">▼ −10.21%</td></tr><tr><td class="cm" colspan="3">자회사 SK하이닉스 급락을 그대로 따라 10% 넘게 내렸습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">삼성전기<span class="cd">009150</span></td><td class="pr num down">1,163,000</td><td class="ch down num">▼ −15.36%</td></tr><tr><td class="cm" colspan="3">반도체 기판 수요 우려가 겹쳐 6종 가운데 낙폭이 가장 컸습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SOL AI반도체TOP2<span class="cd">0167A0</span></td><td class="pr num down">14,285</td><td class="ch down num">▼ −11.63%</td></tr><tr><td class="cm" colspan="3">삼성전자·SK하이닉스 집중 ETF라 두 종목보다 더 내렸습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">PLUS 글로벌HBM<span class="cd">442580</span></td><td class="pr num down">83,565</td><td class="ch down num">▼ −8.27%</td></tr><tr><td class="cm" colspan="3">해외 HBM 종목이 섞여 있어 국내 종목보다 낙폭이 작았습니다.</td></tr></tbody>
     </table></div>
     <div class="flow">
       <div class="fgrid">
-<div><span class="fk">외국인</span><span class="fv down num">▼ −1조1,614억</span></div><div><span class="fk">기관</span><span class="fv up num">▲ +7,876억</span></div><div><span class="fk">개인</span><span class="fv down num">▼ −3,203억</span></div><div><span class="fk">기타법인</span><span class="fv na">미확보</span></div>
+<div><span class="fk">외국인</span><span class="fv down num">▼ −3조6,350억</span></div><div><span class="fk">기관</span><span class="fv up num">▲ +1조6,872억</span></div><div><span class="fk">개인</span><span class="fv up num">▲ +1조2,953억</span></div><div><span class="fk">기타법인</span><span class="fv na">미확보</span></div>
       </div>
-      <div class="fn">외국인 순매도가 이어졌고 기관이 일부를 받았습니다. 매체마다 수치가 다릅니다.<details><summary>짚을 것</summary><div class="dbody"><p>베타뉴스 기준 외국인 −11,614억·기관 +7,876억·개인 −3,203억원입니다. 비즈니스코리아는 외국인 −11,796억원으로 적었고 기관·개인 값은 코스닥 수치와 섞인 것으로 보여 쓰지 않았습니다.</p></div></details></div>
+      <div class="fn">외국인이 8거래일 연속 팔아 10월 누적 순매도가 17조8천억원을 넘었습니다.<details><summary>짚을 것</summary><div class="dbody"><p>외국인은 이달 SK하이닉스를 9조2,902억원, 삼성전자를 4조8,156억원 순매도했습니다.</p><p>코스닥에서는 외국인이 2,182억원 순매수해 방향이 달랐습니다.</p><p>기관 순매수 규모는 기사마다 차이가 있어 핀포인트뉴스 표를 따랐습니다.</p></div></details></div>
     </div>
     <div class="chk soft">
       <div class="ct">하방 체크</div>
-<div class="cl">코스피는 장중 6,190까지 올랐다가 외국인 매도에 6,008.81로 마쳤습니다.</div><details><summary>근거</summary><div class="dbody"><p>코스닥은 823.88(−1.57%)입니다. 5거래일 낙폭이 12%에 이른다는 보도도 나왔습니다.</p></div></details>
+<div class="cl">코스피가 7거래일 만에 21% 내렸고 외국인 순매도가 3조6천억원에 달했습니다.</div><details><summary>근거</summary><div class="dbody"><p>사이드카는 코스피 개장 7분, 코스닥 12분 만에 발동했습니다.</p><p>오후에는 두 시장 모두 1단계 서킷브레이커로 20분간 거래가 멈췄습니다.</p></div></details>
     </div>
   </section>
 
   <section id="s-issue">
     <div class="sh"><h2>메모리 이슈</h2><span class="stag">강세 3 / 약세 3</span></div>
-    <div class="sum">최근 재료는 10/14 21:30 KST 미국 CPI 발표와 그 뒤 반도체 급락입니다.</div>
+    <div class="sum">가장 최근 재료는 10/16 06시 뉴욕 마감 기사입니다. 금리 하락이 반등을 이끌었습니다.</div>
     <div class="split">
-      <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>원화 강세</b><span>환율이 1,338원으로 내려 외국인 환차손 부담이 줄었습니다.</span></li><li><b>ASML 사상 최대 매출</b><span>AI 장비 수요가 3분기 실적과 연간 전망 상향으로 확인됐습니다.</span></li><li><b>10/14 장중 반등 시도</b><span>코스피가 장중 6,190까지 올라 저가 매수세가 남아 있습니다.</span></li></ul></div>
-      <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>미국 물가 상회</b><span>CPI 3.7%로 이번 달 FOMC 금리 인상 경계가 커졌습니다.</span></li><li><b>SOX 이틀 연속 급락</b><span>반도체 지수가 이틀에 7% 가까이 빠졌습니다.</span></li><li><b>외국인 연속 순매도</b><span>10/12 기준 누적 20조원을 넘긴 매도가 멈추지 않았습니다.</span></li></ul></div>
+      <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>미국 금리 급락</b><span>10년물이 5.19%에서 5.09%로 내려 8월 이후 최대 낙폭입니다</span></li><li><b>해외 가격 일제 반등</b><span>야간선물 +3.91%, 삼성전자 추종가 +4.5%였습니다</span></li><li><b>마이크론 상대강세</b><span>반도체지수 약세 속에서 메모리 대표주가 올랐습니다</span></li></ul></div>
+      <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>외국인 매도 지속</b><span>8거래일 연속 순매도라 반등 때 물량이 나올 수 있습니다</span></li><li><b>AI 수익성 우려</b><span>엔비디아 −1.84%, SOX 7거래일 연속 약세입니다</span></li><li><b>수급 받칠 곳 부족</b><span>국민연금 여력이 작고 자사주 매입도 끝나 갑니다</span></li></ul></div>
     </div>
     <div class="chk soft">
       <div class="ct">하방 체크</div>
-<div class="cl">A 메모리는 CXMT 서버 D램, B AI 는 OpenAI 매출 보도, C 매크로는 CPI 상회가 재료입니다.</div><details><summary>근거</summary><div class="dbody"><p>CXMT 재료는 범용 DDR5 이야기이고 HBM 은 아니라는 분석이 있습니다. OpenAI 매출 보도는 AI 캐펙스 지속성을 묻는 재료라 메모리 수요와 직접 연결됩니다.</p></div></details>
+<div class="cl">AI 투자 수익성 논란과 미 9월 CPI 3.7%가 겹쳐 메모리주를 눌렀습니다.</div><details><summary>근거</summary><div class="dbody"><p>외신은 오픈AI의 9월 말 연환산 매출을 700억달러가 아닌 500억달러 수준이라고 보도했습니다.</p><p>가트너는 2030년까지 AI 인프라 투자 수익률 12%를 내려면 매출 8조5천억달러가 필요하다고 추산했습니다.</p><p>브로드컴·인텔 CEO가 AI 투자 자본 조달의 불확실성을 언급해 우려가 업계 전반으로 번졌습니다.</p><p>앤트로픽 3분기 매출은 전분기보다 45% 늘었지만 증가 속도 둔화가 부각됐습니다.</p></div></details>
     </div>
   </section>
 
   <section id="s-scen">
     <div class="sh"><h2>장중 시나리오</h2><span class="stag">09:00 → 15:30</span></div>
-    <div class="sum">5,800선 안팎 출발 뒤 외국인 매도 강도가 하단 이탈 여부를 가릅니다.</div>
+    <div class="sum">야간선물대로 갭상승 출발하되 외국인 매도가 이어지면 상단이 막힙니다.</div>
     <div class="ladder">
-<div class="lv res"><span class="lvl num">6,190.65</span><span class="lvd">1차 저항 — 10/14 장중 고가 — 실제 거래값</span></div><div class="lv now"><span class="lvl num">6,008.81</span><span class="lvd">10/14 종가 — 장중 고가 6,190.65</span></div><div class="lv sup"><span class="lvl num">5,944.65</span><span class="lvd">1차 지지 — 10/14 장중 저가 — 실제 거래값</span></div><div class="lv sup2"><span class="lvl num">5,800.00</span><span class="lvd">2차 지지 — 라운드 넘버, 오늘 예상 구간 하단 부근</span></div>
+<div class="lv res"><span class="lvl num">5,751.45</span><span class="lvd">1차 저항 — 10/15 장중 고가 — 실제 거래값</span></div><div class="lv now"><span class="lvl num">5,554.22</span><span class="lvd">10/15 종가 — 장중 저가 5,450.81</span></div><div class="lv sup"><span class="lvl num">5,450.81</span><span class="lvd">1차 지지 — 10/15 장중 저가 — 실제 거래값</span></div><div class="lv sup2"><span class="lvl num">5,400.00</span><span class="lvd">2차 지지 — 라운드 넘버 — 4월 7일 종가 5,494.78 아래</span></div>
     </div>
     <div class="scen">
-<div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div><div class="sch">5,800선 갭하락 뒤 보합권 공방</div><div class="scb">야간선물 낙폭만큼 내려 출발하고 원화 강세가 외국인 매도를 일부 줄입니다.</div><div class="sif">유지 조건 — 시초가 5,790~5,880 안이고 오전 외국인 순매도가 5,000억원 아래에 머무는 경우입니다.</div></div><div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div><div class="sch">5,700대까지 낙폭 확대</div><div class="scb">EWY·ADR 이 가리킨 깊은 하락이 시초가에 그대로 나오는 경우입니다.</div><div class="sif">전환 신호 — 시초가가 5,790 아래이고 SK하이닉스가 −4% 넘게 출발하면 전환으로 봅니다.</div></div>
+<div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div><div class="sch">갭상승 출발 뒤 5,700선 공방</div><div class="scb">야간선물 반등분만큼 높게 출발합니다. 외국인 매도가 줄어드는지에 따라 장중 방향이 갈립니다.</div><div class="sif">유지 조건 — 09:30까지 코스피가 5,650 위를 지키고 원달러가 1,345원 아래에 머물면 유지됩니다.</div></div><div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div><div class="sch">반등분 반납 뒤 재하락</div><div class="scb">출발은 높지만 외국인 매도가 다시 커지면 어제 종가 부근까지 밀릴 수 있습니다.</div><div class="sif">전환 신호 — 코스피가 5,554.22 아래로 내려가거나 외국인 순매도가 오전에 1조원을 넘으면 전환 신호입니다.</div></div>
     </div>
     <details style="margin-top:14px"><summary>전망 근거 자세히</summary><div class="dbody">
-<p>미국 물가가 예상보다 높아 금리 인상 경계가 커졌고 SOX 가 4.3% 빠졌습니다. EWY 는 4.04%, ADR 은 6.06% 내려 코스피 종가보다 한참 낮게 거래됐습니다.</p><p>원달러 환율이 1,338원으로 내려 원화가 강해졌습니다. 삼성전자는 장중 반등 뒤 보합을 지켰고 삼성전기는 오른 채 마쳤습니다.</p><p>규칙에 따라 야간선물 −2.89%를 구간 중심으로 삼았습니다. 미국 지수선물도 ES −0.24%·NQ −0.56%로 같은 방향이라 방향 판단과 어긋나지 않습니다.</p><p>반폭 0.8%는 규칙 값입니다. EWY·ADR 시사 갭이 야간선물보다 깊어 구간 아래 이탈 위험을 시나리오에 따로 적었습니다.</p>
+<p>아래로 미는 힘은 외국인 매도입니다. 8거래일 연속 순매도로 이달 17조원을 넘었고, AI 투자 수익성 우려도 밤사이 그대로 남았습니다.</p><p>위로 받치는 힘은 미국 금리입니다. 10년물이 하루에 0.1%p 내렸고 다우가 1% 넘게 올랐습니다. 마이크론도 1.87% 반등했습니다.</p><p>방향은 규칙대로 야간선물을 따릅니다. 야간선물이 3.91% 올랐고 해외 24시간 추종가도 3~4% 올라 신호가 같은 쪽입니다.</p><p>구간은 규칙의 반폭 0.8%입니다. 어제 장중 진폭이 5%를 넘었으니 시가가 이 구간을 벗어날 위험은 평소보다 큽니다.</p>
     </div></details>
     <div class="pts">
       <div class="pth">장중 확인 포인트 3</div>
-<div class="pt"><div class="pn">1</div><div><b>시초가 5,790 지지</b><span>구간 하단 아래로 열리면 EWY·ADR 시사 쪽 낙폭이 나온 것으로 봅니다.</span></div></div><div class="pt"><div class="pn">2</div><div><b>SK하이닉스 시가</b><span>ADR −6%와 서울 출발 낙폭의 차이를 봅니다.</span></div></div><div class="pt"><div class="pn">3</div><div><b>외국인 순매도 규모</b><span>오전 5,000억원을 넘으면 하락 압력이 이어지는 것으로 판단합니다.</span></div></div>
+<div class="pt"><div class="pn">1</div><div><b>개장 직후 외국인 수급</b><span>30분 안에 순매도가 5천억원을 넘으면 반등 폭이 줄어듭니다</span></div></div><div class="pt"><div class="pn">2</div><div><b>원달러 1,345원</b><span>이 위로 오르면 외국인 매도 압력이 다시 커졌다는 뜻입니다</span></div></div><div class="pt"><div class="pn">3</div><div><b>어제 고가 5,751.45</b><span>시가가 이 위면 갭상승이 과했다는 신호로 봅니다</span></div></div>
     </div>
     <div class="chk">
       <div class="ct">하방 체크 · 가장 약한 고리</div>
-<div class="cl">가장 약한 고리는 EWY·ADR 이 야간선물보다 더 깊은 하락을 가리킨다는 점입니다.</div><details><summary>근거</summary><div class="dbody"><p>EWY −4.04%·ADR −6.06%를 그대로 쓰면 시초가가 5,790 아래로 열릴 수 있습니다. 규칙상 구간을 옮기지 않았으므로 하단 이탈은 이 신호 차이에서 나올 가능성이 큽니다.</p></div></details>
+<div class="cl">가장 약한 고리는 외국인 매도입니다. 해외 반등이 서울 개장 뒤 매도 물량에 묻힐 수 있습니다.</div><details><summary>근거</summary><div class="dbody"><p>EWY와 ADR 시사 갭은 야간선물보다 더 큰 반등을 가리킵니다. 구간 위로 벗어날 위험도 있습니다.</p><p>미국 지수선물은 보합권이라 회차 시점까지 추가 재료는 없었습니다.</p></div></details>
     </div>
   </section>
 
   <section id="s-score">
     <div class="sh"><h2>예측 채점</h2><span class="stag">최근 10회차 · 왼쪽이 최신</span></div>
     <div class="score">
-<div class="s wait">오늘</div><div class="s miss">10/14</div><div class="s miss">10/13</div><div class="s miss">10/12</div><div class="s hit">10/8</div><div class="s hit">10/7</div><div class="s hit">10/6</div><div class="s hit">10/2</div><div class="s miss">10/1</div><div class="s hit">9/30</div>
+<div class="s wait">오늘</div><div class="s miss">10/15</div><div class="s miss">10/14</div><div class="s miss">10/13</div><div class="s miss">10/12</div><div class="s hit">10/8</div><div class="s hit">10/7</div><div class="s hit">10/6</div><div class="s hit">10/2</div><div class="s miss">10/1</div>
     </div>
     <div class="legend">녹색 적중 · 회색 빗나감 · 점선 미채점 (적중 = 방향과 구간 모두)</div>
-    <div class="verdict miss">10/14 회차 — 빗나감</div>
-    <div class="note">갭상승 6,090~6,190을 봤지만 실제 시가는 6,062.08(+0.44%)로 보합 범위였고 구간 밖이었습니다.</div>
+    <div class="verdict miss">10/15 회차 — 빗나감</div>
+    <div class="note">방향 갭하락은 맞았지만 실제 시가 5,673.01(−5.59%)이 구간 5,790~5,880 아래로 벗어났습니다.</div>
     <details><summary>맞은 것과 놓친 것 전부 보기</summary><div class="dbody">
-<p>상승 출발 자체는 맞았습니다. 장중 고가 6,190.65는 전망 구간 상단과 거의 같았습니다.</p><p>야간선물 +1.71%만큼 오르지 못했습니다. 개장 전 외국인 매도 압력과 CPI 발표 대기 심리가 시초가를 눌렀습니다.</p><p>급락 다음 날 야간선물 반등 폭보다 시초가가 낮게 열리는 경우가 반복됩니다. 규칙 구간 상단 쪽 오차로 쌓이고 있습니다.</p>
+<p>맞은 것은 방향입니다. 야간선물 −2.89%와 EWY·ADR 시사 갭이 모두 하락을 가리켰고 실제로 갭하락 출발했습니다.</p><p>놓친 것은 폭입니다. 실제 갭은 야간선물보다 2.7%p 더 컸고, 개장 7분 만에 사이드카가 걸릴 만큼 외국인 매도가 몰렸습니다.</p><p>급락장에서 야간선물이 실제 갭을 작게 잡는 일이 반복됩니다. 반폭 0.8% 규칙은 큰 갭 날에 구간을 자주 놓칩니다.</p>
     </div></details>
-    <div class="schart" aria-label="최근 회차 예상 구간과 실제 시초가"><svg viewBox="0 0 360 150" role="img" aria-label="최근 16회차 예상 구간과 실제 시초가"><line x1="22" x2="356" y1="128.0" y2="128.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="131.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">-4</text><line x1="22" x2="356" y1="98.5" y2="98.5" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="101.5" font-size="9" text-anchor="end" style="fill:var(--tx3)">-2</text><line x1="22" x2="356" y1="69.0" y2="69.0" style="stroke:var(--line)" stroke-width="1.5"/><text x="18" y="72.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">+0</text><line x1="22" x2="356" y1="39.5" y2="39.5" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="42.5" font-size="9" text-anchor="end" style="fill:var(--tx3)">+2</text><line x1="22" x2="356" y1="10.0" y2="10.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="13.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">+4</text><rect x="28.3" y="72.9" width="8.0" height="22.0" rx="2" style="fill:var(--line2)"/><circle cx="32.3" cy="55.6" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="48.9" y="26.3" width="8.0" height="28.6" rx="2" style="fill:var(--line2)"/><circle cx="52.9" cy="31.5" r="3.6" style="fill:var(--ok)"/><text x="52.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/18</text><rect x="69.6" y="64.8" width="8.0" height="30.8" rx="2" style="fill:var(--line2)"/><circle cx="73.6" cy="59.6" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="90.2" y="32.7" width="8.0" height="28.4" rx="2" style="fill:var(--line2)"/><circle cx="94.2" cy="36.5" r="3.6" style="fill:var(--ok)"/><text x="94.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/22</text><rect x="110.8" y="26.5" width="8.0" height="33.6" rx="2" style="fill:var(--line2)"/><circle cx="114.8" cy="40.4" r="3.6" style="fill:var(--ok)"/><rect x="131.4" y="69.2" width="8.0" height="41.7" rx="2" style="fill:var(--line2)"/><circle cx="135.4" cy="73.9" r="3.6" style="fill:var(--ok)"/><text x="135.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/28</text><rect x="152.1" y="54.0" width="8.0" height="32.1" rx="2" style="fill:var(--line2)"/><circle cx="156.1" cy="78.7" r="3.6" style="fill:var(--ok)"/><rect x="172.7" y="44.5" width="8.0" height="23.6" rx="2" style="fill:var(--line2)"/><circle cx="176.7" cy="53.4" r="3.6" style="fill:var(--ok)"/><text x="176.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/30</text><rect x="193.3" y="69.7" width="8.0" height="18.3" rx="2" style="fill:var(--line2)"/><circle cx="197.3" cy="74.0" r="3.6" style="fill:var(--ok)"/><rect x="213.9" y="57.6" width="8.0" height="21.2" rx="2" style="fill:var(--line2)"/><circle cx="217.9" cy="75.9" r="3.6" style="fill:var(--ok)"/><text x="217.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/2</text><rect x="234.6" y="38.2" width="8.0" height="23.2" rx="2" style="fill:var(--line2)"/><circle cx="238.6" cy="60.4" r="3.6" style="fill:var(--ok)"/><rect x="255.2" y="73.5" width="8.0" height="23.4" rx="2" style="fill:var(--line2)"/><circle cx="259.2" cy="85.4" r="3.6" style="fill:var(--ok)"/><text x="259.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/7</text><rect x="275.8" y="56.8" width="8.0" height="23.8" rx="2" style="fill:var(--line2)"/><circle cx="279.8" cy="68.0" r="3.6" style="fill:var(--ok)"/><rect x="296.4" y="43.6" width="8.0" height="53.4" rx="2" style="fill:var(--line2)"/><circle cx="300.4" cy="79.6" r="3.6" style="fill:var(--ok)"/><text x="300.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/12</text><rect x="317.1" y="88.5" width="8.0" height="23.1" rx="2" style="fill:var(--line2)"/><circle cx="321.1" cy="114.7" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="337.7" y="31.2" width="8.0" height="24.4" rx="2" style="fill:var(--line2)"/><circle cx="341.7" cy="62.5" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><text x="341.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/14</text></svg><div class="sl">회색 막대 — 예상 구간 · 점 — 실제 시초가 (채움: 구간 안, 테두리만: 구간 밖) · 단위 전일 종가 대비 %</div></div>
-    <div class="cov">누적 35회차 — 구간 커버리지 64.7% (22/34) · 방향 적중 57.1% · 평균 구간폭 2.03%p</div>
+    <div class="schart" aria-label="최근 회차 예상 구간과 실제 시초가"><svg viewBox="0 0 360 150" role="img" aria-label="최근 16회차 예상 구간과 실제 시초가"><line x1="22" x2="356" y1="128.0" y2="128.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="131.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">-6</text><line x1="22" x2="356" y1="108.3" y2="108.3" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="111.3" font-size="9" text-anchor="end" style="fill:var(--tx3)">-4</text><line x1="22" x2="356" y1="88.7" y2="88.7" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="91.7" font-size="9" text-anchor="end" style="fill:var(--tx3)">-2</text><line x1="22" x2="356" y1="69.0" y2="69.0" style="stroke:var(--line)" stroke-width="1.5"/><text x="18" y="72.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">+0</text><line x1="22" x2="356" y1="49.3" y2="49.3" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="52.3" font-size="9" text-anchor="end" style="fill:var(--tx3)">+2</text><line x1="22" x2="356" y1="29.7" y2="29.7" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="32.7" font-size="9" text-anchor="end" style="fill:var(--tx3)">+4</text><line x1="22" x2="356" y1="10.0" y2="10.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="13.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">+6</text><rect x="28.3" y="40.5" width="8.0" height="19.0" rx="2" style="fill:var(--line2)"/><circle cx="32.3" cy="44.0" r="3.6" style="fill:var(--ok)"/><rect x="48.9" y="66.2" width="8.0" height="20.5" rx="2" style="fill:var(--line2)"/><circle cx="52.9" cy="62.7" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><text x="52.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/21</text><rect x="69.6" y="44.8" width="8.0" height="18.9" rx="2" style="fill:var(--line2)"/><circle cx="73.6" cy="47.4" r="3.6" style="fill:var(--ok)"/><rect x="90.2" y="40.7" width="8.0" height="22.4" rx="2" style="fill:var(--line2)"/><circle cx="94.2" cy="49.9" r="3.6" style="fill:var(--ok)"/><text x="94.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/23</text><rect x="110.8" y="69.1" width="8.0" height="27.8" rx="2" style="fill:var(--line2)"/><circle cx="114.8" cy="72.2" r="3.6" style="fill:var(--ok)"/><rect x="131.4" y="59.0" width="8.0" height="21.4" rx="2" style="fill:var(--line2)"/><circle cx="135.4" cy="75.5" r="3.6" style="fill:var(--ok)"/><text x="135.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">9/29</text><rect x="152.1" y="52.7" width="8.0" height="15.7" rx="2" style="fill:var(--line2)"/><circle cx="156.1" cy="58.6" r="3.6" style="fill:var(--ok)"/><rect x="172.7" y="69.4" width="8.0" height="12.2" rx="2" style="fill:var(--line2)"/><circle cx="176.7" cy="72.3" r="3.6" style="fill:var(--ok)"/><text x="176.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/1</text><rect x="193.3" y="61.4" width="8.0" height="14.1" rx="2" style="fill:var(--line2)"/><circle cx="197.3" cy="73.6" r="3.6" style="fill:var(--ok)"/><rect x="213.9" y="48.5" width="8.0" height="15.4" rx="2" style="fill:var(--line2)"/><circle cx="217.9" cy="63.3" r="3.6" style="fill:var(--ok)"/><text x="217.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/6</text><rect x="234.6" y="72.0" width="8.0" height="15.6" rx="2" style="fill:var(--line2)"/><circle cx="238.6" cy="79.9" r="3.6" style="fill:var(--ok)"/><rect x="255.2" y="60.9" width="8.0" height="15.9" rx="2" style="fill:var(--line2)"/><circle cx="259.2" cy="68.3" r="3.6" style="fill:var(--ok)"/><text x="259.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/8</text><rect x="275.8" y="52.1" width="8.0" height="35.6" rx="2" style="fill:var(--line2)"/><circle cx="279.8" cy="76.1" r="3.6" style="fill:var(--ok)"/><rect x="296.4" y="82.0" width="8.0" height="15.4" rx="2" style="fill:var(--line2)"/><circle cx="300.4" cy="99.5" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><text x="300.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/13</text><rect x="317.1" y="43.8" width="8.0" height="16.3" rx="2" style="fill:var(--line2)"/><circle cx="321.1" cy="64.7" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="337.7" y="90.1" width="8.0" height="14.7" rx="2" style="fill:var(--line2)"/><circle cx="341.7" cy="124.0" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><text x="341.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/15</text></svg><div class="sl">회색 막대 — 예상 구간 · 점 — 실제 시초가 (채움: 구간 안, 테두리만: 구간 밖) · 단위 전일 종가 대비 %</div></div>
+    <div class="cov">누적 36회차 — 구간 커버리지 62.9% (22/35) · 방향 적중 58.3% · 평균 구간폭 2.02%p</div>
   </section>
 
+
+</div>
+</div><!--/brief-->
+
+<div class="wrap">
   <section>
     <div class="sh"><h2>지난 회차</h2></div>
-    <div class="arch"><a href="./archive/2026-10-14.html">10/14 (수)</a> <a href="./archive/2026-10-13.html">10/13 (화)</a> <a href="./archive/2026-10-12.html">10/12 (월)</a> <a href="./archive/">전체 보기</a></div>
+    <div class="arch"><a href="./archive/2026-10-15.html">10/15 (목)</a> <a href="./archive/2026-10-14.html">10/14 (수)</a> <a href="./archive/2026-10-13.html">10/13 (화)</a> <a href="./archive/">전체 보기</a></div>
   </section>
 
   <footer>
-    출처 — 국내 6종·코스피: Google Finance(10/14 15:30) ↔ 한국경제(2026.10.14 장마감), 코스피 investing.com 대조. 미국 4종: Google Finance ↔ stockanalysis.com(4:00 PM EDT). 야간선물: sonmul.co.kr. 주간선물: 한국경제. SOX·ES·NQ: kr.investing.com. 수급·코스닥·환율: 베타뉴스·비즈니스코리아 10/14 마감시황. 이슈: Yahoo Finance·Invezz·FT 보도 인용 기사.<br>
-    종가는 Google Finance와 한국경제에서 일치했습니다. 야간선물과 수급은 소스 간 값이 갈렸습니다.<details><summary>대조 내역</summary><div class="dbody"><p>야간선물: sonmul 위젯 916.95(−2.89%) vs 같은 페이지 뉴스 921.2(−2.44%). '야간장 마감' 표기와 고저가가 붙은 위젯 값을 채택했습니다.</p><p>수급: 외국인 베타뉴스 −11,614억 vs 비즈니스코리아 −11,796억원. 기관·개인까지 함께 제시한 베타뉴스를 채택했습니다.</p><p>원달러: Google Finance 1,341.69는 역외 시세라 쓰지 않고 서울 종가 1,338.3원을 썼습니다.</p></div></details><br>
+    출처 — 국내 6종·코스피: Google Finance(curl)·한국경제 10/15 장마감 대조. 미국 4종: Google Finance·stockanalysis.com 10/15 4:00 PM EDT 대조. 야간·주간선물: sonmul.co.kr·한국경제. SOX·미국 지수선물·원달러: kr.investing.com. 수급: 핀포인트뉴스. 이슈: 서플·디지털데일리·아주경제.<br>
+    종가는 Google Finance와 한국경제·stockanalysis에서 일치했습니다.<details><summary>대조 내역</summary><div class="dbody"><p>코스피·삼성전자·SK하이닉스 시가는 Google Finance 한 곳뿐입니다. 한국경제 페이지에 시가가 없었습니다.</p><p>원달러는 서울 종가를 못 구해 investing.com 전일 종가 1,341.28을 썼습니다.</p><p>삼성전기 −15.36%는 한국경제 전일 대비 −211,000원과 직전 종가 1,374,000원으로 확인했습니다. 액면분할이 아닌 실제 하락입니다.</p></div></details><br>
     개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
   </footer>
 </div>
@@ -433,6 +552,201 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
     for(var j=0;j<ds.length;j++){ds[j].open=open;}
     btn.textContent=open?'전부 접기':'전부 펼치기';
   });
+})();
+</script>
+<script>
+/* v5 — 대시보드/브리핑 탭 + 예측 → 실시간 차트. 데이터는 #day-data(07:45 스냅샷) + Hyperliquid info API(브라우저에서 직접) */
+(function(){
+  var root=document.documentElement; root.classList.add('js5');
+  var tabs=document.querySelectorAll('.tabs5 button'), panels=document.querySelectorAll('[data-panel]');
+  function show(id,push){
+    for(var i=0;i<panels.length;i++)panels[i].hidden=panels[i].getAttribute('data-panel')!==id;
+    for(var j=0;j<tabs.length;j++)tabs[j].setAttribute('aria-selected',tabs[j].getAttribute('data-go')===id?'true':'false');
+    if(push){try{history.replaceState(null,'',id==='brief'?'#brief':location.pathname+location.search);}catch(e){}window.scrollTo(0,0);}
+  }
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-go]');if(b)show(b.getAttribute('data-go'),true);});
+  show(location.hash==='#brief'?'brief':'dash',false);
+
+  /* 툴팁 — 가장 가까운 x 의 값 */
+  function bindTips(box,getTips,render){
+    var svg=box.querySelector('svg'),tip=box.querySelector('.tip');
+    function move(ev){
+      var tips=getTips(); if(!tips.length)return;
+      var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,sx=(ev.clientX-r.left)*vb.width/r.width,best=null,d=1e9;
+      for(var i=0;i<tips.length;i++){var dd=Math.abs(tips[i].x-sx);if(dd<d){d=dd;best=tips[i];}}
+      tip.innerHTML=render(best); tip.hidden=false; box.classList.add('on');
+      var xh=svg.querySelector('.xh'); if(xh){xh.setAttribute('x1',best.x);xh.setAttribute('x2',best.x);}
+      tip.style.left=Math.max(64,Math.min(r.width-64,best.x*r.width/vb.width))+'px'; tip.style.top='-6px';
+    }
+    function leave(){tip.hidden=true;box.classList.remove('on');}
+    svg.addEventListener('pointermove',move); svg.addEventListener('pointerdown',move); svg.addEventListener('pointerleave',leave);
+  }
+  var sb=document.querySelectorAll('.vizbox[data-tips]');
+  for(var k=0;k<sb.length;k++)(function(box){var t=[];try{t=JSON.parse(box.getAttribute('data-tips'));}catch(e){}
+    bindTips(box,function(){return t;},function(b){var h='<b>'+b.t+'</b>';if(b.c)h+='<br>종가 '+b.c;if(b.b)h+='<br>전망 '+b.b;if(b.o)h+='<br>시초가 '+b.o;if(b.v)h+=' · '+b.v;return h;});})(sb[k]);
+
+  /* ---------- 예측 → 실시간 ---------- */
+  var el=document.getElementById('day-data'); if(!el)return;
+  var D; try{D=JSON.parse(el.textContent);}catch(e){return;}
+  var API=D.api||'https://api.hyperliquid.xyz/info', S={}, sel=0, liveOK=null, stat=document.getElementById('lvStat');
+  D.ent.forEach(function(e){S[e.key]={pts:[],openPx:null,base:e.base,path:e.path||[],krx:null};});
+  /* KRX 실제 시세 — 지인 링크(#k=키)로 한 번 열면 브라우저가 키를 기억한다. 키가 없거나 중계기가 실패하면 추종가로 그린다 */
+  var RK=null; try{var mh=location.hash.match(/(?:^#|&)k=([A-Za-z0-9_\-]+)/);
+    if(mh){RK=mh[1];try{localStorage.setItem('jj-relay-key',RK);}catch(e){} history.replaceState(null,'',location.pathname+location.search);}
+    if(!RK)RK=localStorage.getItem('jj-relay-key');}catch(e){}
+  var KRX=!!(RK&&D.relay), krxOK=null, lastIntra=0;
+  function now(){return Date.now();}
+  function kstDay(t){var d=new Date(t+9*3600e3);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}
+  function hm(t){var d=new Date(t+9*3600e3);return ('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2);}
+  var today=kstDay(now()), isToday=today===D.issue, isPast=today>D.issue;
+  function post(body){return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+  function nf(v,d){return v.toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+  function sg(p){return (p>0?'+':p<0?'−':'')+Math.abs(p).toFixed(2)+'%';}
+  function tk(e,v){return e.tick?Math.round(v/e.tick)*e.tick:Math.round(v);}
+  function money(e,v){return (e.approx?'≈':'')+nf(tk(e,v),0)+(e.unit||'');}
+  function pctOf(st,px){return (px/st.base-1)*100;}
+  function ivFor(age){return age<3.2*864e5?['1m',6e4]:age<16*864e5?['5m',3e5]:age<50*864e5?['15m',9e5]:null;}
+
+  function fetchBase(e){   // 페이지에 스냅샷이 없을 때 — 직전 영업일 15:30 기준과 장외 경로를 직접 받는다
+    var st=S[e.key]; if(st.base&&st.path.length)return Promise.resolve();
+    return post({type:'candleSnapshot',req:{coin:e.coin,interval:'15m',startTime:D.t_prev-18e5,endTime:Math.min(now(),D.t_snap)}}).then(function(cs){
+      var b=cs.filter(function(c){return c.t+9e5<=D.t_prev;}); if(!b.length)throw new Error('기준 없음');
+      st.base=parseFloat(b[b.length-1].c);
+      st.path=cs.filter(function(c){return c.t+9e5>=D.t_prev&&c.t+9e5<=D.t_snap;}).map(function(c){return [c.t+9e5,pctOf(st,parseFloat(c.c))];});
+    });
+  }
+  function fetchRange(e,from,iv){
+    var st=S[e.key], end=Math.min(now(),D.t_close+6e4);
+    return post({type:'candleSnapshot',req:{coin:e.coin,interval:iv[0],startTime:from,endTime:end}}).then(function(cs){
+      var m={}; st.pts.forEach(function(p){m[p[2]]=p;});
+      cs.forEach(function(c){var t=Math.min(c.t+iv[1],now());m[c.t]=[t,pctOf(st,parseFloat(c.c)),c.t];
+        if(c.t>=D.t_open&&(st.openT==null||c.t<st.openT)){st.openT=c.t;st.openPx=parseFloat(c.o);}});
+      st.pts=Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return a[0]-b[0];});
+    });
+  }
+  function relayGet(path){return fetch(D.relay+path+(path.indexOf('?')<0?'?':'&')+'k='+encodeURIComponent(RK),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+  function loadKrx(){
+    if(!KRX)return Promise.resolve();
+    var jobs=[], fresh=isToday&&now()<D.t_close+12e5;
+    if(!lastIntra||(fresh&&now()-lastIntra>6e4)){
+      jobs.push(relayGet('/v1/intraday?date='+D.issue).then(function(r){lastIntra=now();
+        D.ent.forEach(function(e){var it=(r.items||{})[e.key]; if(!it)return; var k=S[e.key].krx||(S[e.key].krx={});
+          k.pts=(it.bars||[]).map(function(b){return [b[0],(b[1]/e.prev-1)*100,b[0]];});
+          k.open=it.open!=null?(it.open/e.prev-1)*100:null;});}));}
+    if(fresh)jobs.push(relayGet('/v1/live').then(function(r){
+      D.ent.forEach(function(e){var it=(r.items||{})[e.key]; if(!it)return; var k=S[e.key].krx||(S[e.key].krx={pts:[]}); k.last=(it.last/e.prev-1)*100;});}));
+    return Promise.all(jobs).then(function(){krxOK=true;},function(){krxOK=false;});
+  }
+  function krxOf(e){var k=S[e.key].krx;return (KRX&&krxOK!==false&&k&&k.pts)?k:null;}
+  function useKrx(e){var k=krxOf(e);return !!(k&&(k.open!=null||(k.last!=null&&(e.key!=='KOSPI'||now()>=D.t_open))||k.pts.some(function(p){return p[0]<=D.t_open;})));}
+  var iv0=ivFor(now()-D.t_snap), lastFull=0;
+  function load(full){
+    if(!iv0)return Promise.reject(new Error('기록 보관 기간 지남'));
+    return Promise.all(D.ent.map(function(e){
+      return fetchBase(e).then(function(){
+        var st=S[e.key], from=(full||!st.pts.length)?D.t_snap:st.pts[st.pts.length-1][2]-2*iv0[1];
+        return fetchRange(e,from,iv0);
+      });
+    }));
+  }
+  function setStat(cls,msg){if(!stat)return;stat.className='lv5 '+cls;stat.innerHTML='<i></i>'+msg;}
+  function tick(){
+    if(document.hidden)return;
+    var full=now()-lastFull>5*6e4; if(full)lastFull=now();
+    var when=isToday&&now()<D.t_close?hm(now())+' 갱신':(isToday?'장 마감':'지난 회차 기록');
+    Promise.all([load(full).then(function(){liveOK=true;},function(){liveOK=false;}),loadKrx()]).then(function(){
+      if(KRX&&krxOK)setStat('ok','KRX · '+when);
+      else if(liveOK)setStat(KRX?'err':'ok',(KRX?'KRX 연결 실패 · 추종가 ':'')+when);
+      else setStat('err',isPast&&!iv0?'지난 회차 · 07:45 값만':'실시간 연결 실패 · 07:45 값');
+      draw();});
+  }
+
+  function sessPts(e){var k=krxOf(e);
+    if(k){var a=k.pts.filter(function(p){return p[0]>D.t_open&&p[0]<=D.t_close+6e4;}); if(a.length)return a;}
+    return S[e.key].pts.filter(function(p){return p[2]>=D.t_open&&p[2]<D.t_close;});}
+  function tailPts(e){var hl=S[e.key].pts.filter(function(p){return p[2]<D.t_open&&p[0]>D.t_snap;}), k=krxOf(e);
+    if(k){var pre=k.pts.filter(function(p){return p[0]<=D.t_open;}); if(pre.length)hl=hl.filter(function(p){return p[0]<pre[0][0];}).concat(pre);}   // NXT 프리마켓(08:00~) 실제가
+    return hl;}
+  function lastPct(e){var st=S[e.key], k=krxOf(e);
+    if(k){if(now()>D.t_close+6e4){var s=sessPts(e); if(s.length)return s[s.length-1][1];}
+      else if(k.last!=null&&(e.key!=='KOSPI'||now()>=D.t_open))return k.last;}
+    if(st.pts.length)return st.pts[st.pts.length-1][1]; if(st.path.length)return st.path[st.path.length-1][1]; return null;}
+  function openPct(e){var st=S[e.key], k=krxOf(e); if(k&&k.open!=null)return k.open; return st.openPx!=null&&st.base?pctOf(st,st.openPx):null;}
+  function band(e,p){return p<e.lo?'아래':p>e.hi?'위':'안';}
+  function bcls(w){return w==='안'?'in':w==='아래'?'lo':'hi';}
+
+  var sel5=document.getElementById('sel5');
+  function tiles(){
+    sel5.innerHTML=D.ent.map(function(e,i){
+      var p=lastPct(e), op=openPct(e), b='';
+      if(e.lo!=null&&p!=null){var w=op!=null?band(e,op):band(e,p);b='<span class="b '+bcls(w)+'">'+(op!=null?'시가 ':'예측 ')+w+'</span>';}
+      return '<button type="button" role="tab" aria-selected="'+(i===sel)+'" data-i="'+i+'"><span class="n">'+e.name+'</span>'+
+        '<span class="v num">'+(p==null?'—':(e.approx&&!useKrx(e)?'≈':'')+nf(tk(e,e.prev*(1+p/100)),0))+'</span>'+
+        '<span class="c num '+(p==null?'':p<0?'down':p>0?'up':'')+'">'+(p==null?'미확보':(p<0?'▼ ':p>0?'▲ ':'')+sg(p))+'</span>'+b+'</button>';
+    }).join('');
+  }
+  sel5.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;sel=+b.getAttribute('data-i');draw();});
+
+  var svg=document.getElementById('daySvg'), tipsNow=[];
+  function draw(){
+    tiles();
+    var e=D.ent[sel], st=S[e.key], W=360,H=236,L=34,R=58,T=20,B=22, PW=W-L-R, xo=L+PW*0.45;
+    function X(t){ if(t<=D.t_open)return L+Math.max(0,(t-D.t_prev))/(D.t_open-D.t_prev)*(xo-L);
+      return xo+(Math.min(t,D.t_close)-D.t_open)/(D.t_close-D.t_open)*(L+PW-xo); }
+    var pre=st.path, tail=tailPts(e), ses=sessPts(e), last=lastPct(e);
+    if(pre.length&&tail.length)tail=[pre[pre.length-1]].concat(tail);
+    var ys=[0].concat(pre.map(function(p){return p[1];}),tail.map(function(p){return p[1];}),ses.map(function(p){return p[1];}));
+    if(e.lo!=null)ys.push(e.lo,e.hi); if(e.night!=null)ys.push(e.night);
+    var lo=Math.min.apply(null,ys)-0.3, hi=Math.max.apply(null,ys)+0.3, sp=hi-lo, step=sp>12?4:sp>8?2:sp>4?1:0.5;
+    lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
+    function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
+    function line(pts,cls){if(pts.length<2)return '';return '<polyline class="'+cls+'" points="'+pts.map(function(p){return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1);}).join(' ')+'"/>';}
+    var o=['<rect class="sess" x="'+xo+'" y="'+T+'" width="'+(L+PW-xo)+'" height="'+(H-T-B)+'" rx="4"/>'];
+    for(var g=lo;g<=hi+1e-9;g+=step){var z=Math.abs(g)<1e-9;
+      o.push('<line x1="'+L+'" x2="'+(L+PW)+'" y1="'+Y(g)+'" y2="'+Y(g)+'" class="'+(z?'base':'grid')+'"/>');
+      o.push('<text x="'+(L-5)+'" y="'+(Y(g)+3.5)+'" class="tick" text-anchor="end">'+(z?'0':(g>0?'+':'')+g)+'</text>');}
+    var xn=X(D.t_night); o.push('<line x1="'+xn+'" x2="'+xn+'" y1="'+T+'" y2="'+(H-B)+'" class="vmark"/>');
+    if(e.lo!=null){var bx1=X(D.t_snap), bx2=X(D.t_open+18e5);
+      o.push('<rect class="bandnow" x="'+bx1+'" y="'+Y(e.hi)+'" width="'+(bx2-bx1)+'" height="'+Math.max(2,Y(e.lo)-Y(e.hi))+'" rx="2"/>');
+      o.push('<text x="'+((bx1+bx2)/2)+'" y="'+(Y(e.hi)-4)+'" class="lab strong" text-anchor="middle">예측</text>');}
+    o.push('<line x1="'+xo+'" x2="'+xo+'" y1="'+(T-6)+'" y2="'+(H-B)+'" class="div9"/>');
+    o.push('<text x="'+(xo-4)+'" y="'+(T-8)+'" class="lab" text-anchor="end">장외</text><text x="'+(xo+4)+'" y="'+(T-8)+'" class="lab">장중</text>');
+    o.push(line(pre,'pre')); o.push(line(tail,'tail'));
+    if(e.night!=null){var nx=X(D.t_night),ny=Y(e.night);
+      o.push('<path class="night" d="M'+nx+' '+(ny-5)+'L'+(nx+5)+' '+ny+'L'+nx+' '+(ny+5)+'L'+(nx-5)+' '+ny+'Z"/><text x="'+(nx-7)+'" y="'+(ny+3.5)+'" class="lab" text-anchor="end">야간 '+sg(e.night)+'</text>');}
+    var col=(last!=null&&last<0)?'dn':'upl';
+    if(ses.length){
+      o.push(line(ses,'ses '+col));
+      var op=openPct(e); if(op!=null)o.push('<circle class="open '+col+'" cx="'+X(D.t_open)+'" cy="'+Y(op)+'" r="4.5"/>');
+      var ep=ses[ses.length-1]; o.push('<circle class="end '+col+'" cx="'+X(ep[0])+'" cy="'+Y(ep[1])+'" r="4"/>');
+      o.push('<text x="'+(X(ep[0])+7)+'" y="'+(Y(ep[1])+3.5)+'" class="lab">'+sg(ep[1])+'</text>');
+    }else{
+      o.push('<text x="'+((xo+L+PW)/2)+'" y="'+((T+H-B)/2)+'" class="ph" text-anchor="middle">'+(isPast&&!liveOK?'장중 기록 없음':'09:00 개장 후 실시간')+'</text>');
+      var lp=tail.length?tail[tail.length-1]:(pre.length?pre[pre.length-1]:null);
+      if(lp)o.push('<circle class="end '+(lp[1]<0?'dn':'upl')+'" cx="'+X(lp[0])+'" cy="'+Y(lp[1])+'" r="3.5"/>');
+    }
+    [[D.t_prev,'15:30'],[D.t_night,'05:00'],[D.t_open,'09:00'],[D.t_open+108e5,'12:00'],[D.t_close,'15:30']].forEach(function(a){
+      o.push('<text x="'+X(a[0])+'" y="'+(H-6)+'" class="tick" text-anchor="middle">'+a[1]+'</text>');});
+    o.push('<line class="xh" x1="0" x2="0" y1="'+T+'" y2="'+(H-B)+'"/>');
+    svg.innerHTML=o.join('');
+    svg.setAttribute('aria-label',e.name+(e.lo!=null?' 예측 구간 '+sg(e.lo)+' ~ '+sg(e.hi):'')+(last!=null?', 현재 '+sg(last):''));
+    tipsNow=pre.concat(tail.slice(1),ses).map(function(p){return {x:X(p[0]),t:hm(p[0]),p:p[1]};});
+    var vt=document.getElementById('verd5'), op2=openPct(e), h=e.prev_label+' 종가 <b class="num">'+nf(e.prev,e.dec||0)+'</b>';
+    if(e.lo!=null)h+=' · 예측 <b class="num">'+nf(e.lo_v,0)+' ~ '+nf(e.hi_v,0)+'</b> ('+sg(e.lo)+' ~ '+sg(e.hi)+')';
+    var kx=useKrx(e);
+    if(op2!=null)h+=' · 시가'+(kx?'':'(추종가)')+' <b class="num">'+sg(op2)+'</b> → 구간 <b>'+band(e,op2)+'</b>';
+    else if(last!=null&&e.lo!=null)h+=' · '+(kx?'지금(NXT)':liveOK?'지금 추정':'07:45 추정')+' <b class="num">'+sg(last)+'</b> → 구간 '+band(e,last);
+    if(e.approx&&!kx)h+=' · 코스피200 추종가 기준이라 지수와 차이가 있습니다';
+    vt.innerHTML=h;
+  }
+  bindTips(document.getElementById('dayBox'),function(){return tipsNow;},function(b){
+    var e=D.ent[sel];return '<b>'+b.t+'</b><br>'+sg(b.p)+' · '+money(e,e.prev*(1+b.p/100));});
+
+  draw(); tick();
+  if(isToday&&now()<D.t_close+12e5){
+    setInterval(tick,15000);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)tick();});
+  }
 })();
 </script>
 </body>
