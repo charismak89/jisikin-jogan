@@ -132,7 +132,7 @@ def live():
         out['items'][r['symbol']] = {'last': float(r['lastPrice']), 't': r.get('timestamp')}
     return out
 
-def candles_1m(path, params, start_ms, end_ms, start_is_open):
+def candles_1m(path, params, start_ms, end_ms):
     """최신순 200개씩 받아 start_ms 이전까지 거슬러 간다. 반환은 [봉 종료 ms, 시, 종] 오름차순."""
     out, before, pages = {}, None, 0
     while pages < 6:
@@ -142,7 +142,8 @@ def candles_1m(path, params, start_ms, end_ms, start_is_open):
         cs = res.get('candles') or []
         pages += 1
         for c in cs:
-            t = iso_ms(c['timestamp']) + (60000 if start_is_open else 0)   # 지수 봉은 시작 시각, 종목 봉은 종료 시각
+            # 종목·지수 모두 봉 종료 시각. 명세는 지수 봉을 '시작 시각'이라 적었지만 10/15 실측 코스피는 09:01~15:30 390봉이다
+            t = iso_ms(c['timestamp'])
             if start_ms < t <= end_ms + 60000:
                 out[t] = [t, float(c['openPrice']), float(c['closePrice'])]
         if not cs or not res.get('nextBefore') or iso_ms(cs[-1]['timestamp']) <= start_ms: break
@@ -155,9 +156,9 @@ def intraday(d):
     before = (datetime(d.year, d.month, d.day, 20, 0, tzinfo=KST)).isoformat()
     items = {}
     for s in STOCKS:
-        bars = candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 8, 0), end, False)
+        bars = candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 8, 0), end)
         items[s] = {'bars': [[t, c] for t, o, c in bars], 'open': next((o for t, o, c in bars if t > ms(d, 9, 0)), None)}
-    bars = candles_1m('/api/v1/market-indicators/%s/candles' % INDEX, {'before': before}, ms(d, 9, 0), min(end, ms(d, 15, 31)), True)
+    bars = candles_1m('/api/v1/market-indicators/%s/candles' % INDEX, {'before': before}, ms(d, 8, 59), min(end, ms(d, 15, 31)))   # 08:59 — 명세대로 09:00 봉이 와도 첫 봉을 잃지 않게
     items[INDEX] = {'bars': [[t, c] for t, o, c in bars], 'open': bars[0][1] if bars else None}
     return {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': items}
 
