@@ -16,6 +16,7 @@
 | `template-v5.html` / `style.css` | 뼈대와 디자인. 첫 화면 대시보드 + 브리핑 탭 (인라인 CSS 와 style.css 는 같은 내용) | 사람 |
 | `template-v4.html` | v4 뼈대. 되돌릴 때 render.py 의 TEMPLATE 한 줄만 바꾼다 | — |
 | `fetch_perp.py` | 해외 24시간 추종가(Hyperliquid) → `perp.json`. 대시보드 장외 구간·종목 예측 입력 | — |
+| `relay/` | 토스증권 Open API 중계기(오라클 VM 에서 돈다). 설치·운영은 `relay/README.md` | 사람(VM) |
 | `render.py` | fill.json → `out/index.html` · `out/state.json` · `out/calibration.json` | — |
 | `score.py` | 직전 전망 채점 → calibration.json append | — |
 | `publish.py` | 아카이브·목록·링크 정리 + 커밋 + push (예약 세션용) | — |
