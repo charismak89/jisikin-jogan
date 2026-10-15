@@ -90,13 +90,14 @@ echo "== 상태"
 systemctl is-active jogan-relay caddy | paste -sd' ' || true
 curl -s http://127.0.0.1:8787/healthz || echo '중계기 응답 없음 — sudo journalctl -u jogan-relay -n 30 --no-pager'; echo
 
-# 키는 이 터미널에만 보여 준다. 채팅에 붙여 넣지 말 것
+# 키는 처음 설치할 때만 이 터미널에 보여 준다. 갱신 때 출력은 캡처해 공유해도 되게 키를 찍지 않는다
 . "$ENVF"
 VK1=${VIEW_KEYS%%,*}
 echo
 echo "== 확인 명령 (1~2분 뒤 인증서가 붙으면 성공)"
-echo "  curl -s 'https://$HOST/v1/live?k=$VK1'"
+echo "  curl -s https://$HOST/healthz"
 if [ "$NEW_KEYS" = 1 ]; then
+  echo "  curl -s 'https://$HOST/v1/live?k=$VK1'"
   echo
   echo "== 지인 공유 링크 (이 링크로 처음 연 브라우저는 키를 기억한다)"
   echo "  https://charismak89.github.io/jisikin-jogan/#k=$VK1"
