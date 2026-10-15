@@ -37,6 +37,10 @@ sudo journalctl -u jogan-relay -n 50 --no-pager          # 로그 (키는 남기
 ## 운영
 - 코드 갱신: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh` (키 파일은 그대로)
 - 지인 키 추가·교체: `sudo nano /etc/jogan-relay.env` 의 `VIEW_KEYS` 수정 → `sudo systemctl restart jogan-relay`
+- 지인 키 새로 만들기(이전 링크는 무효, 새 링크는 터미널에만 출력):
+  ```bash
+  NK=$(python3 -c 'import secrets;print(secrets.token_urlsafe(18))') && sudo sed -i "s/^VIEW_KEYS=.*/VIEW_KEYS=$NK/" /etc/jogan-relay.env && sudo systemctl restart jogan-relay && echo "새 지인 링크: https://charismak89.github.io/jisikin-jogan/#k=$NK"; unset NK
+  ```
 - 토스 키 교체: 같은 파일의 `TOSS_CLIENT_*` 수정 → 재시작
 - 멈춤: `sudo systemctl stop jogan-relay` (대시보드는 자동으로 해외 추종가로 그린다)
 - **다른 곳에서 토스 토큰을 발급하지 않는다.** 로컬 시험 스크립트를 돌리면 중계기 토큰이 무효가 된다(10초 안에 다시 받지만, 시험은 중계기를 거쳐서 한다).
