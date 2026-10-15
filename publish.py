@@ -112,6 +112,11 @@ def main():
         except Exception as e:
             changed.append('[경고] state.json 이 올바른 JSON 이 아님 — 건너뜀 (%s)' % e)
 
+    # 2-1) 회차 입력 보관 — 주간 점검(WEEKLY.md)이 같은 입력으로 렌더 회귀를 돌린다. 화면에 이미 나간 값·문장뿐이다
+    for src, dst in (('fill.json', 'fixtures/last-fill.json'), ('perp.json', 'fixtures/last-perp.json')):
+        if os.path.exists(src):
+            os.makedirs('fixtures', exist_ok=True); write(dst, read(src)); changed.append(dst)
+
     # 3) 아카이브 목록 재생성 (호수 = 2026-08-21 을 제1호로 둔 평일 일련번호)
     files = sorted(f[:-5] for f in os.listdir('archive') if re.match(r'^20\d\d-\d\d-\d\d\.html$', f)) if os.path.isdir('archive') else []
     lines = ['<a class="item" href="./%s.html">%s<span>제 %d 호</span></a>' % (iso, label(iso), issue_no(iso)) for iso in reversed(files)]

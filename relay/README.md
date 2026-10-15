@@ -31,8 +31,16 @@ sudo journalctl -u jogan-relay -n 50 --no-pager          # 로그 (키는 남기
 | `/v1/live` | 지인 | 코스피·삼전·하닉 현재가 | 5초 |
 | `/v1/intraday?date=YYYY-MM-DD` | 지인 | 그날 1분봉 종가(코스피 09:00~15:30, 두 종목 08:00~20:00 — NXT 포함), 시가 | 오늘 20초 · 지난날 1시간 |
 | `/v1/daily?date=YYYY-MM-DD` | 루틴 | 국내 6종·코스피·코스닥 일봉, 미국 4종 일봉, 환율, 코스피 투자자별 매매대금(억원) | 5분 |
+| `POST /v1/feedback` | 지인 | 대시보드 "의견" 버튼. JSON `{cat, text, nick, ctx}` → `feedback.jsonl` (1,000자, 하루 30건, IP 당 분당 10회) | — |
+| `/v1/feedback?since=YYYY-MM-DD` | 루틴 | 그날부터 쌓인 의견 (토요일 주간 점검용) | — |
 
 키는 `?k=` 또는 `X-Relay-Key` 헤더. 지인 키는 여러 개(콤마) 둘 수 있다. IP 당 분당 120회 제한. CORS 는 `ALLOW_ORIGINS`(기본 GitHub Pages 주소)만.
+
+## 의견 보기
+```bash
+sudo cat /var/lib/jogan-relay/feedback.jsonl        # 한 줄에 하나(JSON). IP 는 남기지 않는다
+```
+지울 때는 `sudo truncate -s 0 /var/lib/jogan-relay/feedback.jsonl`. 원문은 이 VM 에만 둔다(저장소는 Public).
 
 ## 운영
 - 코드 갱신: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh` (키 파일은 그대로)
