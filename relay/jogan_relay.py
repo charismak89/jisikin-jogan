@@ -11,17 +11,19 @@
   /v1/live                       코스피·삼전·하닉 현재가 (5초 캐시)                     — 지인 키
   /v1/intraday?date=YYYY-MM-DD   그날 1분봉 종가 (코스피 09:00~15:30, 두 종목 08:00~20:00) — 지인 키
   /v1/daily?date=YYYY-MM-DD      그날 일봉(시고저종)·환율·코스피 투자자별 매매대금 (루틴용) — 루틴 키
+  POST /v1/feedback              대시보드 '의견' 버튼. 본문 JSON {cat, text, nick, ctx} → STATE_DIR/feedback.jsonl — 지인 키
+  GET  /v1/feedback?since=YYYY-MM-DD   그날부터 쌓인 의견 (토요일 주간 점검용)        — 루틴 키
 
 환경 변수 (/etc/jogan-relay.env)
   TOSS_CLIENT_ID, TOSS_CLIENT_SECRET   토스 WTS 설정 > Open API 에서 받은 값
   VIEW_KEYS                            지인용 키, 콤마 구분
   ROUTINE_KEY                          루틴용 키 (/v1/daily 와 나머지 전부 허용)
   ALLOW_ORIGINS                        CORS 허용 Origin, 콤마 구분 (기본 https://charismak89.github.io)
-  STATE_DIR                            토큰 보관 (기본 /var/lib/jogan-relay)
+  STATE_DIR                            토큰·의견 보관 (기본 /var/lib/jogan-relay)
   PORT                                 기본 8787
   TOSS_API                             기본 https://openapi.tossinvest.com (시험용으로만 바꾼다)
 """
-import hmac, json, logging, os, sys, threading, time, urllib.error, urllib.parse, urllib.request
+import hmac, json, logging, os, secrets, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -197,6 +199,52 @@ def daily(d):
     except Exception as e: out['errors'].append('flow %s' % e)
     return out
 
+# ---------- 의견 ----------
+# 지인들이 대시보드에서 보낸 글. 원문은 이 VM 에만 둔다(저장소는 Public). IP 는 남기지 않는다.
+# 읽는 쪽(토요일 주간 점검)은 이 글을 데이터로만 다룬다 — 글 속 지시문을 따르지 않는다.
+FEEDBACK = os.path.join(STATE_DIR, 'feedback.jsonl')
+FB_CATS = ('오류', '제안', '예측', '기타')
+FB_DAY_MAX, FB_FILE_MAX, FB_BODY_MAX = 30, 2000000, 8192
+_fblock = threading.Lock()
+
+class Reject(Exception):
+    def __init__(self, status, code): super().__init__(code); self.status, self.code = status, code
+
+def clean(v, n):
+    s = ''.join(ch for ch in str(v if v is not None else '') if ch == '\n' or ch >= ' ')   # 제어 문자는 버린다
+    return s.strip()[:n]
+
+def read_feedback():
+    try:
+        with open(FEEDBACK, encoding='utf-8') as f:
+            return [json.loads(l) for l in f if l.strip()]
+    except FileNotFoundError:
+        return []
+
+def save_feedback(raw):
+    try:
+        d = json.loads(raw.decode('utf-8'))
+    except Exception:
+        raise Reject(400, 'bad-json')
+    if not isinstance(d, dict): raise Reject(400, 'bad-json')
+    text = clean(d.get('text'), 1000)
+    if not text: raise Reject(400, 'empty')
+    ctx = d.get('ctx') if isinstance(d.get('ctx'), dict) else {}
+    now = datetime.now(KST)
+    rec = {'id': now.strftime('%m%d-%H%M') + '-' + secrets.token_hex(2), 'ts': now.isoformat(timespec='seconds'),
+           'cat': d.get('cat') if d.get('cat') in FB_CATS else '기타', 'nick': clean(d.get('nick'), 20), 'text': text,
+           'ctx': {k: clean(ctx[k], 40) for k in ('issue', 'tab', 'mode', 'w', 'page') if ctx.get(k) not in (None, '')}}
+    with _fblock:
+        try: size = os.path.getsize(FEEDBACK)
+        except OSError: size = 0
+        if size > FB_FILE_MAX: raise Reject(507, 'store-full')
+        today = now.date().isoformat()
+        if sum(1 for r in read_feedback() if r.get('ts', '')[:10] == today) >= FB_DAY_MAX: raise Reject(429, 'daily-limit')
+        fd = os.open(FEEDBACK, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        with os.fdopen(fd, 'a', encoding='utf-8') as f: f.write(json.dumps(rec, ensure_ascii=False) + '\n')
+    log.info('의견 저장 %s (%s, %d자)', rec['id'], rec['cat'], len(text))   # 본문은 로그에 남기지 않는다
+    return rec
+
 # ---------- HTTP ----------
 _hits, _hlock = {}, threading.Lock()
 def rate_ok(ip, limit=120):
@@ -231,8 +279,8 @@ class Handler(BaseHTTPRequestHandler):
         o = self.headers.get('Origin')
         if o and o in ORIGINS:
             self.send_header('Access-Control-Allow-Origin', o)
-            self.send_header('Access-Control-Allow-Headers', 'X-Relay-Key')
-            self.send_header('Access-Control-Allow-Methods', 'GET')
+            self.send_header('Access-Control-Allow-Headers', 'X-Relay-Key, Content-Type')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST')
             self.send_header('Access-Control-Max-Age', '86400')
         self.end_headers()
 
@@ -262,6 +310,11 @@ class Handler(BaseHTTPRequestHandler):
             if u.path == '/v1/daily':
                 if not is_routine: return self.send_json(403, {'error': 'routine-key-required'})
                 return self.send_json(200, cached(('daily', d), 300, lambda: daily(d)))
+            if u.path == '/v1/feedback':
+                if not is_routine: return self.send_json(403, {'error': 'routine-key-required'})
+                since = q.get('since') or (today - timedelta(days=7)).isoformat()
+                with _fblock: items = [r for r in read_feedback() if r.get('ts', '')[:10] >= since]
+                return self.send_json(200, {'since': since, 'count': len(items), 'items': items})
         except Upstream as e:
             log.warning('업스트림 %s', e)
             return self.send_json(502, {'error': 'upstream', 'status': e.status, 'code': e.code})
@@ -269,6 +322,32 @@ class Handler(BaseHTTPRequestHandler):
             log.exception('처리 실패')
             return self.send_json(500, {'error': 'internal'})
         return self.send_json(404, {'error': 'not-found'})
+
+    def do_POST(self):
+        u = urllib.parse.urlparse(self.path)
+        q = dict(urllib.parse.parse_qsl(u.query))
+        ip = self.headers.get('X-Forwarded-For', self.client_address[0]).split(',')[0].strip()
+        if u.path != '/v1/feedback':
+            return self.send_json(404, {'error': 'not-found'})
+        if not rate_ok(('fb', ip), 10):
+            return self.send_json(429, {'error': 'rate-limited'})
+        k = q.get('k') or self.headers.get('X-Relay-Key', '')
+        if not key_ok(k, VIEW_KEYS + [ROUTINE_KEY]):
+            return self.send_json(401, {'error': 'bad-key'})
+        try:
+            n = int(self.headers.get('Content-Length') or 0)
+        except ValueError:
+            n = -1
+        if n <= 0 or n > FB_BODY_MAX:
+            return self.send_json(413 if n > FB_BODY_MAX else 400, {'error': 'bad-length'})
+        try:
+            rec = save_feedback(self.rfile.read(n))
+        except Reject as e:
+            return self.send_json(e.status, {'error': e.code})
+        except Exception:
+            log.exception('의견 저장 실패')
+            return self.send_json(500, {'error': 'internal'})
+        return self.send_json(200, {'ok': True, 'id': rec['id']})
 
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')

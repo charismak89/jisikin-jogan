@@ -10,6 +10,7 @@
 |---|---|---|
 | `HANDOFF.md` | 운영 상태·루틴 설정·남은 할 일. 새 관리 세션이 먼저 읽는다 | 사람 |
 | `RUNBOOK.md` | 회차 절차. 예약작업 프롬프트는 이 파일을 clone 해 읽는다 | 사람 |
+| `WEEKLY.md` | 토요일 주간 점검 절차(지인 의견 + 주간 채점 → 계획 → 승인 뒤 구현) | 사람 |
 | `CONTEXT.md` | 종목 사실·표기명·소스 우선순위·금지 표현·이슈 수집 범위 | 사람 |
 | `CALIBRATION.md` / `calibration.json` | 채점 규칙·기록. records 는 score.py 가 append | score.py |
 | `holidays.json` | 휴장일. 임시공휴일이 생기면 한 줄 추가. 휴장 다음 회차의 야간선물 게이트 면제도 이 파일로 판정 | 사람 |
@@ -19,7 +20,8 @@
 | `relay/` | 토스증권 Open API 중계기(오라클 VM 에서 돈다). 설치·운영은 `relay/README.md` | 사람(VM) |
 | `render.py` | fill.json → `out/index.html` · `out/state.json` · `out/calibration.json` | — |
 | `score.py` | 직전 전망 채점 → calibration.json append | — |
-| `publish.py` | 아카이브·목록·링크 정리 + 커밋 + push (예약 세션용) | — |
+| `publish.py` | 아카이브·목록·링크 정리 + 커밋 + push (예약 세션용). 회차 입력을 `fixtures/` 에 남긴다 | — |
+| `regress.py` / `fixtures/` | 렌더 회귀 검사. 마지막 회차 입력으로 고치기 전·후를 렌더해 비교 | — |
 | `publish.bat` / `publish.ps1` | 수동 발행 (다운로드 폴더의 세 파일을 반영) | — |
 | `state.json` | 회차 간 인수인계 (직전 전망·직전 종가·신호) | render.py |
 | `index.html` / `archive/` | 오늘자 · 지난 회차 | publish |
