@@ -653,7 +653,8 @@ def main():
                      'approx': False, 'tick': krx_tick(close[code]), 'dec': 0, 'prev': close[code], 'prev_label': pl, 'base': b, 'path': pth,
                      'lo': None if not f else round((f['low'] / close[code] - 1) * 100, 3), 'hi': None if not f else round((f['high'] / close[code] - 1) * 100, 3),
                      'lo_v': f.get('low'), 'hi_v': f.get('high'), 'night': None})
-    day = {'issue': issue_date, 'api': 'https://api.hyperliquid.xyz/info', 't_prev': t_prev, 't_snap': t_snap,
+    rm = re.search(r'^- 중계기 주소:\s*`?(https://[^\s`]+)', context_section('KRX 중계기'), re.M)
+    day = {'issue': issue_date, 'api': 'https://api.hyperliquid.xyz/info', 'relay': rm.group(1).rstrip('/') if rm else None, 't_prev': t_prev, 't_snap': t_snap,
            't_open': t_open, 't_close': t_close, 't_night': t_night, 'ent': [e for e in ents if e['prev']]}
     V['DAY_DATA'] = json.dumps(day, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 

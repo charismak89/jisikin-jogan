@@ -380,7 +380,7 @@ html.js5 [data-panel][hidden]{display:none!important}
         <div class="verd5" id="verd5"></div>
       </div>
     </div>
-    <div class="cap">왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가(밤사이 압축) · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중, 같은 상품의 실시간 값(KRX 시세 연동이며 실제가와 ±0.5% 안팎 차이) · 15초마다 갱신</div>
+    <div class="cap">왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가(밤사이 압축) · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중 · 오른쪽 위 표시가 KRX 면 실제 시세, 아니면 해외 추종가(실제가와 ±0.5% 안팎 차이) · 15초마다 갱신</div>
   </section>
 
   <section class="card5" aria-label="코스피 최근 20거래일과 예측 기록">
@@ -589,7 +589,12 @@ html.js5 [data-panel][hidden]{display:none!important}
   var el=document.getElementById('day-data'); if(!el)return;
   var D; try{D=JSON.parse(el.textContent);}catch(e){return;}
   var API=D.api||'https://api.hyperliquid.xyz/info', S={}, sel=0, liveOK=null, stat=document.getElementById('lvStat');
-  D.ent.forEach(function(e){S[e.key]={pts:[],openPx:null,base:e.base,path:e.path||[]};});
+  D.ent.forEach(function(e){S[e.key]={pts:[],openPx:null,base:e.base,path:e.path||[],krx:null};});
+  /* KRX 실제 시세 — 지인 링크(#k=키)로 한 번 열면 브라우저가 키를 기억한다. 키가 없거나 중계기가 실패하면 추종가로 그린다 */
+  var RK=null; try{var mh=location.hash.match(/(?:^#|&)k=([A-Za-z0-9_\-]+)/);
+    if(mh){RK=mh[1];try{localStorage.setItem('jj-relay-key',RK);}catch(e){} history.replaceState(null,'',location.pathname+location.search);}
+    if(!RK)RK=localStorage.getItem('jj-relay-key');}catch(e){}
+  var KRX=!!(RK&&D.relay), krxOK=null, lastIntra=0;
   function now(){return Date.now();}
   function kstDay(t){var d=new Date(t+9*3600e3);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}
   function hm(t){var d=new Date(t+9*3600e3);return ('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2);}
@@ -619,6 +624,21 @@ html.js5 [data-panel][hidden]{display:none!important}
       st.pts=Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return a[0]-b[0];});
     });
   }
+  function relayGet(path){return fetch(D.relay+path+(path.indexOf('?')<0?'?':'&')+'k='+encodeURIComponent(RK),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+  function loadKrx(){
+    if(!KRX)return Promise.resolve();
+    var jobs=[], fresh=isToday&&now()<D.t_close+12e5;
+    if(!lastIntra||(fresh&&now()-lastIntra>6e4)){
+      jobs.push(relayGet('/v1/intraday?date='+D.issue).then(function(r){lastIntra=now();
+        D.ent.forEach(function(e){var it=(r.items||{})[e.key]; if(!it)return; var k=S[e.key].krx||(S[e.key].krx={});
+          k.pts=(it.bars||[]).map(function(b){return [b[0],(b[1]/e.prev-1)*100,b[0]];});
+          k.open=it.open!=null?(it.open/e.prev-1)*100:null;});}));}
+    if(fresh)jobs.push(relayGet('/v1/live').then(function(r){
+      D.ent.forEach(function(e){var it=(r.items||{})[e.key]; if(!it)return; var k=S[e.key].krx||(S[e.key].krx={pts:[]}); k.last=(it.last/e.prev-1)*100;});}));
+    return Promise.all(jobs).then(function(){krxOK=true;},function(){krxOK=false;});
+  }
+  function krxOf(e){var k=S[e.key].krx;return (KRX&&krxOK!==false&&k&&k.pts)?k:null;}
+  function useKrx(e){var k=krxOf(e);return !!(k&&(k.open!=null||(k.last!=null&&(e.key!=='KOSPI'||now()>=D.t_open))||k.pts.some(function(p){return p[0]<=D.t_open;})));}
   var iv0=ivFor(now()-D.t_snap), lastFull=0;
   function load(full){
     if(!iv0)return Promise.reject(new Error('기록 보관 기간 지남'));
@@ -633,15 +653,25 @@ html.js5 [data-panel][hidden]{display:none!important}
   function tick(){
     if(document.hidden)return;
     var full=now()-lastFull>5*6e4; if(full)lastFull=now();
-    load(full).then(function(){liveOK=true;
-      setStat('ok',isToday&&now()<D.t_close?hm(now())+' 갱신':(isToday?'장 마감 · '+hm(Math.min(now(),D.t_close)):'지난 회차 기록'));draw();})
-    .catch(function(){liveOK=false;setStat('err',isPast&&!iv0?'지난 회차 · 07:45 값만':'실시간 연결 실패 · 07:45 값');draw();});
+    var when=isToday&&now()<D.t_close?hm(now())+' 갱신':(isToday?'장 마감':'지난 회차 기록');
+    Promise.all([load(full).then(function(){liveOK=true;},function(){liveOK=false;}),loadKrx()]).then(function(){
+      if(KRX&&krxOK)setStat('ok','KRX · '+when);
+      else if(liveOK)setStat(KRX?'err':'ok',(KRX?'KRX 연결 실패 · 추종가 ':'')+when);
+      else setStat('err',isPast&&!iv0?'지난 회차 · 07:45 값만':'실시간 연결 실패 · 07:45 값');
+      draw();});
   }
 
-  function sessPts(e){return S[e.key].pts.filter(function(p){return p[2]>=D.t_open&&p[2]<D.t_close;});}
-  function tailPts(e){return S[e.key].pts.filter(function(p){return p[2]<D.t_open&&p[0]>D.t_snap;});}
-  function lastPct(e){var st=S[e.key];if(st.pts.length)return st.pts[st.pts.length-1][1];if(st.path.length)return st.path[st.path.length-1][1];return null;}
-  function openPct(e){var st=S[e.key];return st.openPx!=null&&st.base?pctOf(st,st.openPx):null;}
+  function sessPts(e){var k=krxOf(e);
+    if(k){var a=k.pts.filter(function(p){return p[0]>D.t_open&&p[0]<=D.t_close+6e4;}); if(a.length)return a;}
+    return S[e.key].pts.filter(function(p){return p[2]>=D.t_open&&p[2]<D.t_close;});}
+  function tailPts(e){var hl=S[e.key].pts.filter(function(p){return p[2]<D.t_open&&p[0]>D.t_snap;}), k=krxOf(e);
+    if(k){var pre=k.pts.filter(function(p){return p[0]<=D.t_open;}); if(pre.length)hl=hl.filter(function(p){return p[0]<pre[0][0];}).concat(pre);}   // NXT 프리마켓(08:00~) 실제가
+    return hl;}
+  function lastPct(e){var st=S[e.key], k=krxOf(e);
+    if(k){if(now()>D.t_close+6e4){var s=sessPts(e); if(s.length)return s[s.length-1][1];}
+      else if(k.last!=null&&(e.key!=='KOSPI'||now()>=D.t_open))return k.last;}
+    if(st.pts.length)return st.pts[st.pts.length-1][1]; if(st.path.length)return st.path[st.path.length-1][1]; return null;}
+  function openPct(e){var st=S[e.key], k=krxOf(e); if(k&&k.open!=null)return k.open; return st.openPx!=null&&st.base?pctOf(st,st.openPx):null;}
   function band(e,p){return p<e.lo?'아래':p>e.hi?'위':'안';}
   function bcls(w){return w==='안'?'in':w==='아래'?'lo':'hi';}
 
@@ -651,7 +681,7 @@ html.js5 [data-panel][hidden]{display:none!important}
       var p=lastPct(e), op=openPct(e), b='';
       if(e.lo!=null&&p!=null){var w=op!=null?band(e,op):band(e,p);b='<span class="b '+bcls(w)+'">'+(op!=null?'시가 ':'예측 ')+w+'</span>';}
       return '<button type="button" role="tab" aria-selected="'+(i===sel)+'" data-i="'+i+'"><span class="n">'+e.name+'</span>'+
-        '<span class="v num">'+(p==null?'—':(e.approx?'≈':'')+nf(tk(e,e.prev*(1+p/100)),0))+'</span>'+
+        '<span class="v num">'+(p==null?'—':(e.approx&&!useKrx(e)?'≈':'')+nf(tk(e,e.prev*(1+p/100)),0))+'</span>'+
         '<span class="c num '+(p==null?'':p<0?'down':p>0?'up':'')+'">'+(p==null?'미확보':(p<0?'▼ ':p>0?'▲ ':'')+sg(p))+'</span>'+b+'</button>';
     }).join('');
   }
@@ -703,9 +733,10 @@ html.js5 [data-panel][hidden]{display:none!important}
     tipsNow=pre.concat(tail.slice(1),ses).map(function(p){return {x:X(p[0]),t:hm(p[0]),p:p[1]};});
     var vt=document.getElementById('verd5'), op2=openPct(e), h=e.prev_label+' 종가 <b class="num">'+nf(e.prev,e.dec||0)+'</b>';
     if(e.lo!=null)h+=' · 예측 <b class="num">'+nf(e.lo_v,0)+' ~ '+nf(e.hi_v,0)+'</b> ('+sg(e.lo)+' ~ '+sg(e.hi)+')';
-    if(op2!=null)h+=' · 시가(추종가) <b class="num">'+sg(op2)+'</b> → 구간 <b>'+band(e,op2)+'</b>';
-    else if(last!=null&&e.lo!=null)h+=' · '+(liveOK?'지금':'07:45')+' 추정 <b class="num">'+sg(last)+'</b> → 구간 '+band(e,last);
-    if(e.approx)h+=' · 코스피200 추종가 기준이라 지수와 차이가 있습니다';
+    var kx=useKrx(e);
+    if(op2!=null)h+=' · 시가'+(kx?'':'(추종가)')+' <b class="num">'+sg(op2)+'</b> → 구간 <b>'+band(e,op2)+'</b>';
+    else if(last!=null&&e.lo!=null)h+=' · '+(kx?'지금(NXT)':liveOK?'지금 추정':'07:45 추정')+' <b class="num">'+sg(last)+'</b> → 구간 '+band(e,last);
+    if(e.approx&&!kx)h+=' · 코스피200 추종가 기준이라 지수와 차이가 있습니다';
     vt.innerHTML=h;
   }
   bindTips(document.getElementById('dayBox'),function(){return tipsNow;},function(b){
