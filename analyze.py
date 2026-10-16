@@ -59,6 +59,28 @@ if len(N) >= 5:
     res = [abs(r['gap_pct'] - r['signals']['k200n_pct']) for r in N]
     print('\n후보 2 반폭 제안 = |갭 − 야간| 80퍼센타일 %.2f%% (n=%d)' % (q80(res), len(N)))
 
+    # 비례 반폭 — 반폭 = q × (1 + |야간|), q 는 나머지 날의 |갭 − 야간| / (1 + |야간|) 80퍼센타일. 2026-10-16 적용(CALIBRATION.md)
+    def sc(r): return 1 + abs(r['signals']['k200n_pct'])
+    cov, w = 0, []
+    for i, r in enumerate(N):
+        o = N[:i] + N[i + 1:]
+        h = q80([abs(x['gap_pct'] - x['signals']['k200n_pct']) / sc(x) for x in o]) * sc(r)
+        cov += abs(r['gap_pct'] - r['signals']['k200n_pct']) <= h; w.append(2 * h)
+    print('비례 반폭 LOO   폭 %.2f  커버 %d/%d · q 재추정(전체) = %.2f' % (
+        st.mean(w), cov, len(N), q80([abs(r['gap_pct'] - r['signals']['k200n_pct']) / sc(r) for r in N])))
+
+# 현행 규칙 점검 — 마지막 규칙 변경 뒤 회차(휴장 뒤 폴백 제외)를 현행 규칙과 고정 0.8 반사실로 채점. 롤백 판단용
+rule = json.load(io.open('calibration.json', encoding='utf-8')).get('rule') or {}
+since = ((rule.get('history') or [{}])[-1]).get('date') or ''
+A = [r for r in N if r['date'] > since and not r['signals'].get('night_skipped')]
+if rule.get('half_width_mode') == 'scaled':
+    q, b = rule.get('half_width_q'), rule.get('half_width_base')
+    cur = sum(abs(r['gap_pct'] - r['signals']['k200n_pct']) <= q * (b + abs(r['signals']['k200n_pct'])) for r in A)
+    fix = sum(abs(r['gap_pct'] - r['signals']['k200n_pct']) <= 0.8 for r in A)
+    print('\n현행 규칙 점검 (%s 변경 뒤 %d회, 폴백 제외) — 비례 q=%s 커버 %d/%d · 고정 0.8 반사실 %d/%d · 실제 기록 구간 안 %d/%d' % (
+        since, len(A), q, cur, len(A), fix, len(A), sum(bool(r['in_range']) for r in A), len(A)))
+    if len(A) >= 10: print('  → 10회 도달. 비례 < 고정이면 half_width_mode 를 fixed 로 되돌린다. 비례 < 8/10 이면 q 재추정을 금요일 후보로')
+
 # 후보 3 — 미국 지수선물(야간 마감 뒤 움직임)이 야간선물 잔차를 설명하는가. 2026-10-02 회차부터 기록
 E = [r for r in N if r['signals'].get('es_pct') is not None]
 print('\n미국 지수선물 기록 %d건' % len(E))
