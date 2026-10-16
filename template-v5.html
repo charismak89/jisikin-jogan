@@ -753,12 +753,16 @@ html.js5 [data-panel][hidden]{display:none!important}
   }
   sel5.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;sel=+b.getAttribute('data-i');draw();});
 
-  var svg=document.getElementById('daySvg'), tipsNow=[];
+  var svg=document.getElementById('daySvg'), tipsNow=[], zA=0, zB=1;   // 확대 창 — 그래프 가로폭 중 보이는 비율 [zA,zB]
   function draw(){
     tiles();
     var e=D.ent[sel], st=S[e.key], W=360,H=236,L=34,R=58,T=20,B=22, PW=W-L-R, xo=L+PW*0.45;
-    function X(t){ if(t<=D.t_open)return L+Math.max(0,(t-D.t_prev))/(D.t_open-D.t_prev)*(xo-L);
-      return xo+(Math.min(t,D.t_close)-D.t_open)/(D.t_close-D.t_open)*(L+PW-xo); }
+    var xb=xo;
+    function X0(t){ if(t<=D.t_open)return L+Math.max(0,(t-D.t_prev))/(D.t_open-D.t_prev)*(xb-L);
+      return xb+(Math.min(t,D.t_close)-D.t_open)/(D.t_close-D.t_open)*(L+PW-xb); }
+    function X(t){return L+((X0(t)-L)/PW-zA)/(zB-zA)*PW;}
+    function inX(x){return x>=L-0.5&&x<=L+PW+0.5;}
+    zoomGeo={L:L,PW:PW};
     var pre=st.path, tail=tailPts(e), ses=sessPts(e), last=lastPct(e);
     if(pre.length&&tail.length)tail=[pre[pre.length-1]].concat(tail);
     var ys=[0].concat(pre.map(function(p){return p[1];}),tail.map(function(p){return p[1];}),ses.map(function(p){return p[1];}));
@@ -767,10 +771,13 @@ html.js5 [data-panel][hidden]{display:none!important}
     lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
     function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
     function line(pts,cls){if(pts.length<2)return '';return '<polyline class="'+cls+'" points="'+pts.map(function(p){return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1);}).join(' ')+'"/>';}
-    var o=['<rect class="sess" x="'+xo+'" y="'+T+'" width="'+(L+PW-xo)+'" height="'+(H-T-B)+'" rx="4"/>'];
+    var xs=X(D.t_open), xe=X(D.t_close);
+    var o=['<defs><clipPath id="dayClip"><rect x="'+L+'" y="'+(T-8)+'" width="'+PW+'" height="'+(H-T+8-B)+'"/></clipPath></defs><g clip-path="url(#dayClip)">',
+      '<rect class="sess" x="'+xs+'" y="'+T+'" width="'+(xe-xs)+'" height="'+(H-T-B)+'" rx="4"/>'];
     for(var g=lo;g<=hi+1e-9;g+=step){var z=Math.abs(g)<1e-9;
       o.push('<line x1="'+L+'" x2="'+(L+PW)+'" y1="'+Y(g)+'" y2="'+Y(g)+'" class="'+(z?'base':'grid')+'"/>');
       o.push('<text x="'+(L-5)+'" y="'+(Y(g)+3.5)+'" class="tick" text-anchor="end">'+(z?'0':(g>0?'+':'')+g)+'</text>');}
+    xo=xs;
     var xn=X(D.t_night); o.push('<line x1="'+xn+'" x2="'+xn+'" y1="'+T+'" y2="'+(H-B)+'" class="vmark"/>');
     if(e.lo!=null){var bx1=X(D.t_snap), bx2=X(D.t_open+18e5);
       o.push('<rect class="bandnow" x="'+bx1+'" y="'+Y(e.hi)+'" width="'+(bx2-bx1)+'" height="'+Math.max(2,Y(e.lo)-Y(e.hi))+'" rx="2"/>');
@@ -791,12 +798,14 @@ html.js5 [data-panel][hidden]{display:none!important}
       var lp=tail.length?tail[tail.length-1]:(pre.length?pre[pre.length-1]:null);
       if(lp)o.push('<circle class="end '+(lp[1]<0?'dn':'upl')+'" cx="'+X(lp[0])+'" cy="'+Y(lp[1])+'" r="3.5"/>');
     }
+    o.push('</g>');
     [[D.t_prev,'15:30'],[D.t_night,'05:00'],[D.t_open,'09:00'],[D.t_open+108e5,'12:00'],[D.t_close,'15:30']].forEach(function(a){
-      o.push('<text x="'+X(a[0])+'" y="'+(H-6)+'" class="tick" text-anchor="middle">'+a[1]+'</text>');});
+      if(inX(X(a[0])))o.push('<text x="'+X(a[0])+'" y="'+(H-6)+'" class="tick" text-anchor="middle">'+a[1]+'</text>');});
+    if(zB-zA<0.999)o.push('<text x="'+(L+PW)+'" y="'+(T-8)+'" class="lab" text-anchor="end">더블클릭: 원래대로</text>');
     o.push('<line class="xh" x1="0" x2="0" y1="'+T+'" y2="'+(H-B)+'"/>');
     svg.innerHTML=o.join('');
     svg.setAttribute('aria-label',e.name+(e.lo!=null?' 예측 구간 '+sg(e.lo)+' ~ '+sg(e.hi):'')+(last!=null?', 현재 '+sg(last):''));
-    tipsNow=pre.concat(tail.slice(1),ses).map(function(p){return {x:X(p[0]),t:hm(p[0]),p:p[1]};});
+    tipsNow=pre.concat(tail.slice(1),ses).map(function(p){return {x:X(p[0]),t:hm(p[0]),p:p[1]};}).filter(function(b){return inX(b.x);});
     var vt=document.getElementById('verd5'), op2=openPct(e), h=e.prev_label+' 종가 <b class="num">'+nf(e.prev,e.dec||0)+'</b>';
     if(e.lo!=null)h+=' · 예측 <b class="num">'+nf(e.lo_v,0)+' ~ '+nf(e.hi_v,0)+'</b> ('+sg(e.lo)+' ~ '+sg(e.hi)+')';
     var kx=useKrx(e);
@@ -804,6 +813,20 @@ html.js5 [data-panel][hidden]{display:none!important}
     else if(last!=null&&e.lo!=null)h+=' · '+(kx?'지금(NXT)':liveOK?'지금 추정':'07:45 추정')+' <b class="num">'+sg(last)+'</b> → 구간 '+band(e,last);
     if(e.approx&&!kx)h+=' · 코스피200 추종가 기준이라 지수와 차이가 있습니다';
     vt.innerHTML=h;
+  }
+  /* 확대·축소 — PC 마우스 휠(커서 위치 기준), 드래그로 이동, 더블클릭으로 원래대로. 터치 화면은 그대로 둔다 */
+  var zoomGeo=null, fine=!!(window.matchMedia&&matchMedia('(pointer:fine)').matches), drag=null;
+  function setZ(a,b){var w=Math.max(0.08,Math.min(1,b-a)); a=Math.max(0,Math.min(1-w,a)); zA=a; zB=a+w; draw();}
+  function fracAt(ev){var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,g=zoomGeo||{L:34,PW:268};
+    var x=(ev.clientX-r.left)*vb.width/r.width; return Math.max(0,Math.min(1,(x-g.L)/g.PW));}
+  if(fine){
+    svg.addEventListener('wheel',function(ev){ev.preventDefault();
+      var f=fracAt(ev), c=zA+f*(zB-zA), w=(zB-zA)*(ev.deltaY<0?0.8:1.25); setZ(c-f*w,c-f*w+w);},{passive:false});
+    svg.addEventListener('dblclick',function(){setZ(0,1);});
+    svg.addEventListener('pointerdown',function(ev){if(ev.pointerType==='mouse'&&zB-zA<0.999){drag={x:ev.clientX,a:zA,b:zB};try{svg.setPointerCapture(ev.pointerId);}catch(e){}}});
+    svg.addEventListener('pointermove',function(ev){if(!drag)return; var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,
+      d=(ev.clientX-drag.x)*vb.width/r.width/zoomGeo.PW*(drag.b-drag.a); setZ(drag.a-d,drag.b-d);});
+    svg.addEventListener('pointerup',function(){drag=null;});
   }
   bindTips(document.getElementById('dayBox'),function(){return tipsNow;},function(b){
     var e=D.ent[sel];return '<b>'+b.t+'</b><br>'+sg(b.p)+' · '+money(e,e.prev*(1+b.p/100));});
