@@ -7,3 +7,5 @@ gf_*.html
 __pycache__/
 *.pyc
 .askpass*
+web/node_modules/
+web/.vite/
