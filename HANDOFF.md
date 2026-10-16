@@ -84,7 +84,7 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 6. 9/21 PR #1 이 main 거부 폴백이었는지 [검증필요]. 9/22·9/23 은 main 직접 push 가 됐으므로 "클라우드 세션은 main push 불가" 규칙(7ab4fbc)은 반영하지 않았다
 7. ~~첫 주간 점검(10/17)에서 코스피 반폭 판단~~ 2026-10-16 사용자 결정 — 비례 반폭(`DIRECTION.md` A1). `calibration.json` rule `half_width_mode=scaled`·`half_width_q=0.44`, `score.py` 의 `half_width()`. 고정 0.8 은 적용 뒤 5회(폴백 10/12 제외) 중 3회 구간 밖이었다. 주간 점검은 `analyze.py` "현행 규칙 점검" 줄만 보고, 10회 쌓이기 전에는 판정하지 않는다
 8. **개선 백로그는 `DIRECTION.md` 6절**(2026-10-16 벤치마킹: 나박AI·PRISM-INSIGHT·유사 서비스). 주간 점검이 계획을 쓸 때 이 번호(A1·B1·C1 …)로 후보를 고른다. 정체성·안 하는 일은 같은 문서 4·7절. 결정된 것은 같은 문서 0절 "결정 기록"(A1 비례 반영, E3 지인 KRX 실시간 유지)
-9. **10/17 주간 점검 안건 — UI 개편.** 사용자 요청: 토스결·업비트결, PC 브라우저 대응, TDS·shadcn/ui·StyleSeed 검토. 검토 결과와 단계안(U1 토큰·타이포 → U2 PC 2단 → U3 다듬기)은 `DIRECTION.md` 9절. TDS 는 라이선스상 불가. 지인 의견의 UI 건과 `ctx.w`(1024px 이상 비율)를 같이 보고 계획에 올린다. 지난 회차 HTML 이 `../style.css` 를 공유하니 새 화면은 새 클래스·새 스타일시트로
+9. **10/17 주간 점검 안건 — UI 개편.** 사용자 요청: 토스결·업비트결, PC 브라우저 대응, TDS·shadcn/ui·StyleSeed 검토. 검토 결과와 단계안은 `DIRECTION.md` 9절. 추천은 React 전환 R안(R0 `render.py` 가 `out/day.json` 추가 출력 → R1 `web/` v6 앱을 `/v6/` 에 → R2 병행 2주 → R3 루트 전환, 루틴은 그대로). 대안은 U안(정적 유지 + 토큰 교체). TDS 는 라이선스상 불가. 지인 의견의 UI 건과 `ctx.w`(1024px 이상 비율)를 같이 보고 계획에 올린다. 지난 회차 HTML 이 `../style.css` 를 공유하니 새 화면은 새 클래스·새 스타일시트로
 
 ## 8. 작업지시 방법
 - 절차 → `RUNBOOK.md`. 사실·표기·금지 표현·이슈 범위 → `CONTEXT.md`. 휴장일 → `holidays.json`. 예측 규칙 → `calibration.json` 의 `rule`
