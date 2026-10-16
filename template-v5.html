@@ -811,6 +811,7 @@ html.js5 [data-panel][hidden]{display:none!important}
     var kx=useKrx(e);
     if(op2!=null)h+=' · 시가'+(kx?'':'(추종가)')+' <b class="num">'+sg(op2)+'</b> → 구간 <b>'+band(e,op2)+'</b>';
     else if(last!=null&&e.lo!=null)h+=' · '+(kx?'지금(NXT)':liveOK?'지금 추정':'07:45 추정')+' <b class="num">'+sg(last)+'</b> → 구간 '+band(e,last);
+    if(kx&&e.key!=='KOSPI'&&now()>D.t_close+6e4&&ses.length)h+=' · 종가는 KRX 기준입니다(15:40 이후 NXT 애프터마켓 가격은 반영하지 않음)';
     if(e.approx&&!kx)h+=' · 코스피200 추종가 기준이라 지수와 차이가 있습니다';
     vt.innerHTML=h;
   }
