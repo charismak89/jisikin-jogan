@@ -21,6 +21,11 @@
 - 화면을 고치면 `python3 regress.py` 로 마지막 회차 입력(`fixtures/last-fill.json`, publish.py 가 회차마다 남김)을 고치기 전·후로 렌더해 비교한다.
 - 주간 점검과 루틴의 `/v1/daily` 연동에는 환경 변수 `JJ_RELAY_URL`·`JJ_RELAY_TOKEN`(루틴 키)이 필요하다. 사용자가 환경 설정에 등록한다.
 
+## 0-3. 2026-10-17 주간 점검 반영
+- 대시보드 차트 PC 휠 확대·드래그·더블클릭 초기화(의견 1건). 장 마감 뒤 종목 종가가 KRX 기준임을 문구로 표시.
+- 중계기 `/v1/daily` 국내 종목 시가·종가를 1분봉 기준 KRX 값으로 변경(`src`·`complete`·`nxt_open`·`nxt_close`). **VM 갱신 필요**: `cd ~/jisikin-jogan && git pull -q && sudo bash relay/install.sh` (사용자가 10/18 에 수행 예정). 갱신 뒤 루틴 연동(남은 일)을 시작할 수 있다.
+- R0: render.py 가 `out/day.json` 도 쓰고 publish.py 가 루트 `day.json` 으로 반영(첫 반영은 다음 평일 회차). R1: `web/` 앱을 빌드해 `v6/` 에 커밋(`web/README.md`). 병행(R2)은 `/jisikin-jogan/v6/` 를 지인에게 같이 보내며 시작, 의견 `ctx.page` 로 v5·v6 구분. `regress.py` 는 `fixtures/` 가 없어 이번엔 합성 입력으로 시험했다(다음 발행부터 자동 보관).
+
 ## 0. 현재 상태 (2026-09-28)
 - 루틴 정상 가동. 9/15~9/23 대부분 main 직접 반영. 9/21(PR #1)·9/28(PR #2)은 브랜치로 올라가 사람이 머지했다.
 - PR #3 머지(`3848092`). 9/28 HOLD 원인(연휴 뒤 야간선물 부재)은 render.py `night_session_skipped()` 로 고쳤다. 9/14 에 고쳤다고 기록된 미국 휴장 시사 갭(`signals.us_holiday`)은 실제로 main 에 없어서 같이 넣었다. 10/6 회차부터 적용된다.
