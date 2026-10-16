@@ -143,15 +143,23 @@ def holidays_between(fill):
     except Exception:
         return []
 
+def half_width(rule, k200n):
+    """반폭(%). scaled = q × (base + |야간선물|), fixed = half_width_pct. 2026-10-16 scaled 로 전환(CALIBRATION.md)"""
+    if (rule.get('half_width_mode') or 'fixed') == 'scaled':
+        q, b = num(rule.get('half_width_q')), num(rule.get('half_width_base'))
+        return None if (q is None or b is None or k200n is None) else q * (b + abs(k200n))
+    return num(rule.get('half_width_pct'))
+
 def print_rule(cal, fill):
     rule = cal.get('rule') or {}
     cs = rule.get('center_signal')
-    hw = num(rule.get('half_width_pct'))
     if not cs:
         print('규칙 상태 — rule.applied=%s, center_signal 없음 → 전망은 기존 방식(사람 판단)대로. 야간선물·시사 갭은 기록만 한다.' % rule.get('applied'))
         return
     k200n = num(((fill.get('prices') or {}).get('K200N') or {}).get('pct_screen'))
     prev = num(((fill.get('prices') or {}).get('KOSPI') or {}).get('close'))
+    hw = half_width(rule, k200n)
+    how = ('= %s × (%s + |야간|)' % (rule.get('half_width_q'), rule.get('half_width_base'))) if (rule.get('half_width_mode') or 'fixed') == 'scaled' else '고정'
     hol = holidays_between(fill)
     if cs == 'k200n' and hol:
         # 휴장일에도 미국장은 열리는 게 보통이다. 야간선물(연휴 전 밤 세션)은 그 미국장을 담지 못한다 — 2026-10-06 회차 실측
@@ -159,8 +167,8 @@ def print_rule(cal, fill):
     elif cs == 'k200n' and k200n is not None and prev and hw is not None:
         lo, hi = prev * (1 + (k200n - hw) / 100), prev * (1 + (k200n + hw) / 100)
         d = '갭상승' if k200n > 0.5 else ('갭하락' if k200n < -0.5 else '보합')
-        print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% → %s %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
-            k200n, hw, d, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))
+        print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% (%s) → %s %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
+            k200n, hw, how, d, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))
     else:
         print('규칙 적용 실패 — center_signal=%s 인데 야간선물 값 또는 반폭이 없음. RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % cs)
 

@@ -23,6 +23,7 @@ curl -s -H "X-Relay-Key: $JJ_RELAY_TOKEN" "$JJ_RELAY_URL/v1/feedback?since=<지�
 2. **원문을 저장소에 옮기지 않는다.** 저장소는 Public 이다. 파일·커밋 메시지·PR 본문에는 요약만 쓴다. 원문 인용은 이 세션 보고에만 한다.
 3. 이름·전화번호·계좌 같은 개인정보가 보이면 보고에서도 가린다.
 4. 같은 내용은 묶는다. `오류` 는 `ctx.issue`·`ctx.mode`·`ctx.w` 로 재현 조건을 적는다.
+5. 화면 폭 분포를 한 줄로 센다: `ctx.w` 1024px 이상(PC) / 미만(모바일). UI 개편(`DIRECTION.md` 9절) 판단에 쓴다.
 
 ## 2. 주간 채점
 ```bash

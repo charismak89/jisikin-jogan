@@ -11,6 +11,10 @@
   "activate_after_records": 20,
   "center_signal": "k200n",
   "half_width_pct": 0.8,
+  "half_width_mode": "scaled",
+  "half_width_q": 0.44,
+  "half_width_base": 1.0,
+  "half_width_note": "scaled: 반폭(%) = half_width_q × (half_width_base + |야간선물 등락률|). fixed 로 바꾸면 half_width_pct 를 쓴다(되돌리기 = half_width_mode 를 \"fixed\" 로).",
   "planned": "구간 반폭(%) = 최근 10회 abs(gap_pct)의 80퍼센타일. 활성화 전까지는 기존 방식대로 판단하고 기록만 쌓는다.",
   "planned_v2": "구간 중심 = 야간선물 등락률(signals.k200n_pct), 반폭 = 최근 10회 |gap_pct − k200n_pct| 의 80퍼센타일. 켜려면 center_signal 을 \"k200n\", half_width_pct 를 숫자로. CALIBRATION.md 참고.",
   "change_policy": "규칙 변경은 금요일 마감 후에만, 한 번에 한 변수만. 변경 시 history에 남긴다.",
@@ -23,6 +27,14 @@
     "to": "k200n / 0.8",
     "why": "10/1 진단: 야간선물 단독 MAE < 회차 판단, EWY·ADR 추종 오차. CALIBRATION.md 2026-10-01 진단. 10/2 재계산(n=10): LOO 야간 MAE 0.56·커버 8/10 vs 회차 판단 0.78·7/10, 잔차 p80 0.81 → 0.8",
     "baseline": "직전 10회차(09-16~10-01, 09-28 포함) 회차 판단 coverage 8/10. 적용 뒤 10회차 coverage 가 이보다 낮으면 롤백"
+   },
+   {
+    "date": "2026-10-16",
+    "changed": "half_width_mode",
+    "from": "fixed 0.8",
+    "to": "scaled 0.44 × (1 + |야간|)",
+    "why": "야간선물 크기와 오차 크기 상관 0.54(n=18), 직전일 등락 크기와는 0.20. LOO(야간선물 있는 18회차): 고정 p80 커버 14/18·평균 폭 2.42%p vs 비례 14/18·2.01%p. q = |갭 − 야간| / (1 + |야간|) 의 80퍼센타일 0.4389 → 0.44(같은 18회차 in-sample 14/18, 평균 폭 2.03%p, 최대 3.51%p). 고정 0.8 은 18회 중 12회. DIRECTION.md A1, 사용자 결정 2026-10-16",
+    "baseline": "고정 0.8 적용 회차(10/7~, 폴백 10/12 제외) 10/15 까지 2/5. 적용 뒤 10회차(폴백 제외) coverage 가 같은 회차에 고정 0.8 을 댄 반사실보다 낮으면 fixed 로 되돌린다. 8/10 미만이면 q 재추정을 금요일 후보로 올린다(analyze.py '현행 규칙 점검' 블록)"
    }
   ]
  },
