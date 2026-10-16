@@ -171,10 +171,26 @@ def day_candle(path, params, d):
             return {k: float(c[k + 'Price']) for k in ('open', 'high', 'low', 'close')}
     return None
 
+def krx_day(s, d):
+    """KRX 공식 시가·종가. 토스 종목 일봉은 KRX·NXT 통합(08:00~20:00)이라 1분봉에서 뽑는다.
+    시가 = 09:01 봉(09:00~09:01)의 시가, 종가 = 15:31 봉(15:30~15:31, 종가 단일가)의 종가. 15:31 봉이 없으면 15:31 이전 마지막 봉."""
+    end = ms(d, 15, 31)
+    if d == datetime.now(KST).date(): end = min(end, int(time.time() * 1000))
+    before = datetime(d.year, d.month, d.day, 15, 32, tzinfo=KST).isoformat()
+    bars = [b for b in candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 9, 0), end) if b[0] > ms(d, 9, 0)]
+    if not bars: return None
+    return {'open': bars[0][1], 'close': bars[-1][2], 'src': 'krx-1m',
+            'complete': bars[0][0] == ms(d, 9, 1) and bars[-1][0] == ms(d, 15, 31)}   # False 면 시가·종가 봉이 비었다 — 쓰기 전에 확인
+
 def daily(d):
     out = {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'kr': {}, 'us': {}, 'index': {}, 'errors': []}
     for s in DAILY_KR:
-        try: out['kr'][s] = day_candle('/api/v1/candles', {'symbol': s}, d)
+        try:
+            c = day_candle('/api/v1/candles', {'symbol': s}, d)   # 통합 일봉: 고가·저가·거래 범위 참고용
+            k = krx_day(s, d)
+            if c and k: c = dict(c, nxt_open=c['open'], nxt_close=c['close'], open=k['open'], close=k['close'], src=k['src'], complete=k['complete'])
+            elif c: c['src'] = 'toss-1d'   # 1분봉이 없는 날(보관 기간 지남) — 시가·종가는 NXT 통합값이라 KRX 공식값과 다를 수 있다
+            out['kr'][s] = c
         except Upstream as e: out['errors'].append('%s %s' % (s, e))
     for s in DAILY_US:   # 미국 일봉의 날짜는 미국 거래일 (현지 자정을 KST 로 표기)
         try:

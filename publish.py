@@ -112,6 +112,12 @@ def main():
         except Exception as e:
             changed.append('[경고] state.json 이 올바른 JSON 이 아님 — 건너뜀 (%s)' % e)
 
+    # 2-0) v6 앱이 읽는 화면용 JSON (render.py 가 index.html 과 같이 만든다). 없으면 건너뛴다
+    new_day = os.path.join(os.path.dirname(new_index) or '.', 'day.json')
+    if os.path.exists(new_day):
+        try: json.loads(read(new_day)); write('day.json', read(new_day)); changed.append('day.json')
+        except Exception as e: changed.append('[경고] day.json 이 올바른 JSON 이 아님 — 건너뜀 (%s)' % e)
+
     # 2-1) 회차 입력 보관 — 주간 점검(WEEKLY.md)이 같은 입력으로 렌더 회귀를 돌린다. 화면에 이미 나간 값·문장뿐이다
     for src, dst in (('fill.json', 'fixtures/last-fill.json'), ('perp.json', 'fixtures/last-perp.json')):
         if os.path.exists(src):

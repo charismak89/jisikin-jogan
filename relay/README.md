@@ -30,7 +30,7 @@ sudo journalctl -u jogan-relay -n 50 --no-pager          # 로그 (키는 남기
 | `/healthz` | 없음 | 토큰 상태 | — |
 | `/v1/live` | 지인 | 코스피·삼전·하닉 현재가 | 5초 |
 | `/v1/intraday?date=YYYY-MM-DD` | 지인 | 그날 1분봉 종가(코스피 09:00~15:30, 두 종목 08:00~20:00 — NXT 포함), 시가 | 오늘 20초 · 지난날 1시간 |
-| `/v1/daily?date=YYYY-MM-DD` | 루틴 | 국내 6종·코스피·코스닥 일봉, 미국 4종 일봉, 환율, 코스피 투자자별 매매대금(억원) | 5분 |
+| `/v1/daily?date=YYYY-MM-DD` | 루틴 | 국내 6종(시가·종가는 1분봉 기준 KRX 공식값 — `src`·`complete` 필드, `nxt_open`·`nxt_close` 는 통합 일봉 값)·코스피·코스닥 일봉, 미국 4종 일봉, 환율, 코스피 투자자별 매매대금(억원) | 5분 |
 | `POST /v1/feedback` | 지인 | 대시보드 "의견" 버튼. JSON `{cat, text, nick, ctx}` → `feedback.jsonl` (1,000자, 하루 30건, IP 당 분당 10회) | — |
 | `/v1/feedback?since=YYYY-MM-DD` | 루틴 | 그날부터 쌓인 의견 (토요일 주간 점검용) | — |
 

@@ -16,7 +16,7 @@ perp.json 은 fetch_perp.py 가 만든다(해외 24시간 추종가). 없어도 
 
 종료 코드 0 = OK (경고가 있어도 0). 1 = FAIL (플레이스홀더 누락·타입 오류·구간 역전 등)
 """
-import io, json, re, sys, os, math
+import html, io, json, re, sys, os, math
 from datetime import datetime, timedelta, timezone, date
 
 KST = timezone(timedelta(hours=9))
@@ -741,6 +741,27 @@ def main():
     V['STOCK_NOTE'] = ('종목 예측 구간 = 야간선물과 해외 24시간 추종가(%s)의 평균 ± 최근 오차 80%% 범위(%s). 해외 추종가는 해외 코인거래소의 한국 종목 무기한선물 가격이라 실제 체결가와 다릅니다.' % (
         signals['perp_asof'] or '미확보', hw_txt)) + ('' if pitems else ' 오늘은 추종가를 받지 못해 야간선물만으로 구간을 잡았습니다.')
 
+    # ----- 화면용 JSON (v6 앱이 읽는다. HTML 출력과 별개이고 게이트·글자수에는 영향이 없다) -----
+    def plain(x): return html.unescape(re.sub(r'<[^>]+>', '', str(x or ''))).strip()
+    k20_rows = []
+    for x in slots:
+        r = rec_by.get(x.isoformat()) or {}
+        row = {'date': x.isoformat(), 'today': x == d, 'close': kcl.get(x) if (x in kcl and x <= pday) else None}
+        lo_, hi_ = (r.get('low'), r.get('high')) if r.get('low') is not None else ((low, high) if x == d else (None, None))
+        row.update(low=lo_, high=hi_, open=r.get('actual_open'), in_range=r.get('in_range'), verdict=r.get('verdict'))
+        k20_rows.append(row)
+    day6 = {'schema': 1, 'issue': issue_date, 'issue_no': V['ISSUE'], 'date_label': V['DATE_LABEL'],
+            'forecast': {'dir': fdir or None, 'low': low, 'high': high, 'prev_close': kospi_close, 'night': k200n_now,
+                         'low_pct': None if not (low and kospi_close) else round((low / kospi_close - 1) * 100, 3),
+                         'high_pct': None if not (high and kospi_close) else round((high / kospi_close - 1) * 100, 3)},
+            'concl': [{'h': plain(t.get('h')), 'b': plain(t.get('b'))} for t in tl[:3]],
+            'signals': {k: signals.get(k) for k in ('k200n_pct', 'k200n_asof', 'ewy_implied_pct', 'adr_implied_pct', 'es_pct', 'nq_pct', 'perp_asof')},
+            'day': day, 'k20': {'rows': k20_rows, 'close': kospi_close, 'pct': pct.get('KOSPI'), 'cap': plain(V['K20_CAP'])},
+            'market': [{'key': k, 'label': lab, 'close': close.get(k), 'pct': pct.get(k), 'asof': (prices.get(k) or {}).get('asof') if k == 'K200N' else None}
+                       for k, lab in (('K200N', 'K200 야간'), ('SOX', 'SOX'), ('NVDA', names['NVDA'][0]), ('MU', names['MU'][0]), ('EWY', 'EWY'), ('USDKRW', names['USDKRW'][0]))],
+            'global_tag': plain(tags.get('global')), 'stock_note': V['STOCK_NOTE'],
+            'brief_html': '', 'footer': {'sources': plain(src), 'data_note': plain(dn.get('lead'))}}
+
     # ----- 치환 -----
     need = set(re.findall(r'\{\{([A-Z_]+)\}\}', tpl))
     missing = sorted(need - set(V))
@@ -749,6 +770,8 @@ def main():
     for k, v in V.items(): out = out.replace('{{%s}}' % k, v if v is not None else '')
     left = sorted(set(re.findall(r'\{\{([A-Z_]+)\}\}', out)))
     if left: fail('치환 뒤 남은 자리: %s' % left)
+    brief_m = re.search(r'<div data-panel="brief">(.*?)</div><!--/brief-->', out, flags=re.S)   # 브리핑 탭 본문 그대로 — v6 앱이 같은 글을 보여 준다
+    if brief_m: day6['brief_html'] = re.sub(r'<div class="bar">.*?</button>\s*</div>\s*</div>', '', brief_m.group(1), count=1, flags=re.S).strip()
 
     # ----- 사후 검증 -----
     body = re.sub(r'<(style|script).*?</\1>', '', out, flags=re.S)
@@ -775,6 +798,7 @@ def main():
     if not check_only:
         os.makedirs('out', exist_ok=True)
         io.open(os.path.join('out', 'index.html'), 'w', encoding='utf-8', newline='').write(out)
+        io.open(os.path.join('out', 'day.json'), 'w', encoding='utf-8', newline='\n').write(json.dumps(day6, ensure_ascii=False, separators=(',', ':')) + '\n')
         try:
             io.open(os.path.join('out', 'calibration.json'), 'w', encoding='utf-8', newline='\n').write(io.open('calibration.json', encoding='utf-8').read())
         except Exception:
