@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* 토큰 — 토스결: 연한 회색 바탕 위의 흰 카드, 큰 숫자, 파란 강조. 한국 증시 관례대로 상승 빨강·하락 파랑.
+   테마 키(data-jj, localStorage jj-theme)는 v5 와 같아서 지인이 고른 테마가 그대로 이어진다. */
+:root {
+  --bg: #f2f4f6; --card: #ffffff; --card2: #f9fafb; --tx: #191f28; --tx2: #4e5968; --tx3: #8b95a1;
+  --line: #e5e8eb; --brand: #3182f6; --brand-soft: #e8f3ff; --up: #f04452; --dn: #3182f6;
+  --band: #ffe9a8; --band-line: #f5b800; --ok: #15b573; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+}
+:root[data-jj="dark"] {
+  --bg: #101114; --card: #1b1d22; --card2: #23262c; --tx: #f2f4f6; --tx2: #b0b8c1; --tx3: #7e8793;
+  --line: #2c3037; --brand: #4593fc; --brand-soft: #1c2a3d; --up: #f6616d; --dn: #4593fc;
+  --band: #4a3b10; --band-line: #d9a400; --ok: #2fd08c; --shadow: none;
+}
+@theme inline {
+  --color-bg: var(--bg); --color-card: var(--card); --color-card2: var(--card2); --color-tx: var(--tx); --color-tx2: var(--tx2); --color-tx3: var(--tx3);
+  --color-line: var(--line); --color-brand: var(--brand); --color-brand-soft: var(--brand-soft); --color-up: var(--up); --color-dn: var(--dn);
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+}
+html { background: var(--bg); color: var(--tx); font-family: var(--font-sans); -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); }
+.num { font-variant-numeric: tabular-nums; }
+button { font-family: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.viz text { font-family: inherit; }
