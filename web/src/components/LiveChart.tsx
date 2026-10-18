@@ -131,8 +131,8 @@ export function LiveChart({ live }: { live: Live }) {
       } />
       <div role="tablist" className="mb-3 grid grid-cols-3 gap-2">
         {D.ent.map((x, i) => {
-          const p = live.lastPct(x), o = live.openPct(x)
-          const w = x.lo != null && p != null ? band(x, o != null ? o : p) : null
+          const p = live.lastPct(x), o = live.openPct(x), pre = live.preOpen(x)
+          const w = !pre && x.lo != null && p != null ? band(x, o != null ? o : p) : null
           return (
             <button key={x.key} role="tab" aria-selected={i === sel} onClick={() => setSel(i)}
               className={cn('rounded-2xl border p-3 text-left transition-colors', i === sel ? 'border-brand bg-brand-soft' : 'border-line bg-card2')}>
@@ -140,6 +140,7 @@ export function LiveChart({ live }: { live: Live }) {
               <div className="num mt-0.5 text-[17px] font-bold text-tx">{p == null ? '—' : (x.approx && !live.useKrx(x) ? '≈' : '') + nf(tk(x, x.prev * (1 + p / 100)), 0)}</div>
               <div className={cn('num text-[12px] font-semibold', dir(p))}>{p == null ? '미확보' : arrow(p) + sg(p)}</div>
               {w && <span className={cn('mt-1.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold', BAND_CLS[w])}>{o != null ? '시가 ' : '예측 '}{w}</span>}
+              {pre && <span className="mt-1.5 inline-block rounded-full bg-card px-2 py-0.5 text-[11px] font-bold text-tx3">개장 전</span>}
             </button>
           )
         })}
@@ -211,12 +212,13 @@ export function LiveChart({ live }: { live: Live }) {
         {e.prev_label} 종가 <b className="num text-tx">{nf(e.prev, e.dec || 0)}</b>
         {e.lo != null && e.hi != null && e.lo_v != null && e.hi_v != null && <> · 예측 <b className="num text-tx">{nf(e.lo_v, 0)} ~ {nf(e.hi_v, 0)}</b> ({sg(e.lo)} ~ {sg(e.hi)})</>}
         {op != null && e.lo != null && <> · 시가{kx ? '' : '(추종가)'} <b className="num text-tx">{sg(op)}</b> → 구간 <b className="text-tx">{band(e, op)}</b></>}
-        {op == null && last != null && e.lo != null && <> · {kx ? '지금(NXT)' : live.liveOK ? '지금 추정' : '07:45 추정'} <b className="num text-tx">{sg(last)}</b> → 구간 {band(e, last)}</>}
+        {live.preOpen(e) && ' · 09:00 개장 전(지수는 장 전 거래가 없습니다)'}
+        {!live.preOpen(e) && op == null && last != null && e.lo != null && <> · {kx ? '지금(NXT)' : live.liveOK ? '지금 추정' : '07:45 추정'} <b className="num text-tx">{sg(last)}</b> → 구간 {band(e, last)}</>}
         {e.approx && !kx && ' · 코스피200 추종가 기준이라 지수와 차이가 있습니다'}
         {afterClose && ' · 종가는 KRX 기준입니다(15:40 이후 NXT 애프터마켓 가격은 반영하지 않음)'}
       </p>
       <Cap>
-        왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중(KRX 연결 시 실제 시세, 아니면 추종가) ·
+        왼쪽 — 전일 15:30 ~ 07:45 밤사이 해외 24시간 추종가(07:45 회차 기록, 예측 근거) · 08:00 부터 종목은 NXT 실제가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 토스(KRX) 실제 시세. 중계기가 끊긴 동안만 추종가로 대신 그립니다 ·
         오른쪽 위 + · − 로 확대·축소하고, 확대한 뒤에는 좌우로 끌어 옮깁니다. PC 는 마우스 휠도 되고, 더블클릭하면 원래대로 돌아갑니다.
         맨 오른쪽 버튼은 차트를 화면 가득 크게 보여 줍니다(Esc 또는 같은 버튼으로 닫기).
       </Cap>

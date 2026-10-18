@@ -2,7 +2,7 @@ import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import type { Live } from '../lib/live'
 
-// 지인 링크로 연 브라우저에만 단다. 글은 중계기 VM 에만 저장된다(저장소에는 올리지 않는다).
+// 글은 중계기 VM 에만 저장된다(저장소에는 올리지 않는다). 2026-10-19 부터 키 없이도 보낸다(중계기 PUBLIC_VIEW). 키가 있으면 같이 보낸다.
 const CATS = ['제안', '오류', '예측', '기타']
 
 export function Feedback({ live, tab }: { live: Live; tab: string }) {
@@ -19,7 +19,7 @@ export function Feedback({ live, tab }: { live: Live; tab: string }) {
     if (!t) return
     try { localStorage.setItem('jj-nick', nick.trim()) } catch { /* 저장 불가 */ }
     setBusy(true); setMsg('보내는 중…')
-    fetch(live.D.relay + '/v1/feedback?k=' + encodeURIComponent(live.RK as string), {
+    fetch(live.D.relay + '/v1/feedback' + (live.RK ? '?k=' + encodeURIComponent(live.RK) : ''), {
       method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },   // text/plain — 사전 요청 없이 보낸다
       body: JSON.stringify({ cat, text: t, nick: nick.trim(), ctx: { issue: live.D.issue, tab: tab === 'brief' ? 'brief' : 'dash', mode: live.krxOK === false ? 'krx-fail' : 'krx', w: String(window.innerWidth), page: location.pathname } }),
     }).then((r) => {

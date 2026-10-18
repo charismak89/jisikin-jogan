@@ -28,13 +28,16 @@ sudo journalctl -u jogan-relay -n 50 --no-pager          # 로그 (키는 남기
 | 경로 | 키 | 내용 | 캐시 |
 |---|---|---|---|
 | `/healthz` | 없음 | 토큰 상태 | — |
-| `/v1/live` | 지인 | 코스피·삼전·하닉 현재가 | 5초 |
-| `/v1/intraday?date=YYYY-MM-DD` | 지인 | 그날 1분봉 종가(코스피 09:00~15:30, 두 종목 08:00~20:00 — NXT 포함), 시가 | 오늘 20초 · 지난날 1시간 |
+| `/v1/live` | 없음(PUBLIC_VIEW) · 지인 | 코스피·삼전·하닉 현재가 | 5초 |
+| `/v1/intraday?date=YYYY-MM-DD` | 없음(PUBLIC_VIEW) · 지인 | 그날 1분봉 종가(코스피 09:00~15:30, 두 종목 08:00~20:00 — NXT 포함), 시가 | 오늘 20초 · 지난날 1시간 |
 | `/v1/daily?date=YYYY-MM-DD` | 루틴 | 국내 6종(시가·종가는 1분봉 기준 KRX 공식값 — `src`·`complete` 필드, `nxt_open`·`nxt_close` 는 통합 일봉 값)·코스피·코스닥 일봉, 미국 4종 일봉, 환율, 코스피 투자자별 매매대금(억원) | 5분 |
-| `POST /v1/feedback` | 지인 | 대시보드 "의견" 버튼. JSON `{cat, text, nick, ctx}` → `feedback.jsonl` (1,000자, 하루 30건, IP 당 분당 10회) | — |
+| `POST /v1/feedback` | 없음(PUBLIC_VIEW) · 지인 | 대시보드 "의견" 버튼. JSON `{cat, text, nick, ctx}` → `feedback.jsonl` (1,000자, 하루 30건, IP 당 분당 10회) | — |
 | `/v1/feedback?since=YYYY-MM-DD` | 루틴 | 그날부터 쌓인 의견 (토요일 주간 점검용) | — |
 
 키는 `?k=` 또는 `X-Relay-Key` 헤더. 지인 키는 여러 개(콤마) 둘 수 있다. IP 당 분당 120회 제한. CORS 는 `ALLOW_ORIGINS`(기본 GitHub Pages 주소)만.
+
+**2026-10-19 부터 화면용 셋(`/v1/live`·`/v1/intraday`·의견 쓰기)은 키 없이 연다.** 메인 주소를 지인 키 없이 열어도 KRX 시세를 쓰게 하려는 것이다. 업스트림 호출은 캐시가 묶는다(live 5초, intraday 오늘 20초·지난날 1시간, 날짜 30일 안). `/v1/daily`·의견 읽기는 언제나 루틴 키다.
+다시 잠그려면 `/etc/jogan-relay.env` 에 `PUBLIC_VIEW=0` 한 줄을 넣고 `sudo systemctl restart jogan-relay`. 그러면 키 없는 화면은 해외 추종가로 폴백한다.
 
 ## 의견 보기
 ```bash
