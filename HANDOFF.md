@@ -23,8 +23,8 @@
 
 ## 0-3. 2026-10-17 주간 점검 반영
 - 대시보드 차트 PC 휠 확대·드래그·더블클릭 초기화(의견 1건). 장 마감 뒤 종목 종가가 KRX 기준임을 문구로 표시.
-- 중계기 `/v1/daily` 국내 종목 시가·종가를 1분봉 기준 KRX 값으로 변경(`src`·`complete`·`nxt_open`·`nxt_close`). **VM 갱신 필요**: `cd ~/jisikin-jogan && git pull -q && sudo bash relay/install.sh` (사용자가 10/18 에 수행 예정). 갱신 뒤 루틴 연동(남은 일)을 시작할 수 있다.
-- R0: render.py 가 `out/day.json` 도 쓰고 publish.py 가 루트 `day.json` 으로 반영(첫 반영은 다음 평일 회차). R1: `web/` 앱을 빌드해 `v6/` 에 커밋(`web/README.md`). 병행(R2)은 `/jisikin-jogan/v6/` 를 지인에게 같이 보내며 시작, 의견 `ctx.page` 로 v5·v6 구분. `regress.py` 는 `fixtures/` 가 없어 이번엔 합성 입력으로 시험했다(다음 발행부터 자동 보관).
+- 중계기 `/v1/daily` 국내 종목 시가·종가를 1분봉 기준 KRX 값으로 변경(`src`·`complete`·`nxt_open`·`nxt_close`). **VM 갱신 완료(2026-10-18, PR #19 `complete` 수정 포함).** 주간 점검 세션이 `/v1/daily` 로 10/16 값을 받아 6종 시가·종가가 KRX 1분봉 기준과 맞는 것을 확인했다. `complete` 는 4종 true, ETF 2종(0167A0·442580)은 false — 시가·종가 1분봉에 체결이 없던 것으로 추정 [검증필요], 값은 통합 일봉과 같았다. 이제 루틴 연동(남은 일)을 시작할 수 있다. 연동 때 `complete: false` 종목은 Google Finance 와 대조한 뒤 쓴다.
+- R0: render.py 가 `out/day.json` 도 쓰고 publish.py 가 루트 `day.json` 으로 반영(첫 반영은 다음 평일 회차). R1: `web/` 앱을 빌드해 `v6/` 에 커밋(`web/README.md`). 병행(R2)은 `/jisikin-jogan/v6/` 를 지인에게 같이 보내며 시작, 의견 `ctx.page` 로 v5·v6 구분. `regress.py` 는 `fixtures/` 가 없어 이번엔 합성 입력으로 시험했다. 10/19 발행부터 `fixtures/last-fill.json` 이 저장소에 있다. 루트 `day.json` 첫 반영도 10/19 회차(제42호).
 
 ## 0. 현재 상태 (2026-09-28)
 - 루틴 정상 가동. 9/15~9/23 대부분 main 직접 반영. 9/21(PR #1)·9/28(PR #2)은 브랜치로 올라가 사람이 머지했다.
