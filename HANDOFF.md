@@ -28,7 +28,7 @@
 - 차트: 오른쪽 위 `+` · `−` · `전체` 버튼, 확대 뒤 좌우로 끌어 이동(마우스·터치). PC 휠·더블클릭은 그대로. 맨 오른쪽 크게 보기 버튼은 차트를 화면 가득 다시 그린다(PC 760×360, 모바일 360×460 좌표계, Esc 로 닫기).
 - `publish.ps1`·`publish.bat` 은 실행하면 바로 멈춘다(루트를 v5 로 덮어쓰기 때문). 수동 경로는 `UPDATE.md`.
 - 의견 `ctx.page`: `/jisikin-jogan/`·`/jisikin-jogan/v6/` = v6, `/jisikin-jogan/v5/` = v5.
-- **2026-10-19 토스 시세 기본화(사용자 결정)**: v6 는 지인 키 없이도 중계기를 부르고, 토스 시세를 받는 동안 추종가를 부르지 않는다. 중계기는 `PUBLIC_VIEW`(기본 1)로 `/v1/live`·`/v1/intraday`·의견 쓰기를 키 없이 연다. **VM 갱신 필요**: `cd ~/jisikin-jogan && git pull -q && sudo bash relay/install.sh`. 갱신 전에는 키 없는 브라우저가 401 을 받아 지금처럼 추종가로 폴백한다. 다시 잠그기: env 에 `PUBLIC_VIEW=0`.
+- **2026-10-19 토스 시세 기본화(사용자 결정)**: v6 는 지인 키 없이도 중계기를 부르고, 토스 시세를 받는 동안 추종가를 부르지 않는다. 중계기는 `PUBLIC_VIEW`(기본 1)로 `/v1/live`·`/v1/intraday`·의견 쓰기를 키 없이 연다. **VM 갱신 완료(2026-10-19 08:46 KST 확인)**: 키 없이 `/v1/live`·`/v1/intraday` 200, `/v1/daily`·의견 읽기 401. 새 브라우저(키 없음)로 메인을 열면 상태 KRX, Hyperliquid 호출 0건. 다시 잠그기: env 에 `PUBLIC_VIEW=0`.
 - 되돌리기: 전환 PR 을 revert(`web/README.md`).
 
 ## 0-3. 2026-10-17 주간 점검 반영
