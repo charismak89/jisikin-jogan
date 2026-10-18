@@ -177,7 +177,7 @@ def krx_day(s, d):
     end = ms(d, 15, 31)
     if d == datetime.now(KST).date(): end = min(end, int(time.time() * 1000))
     before = datetime(d.year, d.month, d.day, 15, 32, tzinfo=KST).isoformat()
-    bars = [b for b in candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 9, 0), end) if b[0] > ms(d, 9, 0)]
+    bars = [b for b in candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 9, 0), end) if ms(d, 9, 0) < b[0] <= ms(d, 15, 31)]   # candles_1m 은 끝 시각 뒤 1분(15:32 봉)까지 주므로 잘라 낸다
     if not bars: return None
     return {'open': bars[0][1], 'close': bars[-1][2], 'src': 'krx-1m',
             'complete': bars[0][0] == ms(d, 9, 1) and bars[-1][0] == ms(d, 15, 31)}   # False 면 시가·종가 봉이 비었다 — 쓰기 전에 확인
