@@ -846,6 +846,52 @@
     "us_fut_asof": "10/15 07:36"
    },
    "source": "2026-10-16 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-16",
+   "forecast_dir": "갭상승",
+   "low": 5730.0,
+   "high": 5820.0,
+   "band_width_pct": 1.62,
+   "prev_close": 5554.22,
+   "actual_open": 5653.99,
+   "gap_pct": 1.8,
+   "in_range": false,
+   "dir_hit": true,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": 3.97,
+   "center_err_pct": -2.18,
+   "signals": {
+    "k200n_pct": 3.91,
+    "k200n_close": 894.95,
+    "k200n_asof": "10/16 05:00",
+    "k200f_close": 861.3,
+    "ewy_implied_pct": 5.98,
+    "adr_implied_pct": 11.59,
+    "news_flag": "10/15 코스피 −7.57% 서킷브레이커·외국인 3.6조 순매도 · 밤사이 미 10년물 5.19→5.09% 급락에 다우 +1.08% · 오픈AI 매출 축소 보도·가트너 AI 투자 수익성 경고",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.03,
+    "nq_pct": -0.1,
+    "us_fut_asof": "10/16 07:25",
+    "perp": {
+     "KOSPI": {
+      "p0500": 4.08,
+      "snap": 3.72
+     },
+     "005930": {
+      "p0500": 4.55,
+      "snap": 4.52
+     },
+     "000660": {
+      "p0500": 3.75,
+      "snap": 3.77
+     }
+    },
+    "perp_asof": "10/16 07:46"
+   },
+   "source": "2026-10-19 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ]
 }
