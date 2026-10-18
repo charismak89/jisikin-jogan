@@ -15,7 +15,7 @@ export function LiveChart({ live }: { live: Live }) {
   const [[zA, zB], setZ] = useState<[number, number]>([0, 1])
   const [tip, setTip] = useState<{ x: number; t: string; p: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
-  const drag = useRef<{ x: number; a: number; b: number } | null>(null)
+  const drag = useRef<{ x: number; a: number; b: number; moved: boolean } | null>(null)
   const e = D.ent[sel]
 
   const view = useMemo(() => {
@@ -62,6 +62,13 @@ export function LiveChart({ live }: { live: Live }) {
     return () => svg.removeEventListener('wheel', onWheel)
   }, [])
 
+  // 오른쪽 위 +/− 버튼 — 지금 보이는 구간의 가운데를 기준으로 확대·축소(터치 화면에서도 된다)
+  const zoomBy = (k: number) => setZ(([a, b]) => {
+    const c = (a + b) / 2, w = Math.max(0.08, Math.min(1, (b - a) * k))
+    const na = Math.max(0, Math.min(1 - w, c - w / 2))
+    return [na, na + w]
+  })
+
   const { X, Y, inX, pre, tail, ses, last, grid, tips, op } = view
   const zoomed = zB - zA < 0.999
   const xo = X(D.t_open), xe = X(D.t_close)
@@ -70,17 +77,23 @@ export function LiveChart({ live }: { live: Live }) {
   const kx = live.useKrx(e), now = Date.now()
   const afterClose = kx && e.key !== 'KOSPI' && now > D.t_close + 6e4 && ses.length > 0
 
-  const onMove = (ev: React.PointerEvent<SVGSVGElement>) => {
-    const svg = svgRef.current!, r = svg.getBoundingClientRect()
-    if (drag.current) {
-      const d = (ev.clientX - drag.current.x) * W / r.width / PW * (drag.current.b - drag.current.a)
-      const w = drag.current.b - drag.current.a, na = Math.max(0, Math.min(1 - w, drag.current.a - d))
-      setZ([na, na + w]); return
-    }
-    const sx = (ev.clientX - r.left) * W / r.width
+  const showTip = (clientX: number) => {
+    const r = svgRef.current!.getBoundingClientRect(), sx = (clientX - r.left) * W / r.width
     let best = null as (typeof tips)[number] | null, dd = 1e9
     for (const t of tips) { const v = Math.abs(t.x - sx); if (v < dd) { dd = v; best = t } }
     setTip(best)
+  }
+  const onMove = (ev: React.PointerEvent<SVGSVGElement>) => {
+    const g = drag.current
+    if (g) {   // 확대한 상태에서 끌면 좌우 이동(마우스·터치 모두). 3px 안쪽 움직임은 탭으로 본다
+      if (!g.moved && Math.abs(ev.clientX - g.x) <= 3) return
+      g.moved = true
+      const r = svgRef.current!.getBoundingClientRect()
+      const d = (ev.clientX - g.x) * W / r.width / PW * (g.b - g.a)
+      const w = g.b - g.a, na = Math.max(0, Math.min(1 - w, g.a - d))
+      setTip(null); setZ([na, na + w]); return
+    }
+    showTip(ev.clientX)
   }
 
   return (
@@ -106,12 +119,21 @@ export function LiveChart({ live }: { live: Live }) {
           )
         })}
       </div>
+      <div className="mb-1.5 flex items-center justify-end gap-1.5" role="group" aria-label="차트 확대·축소">
+        {zoomed && <span className="num mr-0.5 text-[12px] font-semibold text-tx3">{(1 / (zB - zA)).toFixed(1)}배</span>}
+        {zoomed && <button type="button" onClick={() => setZ([0, 1])} className="h-9 rounded-full border border-line bg-card px-3 text-[12px] font-semibold text-tx2">전체</button>}
+        <button type="button" aria-label="확대" title="확대" onClick={() => zoomBy(0.6)} disabled={zB - zA <= 0.081}
+          className="grid size-9 place-items-center rounded-full border border-line bg-card text-[18px] font-bold leading-none text-tx2 disabled:opacity-40">+</button>
+        <button type="button" aria-label="축소" title="축소" onClick={() => zoomBy(1 / 0.6)} disabled={!zoomed}
+          className="grid size-9 place-items-center rounded-full border border-line bg-card text-[18px] font-bold leading-none text-tx2 disabled:opacity-40">−</button>
+      </div>
       <div className="relative">
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="viz block w-full touch-pan-y select-none" role="img"
           aria-label={`${e.name}${e.lo != null && e.hi != null ? ` 예측 구간 ${sg(e.lo)} ~ ${sg(e.hi)}` : ''}${last != null ? `, 현재 ${sg(last)}` : ''}`}
           onPointerMove={onMove} onPointerLeave={() => setTip(null)} onDoubleClick={() => setZ([0, 1])}
-          onPointerDown={(ev) => { if (ev.pointerType === 'mouse' && zoomed) { drag.current = { x: ev.clientX, a: zA, b: zB }; ev.currentTarget.setPointerCapture(ev.pointerId) } }}
-          onPointerUp={() => { drag.current = null }}>
+          onPointerDown={(ev) => { if (zoomed) { drag.current = { x: ev.clientX, a: zA, b: zB, moved: false }; ev.currentTarget.setPointerCapture(ev.pointerId) } }}
+          onPointerUp={(ev) => { const g = drag.current; drag.current = null; if (g && !g.moved) showTip(ev.clientX) }}
+          onPointerCancel={() => { drag.current = null }}>
           <defs><clipPath id="dayClip"><rect x={L} y={T - 8} width={PW} height={H - T + 8 - B} /></clipPath></defs>
           <g clipPath="url(#dayClip)">
             <rect x={xo} y={T} width={Math.max(0, xe - xo)} height={H - T - B} rx={4} fill="var(--card2)" />
@@ -142,9 +164,10 @@ export function LiveChart({ live }: { live: Live }) {
           {grid.map((g) => <text key={g} x={L - 5} y={Y(g) + 3.5} textAnchor="end" fontSize={9} fill="var(--tx3)">{Math.abs(g) < 1e-9 ? '0' : (g > 0 ? '+' : '') + g}</text>)}
           <text x={xo - 4} y={T - 8} textAnchor="end" fontSize={9} fill="var(--tx3)">장외</text>
           <text x={xo + 4} y={T - 8} fontSize={9} fill="var(--tx3)">장중</text>
-          {([[D.t_prev, '15:30'], [D.t_night, '05:00'], [D.t_open, '09:00'], [D.t_open + 108e5, '12:00'], [D.t_close, '15:30']] as [number, string][])
-            .filter(([t]) => inX(X(t))).map(([t, s]) => <text key={s + t} x={X(t)} y={H - 6} textAnchor="middle" fontSize={9} fill="var(--tx3)">{s}</text>)}
-          {zoomed && <text x={L + PW} y={T - 8} textAnchor="end" fontSize={9} fill="var(--tx3)">더블클릭: 원래대로</text>}
+          {([[D.t_open, '09:00'], [D.t_prev, '15:30'], [D.t_night, '05:00'], [D.t_open + 108e5, '12:00'], [D.t_close, '15:30']] as [number, string][])
+            .filter(([t]) => inX(X(t)))
+            .filter(([t], i, arr) => arr.slice(0, i).every(([u]) => Math.abs(X(u) - X(t)) >= 26))   // 겹치는 시각 글자는 뒤의 것을 뺀다(09:00 우선)
+            .map(([t, s]) => <text key={s + t} x={X(t)} y={H - 6} textAnchor="middle" fontSize={9} fill="var(--tx3)">{s}</text>)}
         </svg>
         {tip && (
           <div className="pointer-events-none absolute -top-1.5 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-xl bg-tx px-2.5 py-1.5 text-[12px] leading-snug text-bg"
@@ -163,7 +186,7 @@ export function LiveChart({ live }: { live: Live }) {
       </p>
       <Cap>
         왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중(KRX 연결 시 실제 시세, 아니면 추종가) ·
-        PC 에서는 마우스 휠로 확대, 드래그로 이동, 더블클릭으로 원래대로.
+        오른쪽 위 + · − 로 확대·축소하고, 확대한 뒤에는 좌우로 끌어 옮깁니다. PC 는 마우스 휠도 되고, 더블클릭하면 원래대로 돌아갑니다.
       </Cap>
     </Card>
   )
