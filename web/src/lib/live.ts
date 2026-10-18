@@ -1,6 +1,7 @@
-// v5 대시보드 스크립트(template-v5.html)의 실시간 부분을 옮긴 것. 동작은 같다.
-//  - 해외 24시간 추종가: 브라우저가 Hyperliquid info API 를 15초마다 직접 부른다.
-//  - KRX 실제 시세: 지인 링크(#k=키)로 한 번 열면 브라우저가 키를 기억하고 중계기에서 받는다. 실패하면 추종가로 그린다.
+// v5 대시보드 스크립트(template-v5.html)의 실시간 부분을 옮긴 것.
+//  - 2026-10-19 부터 실시간은 토스(KRX·NXT) 시세만 쓴다. 지인 키가 없어도 중계기를 부른다(중계기 PUBLIC_VIEW). 키가 있으면 같이 보낸다.
+//  - 토스 시세를 받는 동안에는 해외 24시간 추종가(Hyperliquid)를 부르지 않는다. 밤사이 선은 07:45 회차가 남긴 기록(day.json)이다.
+//  - 중계기가 끊기면 그때만 추종가를 15초마다 받아 대신 그린다(화면에 'KRX 연결 실패 · 추종가').
 import type { Bar, DayCfg, Ent, Pt } from '../types'
 
 interface Krx { pts: Bar[]; open: number | null; last?: number }
@@ -45,7 +46,7 @@ export class Live {
     this.iv0 = ivFor(now() - D.t_snap)
     D.ent.forEach((e) => { this.S[e.key] = { pts: [], openPx: null, base: e.base, path: e.path || [], krx: null } })
   }
-  get KRX() { return !!(this.RK && this.D.relay) }
+  get KRX() { return !!this.D.relay }
   subscribe(fn: () => void) { this.listeners.add(fn); return () => { this.listeners.delete(fn) } }
   private emit() { this.version++; this.listeners.forEach((f) => f()) }
 
@@ -55,7 +56,8 @@ export class Live {
   }
   relayGet(path: string) {
     const D = this.D
-    return fetch(D.relay + path + (path.indexOf('?') < 0 ? '?' : '&') + 'k=' + encodeURIComponent(this.RK as string), { cache: 'no-store' })
+    const q = this.RK ? (path.indexOf('?') < 0 ? '?' : '&') + 'k=' + encodeURIComponent(this.RK) : ''
+    return fetch(D.relay + path + q, { cache: 'no-store' })
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
   }
 
@@ -122,12 +124,12 @@ export class Live {
 
   tick = () => {
     if (document.hidden) return
-    const full = now() - this.lastFull > 5 * 6e4
-    if (full) this.lastFull = now()
-    return Promise.all([
-      this.load(full).then(() => { this.liveOK = true }, () => { this.liveOK = false }),
-      this.loadKrx(),
-    ]).then(() => this.emit())
+    return this.loadKrx().then(() => {
+      if (this.krxOK) return   // 토스 시세를 받았으면 추종가는 부르지 않는다
+      const full = now() - this.lastFull > 5 * 6e4
+      if (full) this.lastFull = now()
+      return this.load(full).then(() => { this.liveOK = true }, () => { this.liveOK = false })
+    }).then(() => this.emit())
   }
   start() {
     this.tick()
@@ -142,9 +144,11 @@ export class Live {
   // ---- 읽기 ----
   krxOf(e: Ent): Krx | null { const k = this.S[e.key].krx; return (this.KRX && this.krxOK !== false && k && k.pts) ? k : null }
   useKrx(e: Ent) {
-    const k = this.krxOf(e), D = this.D
-    return !!(k && (k.open != null || (k.last != null && (e.key !== 'KOSPI' || now() >= D.t_open)) || k.pts.some((p) => p[0] <= D.t_open)))
+    const k = this.krxOf(e)
+    return !!(k && (k.open != null || k.last != null || k.pts.length > 0))
   }
+  /** 코스피 09:00 전 — 지수는 장 전 거래가 없어 토스 값이 전일 종가다. 추정치를 대신 보이지 않고 '개장 전'으로 둔다 */
+  preOpen(e: Ent) { return e.key === 'KOSPI' && this.useKrx(e) && now() < this.D.t_open }
   sessPts(e: Ent): Bar[] {
     const k = this.krxOf(e), D = this.D
     if (k) { const a = k.pts.filter((p) => p[0] > D.t_open && p[0] <= D.t_close + 6e4); if (a.length) return a }
@@ -164,7 +168,7 @@ export class Live {
     const st = this.S[e.key], k = this.krxOf(e), D = this.D
     if (k) {
       if (now() > D.t_close + 6e4) { const s = this.sessPts(e); if (s.length) return s[s.length - 1][1] }
-      else if (k.last != null && (e.key !== 'KOSPI' || now() >= D.t_open)) return k.last
+      else if (k.last != null) return k.last
     }
     if (st.pts.length) return st.pts[st.pts.length - 1][1]
     if (st.path.length) return st.path[st.path.length - 1][1]
