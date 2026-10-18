@@ -27,6 +27,11 @@ function Label($iso) {
 }
 
 Say "`n=== 지식인 조간 발행 v5 ===`n" Cyan
+# 2026-10-19 메인 전환 뒤로는 쓰지 않는다. 루트 index.html 이 v6 앱이 되어, 이 스크립트가 덮어쓰면 메인 화면이 v5 로 돌아간다.
+# 수동 발행이 필요하면 저장소 루트에서: python publish.py --index <받은 index.html> --cal <calibration.json> --state <state.json> --push
+Say "[중단] 2026-10-19 메인 전환(루트 = v6 앱) 뒤로는 이 스크립트를 쓰지 않습니다." Red
+Say "       수동 발행: python publish.py --index <받은 index.html> --cal <calibration.json> --state <state.json> --push" Gray
+Read-Host "`nEnter 키를 누르면 닫힙니다"; exit 1
 
 # ── 0) 사전 점검 ────────────────────────────────────────────────
 if (-not (Test-Path (Join-Path $repo ".git"))) {

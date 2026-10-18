@@ -9,6 +9,7 @@ import { Market } from './components/Market'
 import { BriefTab } from './components/BriefTab'
 import { Feedback } from './components/Feedback'
 import { Card } from './components/ui/card'
+import { site } from './lib/site'
 
 type Mode = 'system' | 'light' | 'dark'
 const applyTheme = (m: Mode) => {
@@ -41,7 +42,7 @@ export default function App() {
   const [tab, setTab] = useState(() => (location.hash === '#brief' ? 'brief' : 'dash'))
 
   useEffect(() => {
-    fetch('../day.json', { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
+    fetch(site('day.json'), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
       .then(setData, () => setErr('오늘 데이터(day.json)가 아직 없습니다. 다음 회차(평일 07:45) 발행부터 보입니다. 지금은 기존 화면을 이용해 주세요.'))
   }, [])
   const live = useMemo(() => (data ? new Live(data.day, readRelayKey()) : null), [data])
@@ -58,7 +59,7 @@ export default function App() {
         <ThemeSwitch />
       </header>
       {!data ? (
-        <Card className="text-center text-[15px] text-tx2">{err || '불러오는 중…'}<div className="mt-3"><a className="font-bold text-brand" href="../">기존 화면으로 →</a></div></Card>
+        <Card className="text-center text-[15px] text-tx2">{err || '불러오는 중…'}<div className="mt-3"><a className="font-bold text-brand" href={site('v5/')}>기존 화면(v5)으로 →</a></div></Card>
       ) : (
         <Tabs.Root value={tab} onValueChange={go}>
           <div className="mb-4 flex items-end justify-between gap-3">
@@ -88,7 +89,7 @@ export default function App() {
             </div>
           </Tabs.Content>
           <Tabs.Content value="brief"><BriefTab data={data} /></Tabs.Content>
-          <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href="../">기존 화면(v5)</a></p>
+          <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('v5/')}>기존 화면(v5)</a></p>
         </Tabs.Root>
       )}
     </div>

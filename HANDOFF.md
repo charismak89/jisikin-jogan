@@ -21,10 +21,19 @@
 - 화면을 고치면 `python3 regress.py` 로 마지막 회차 입력(`fixtures/last-fill.json`, publish.py 가 회차마다 남김)을 고치기 전·후로 렌더해 비교한다.
 - 주간 점검과 루틴의 `/v1/daily` 연동에는 환경 변수 `JJ_RELAY_URL`·`JJ_RELAY_TOKEN`(루틴 키)이 필요하다. 사용자가 환경 설정에 등록한다.
 
+## 0-4. 2026-10-19 메인 전환 (R3, R2 병행은 건너뜀 — 사용자 결정)
+- 메인 주소 `/jisikin-jogan/` 가 v6 앱(React)이다. 루트 `index.html` 은 `web/` 빌드가 만드는 셸이고 루틴은 건드리지 않는다. `/v6/` 주소도 같은 화면이다.
+- 이전 화면은 `/jisikin-jogan/v5/`. `publish.py` 가 render.py 산출물을 `v5/index.html` 에 쓰고(`style.css`·`archive/` 링크는 `../`), 전날 v5 화면을 `archive/<날짜>.html` 로 옮긴다. 데이터는 루트 `day.json`.
+- 지인 링크(`/#k=…`)는 그대로 v6 로 열리고 중계기 키도 그대로 읽는다(`web/src/lib/live.ts` 의 readRelayKey).
+- 차트: 오른쪽 위 `+` · `−` · `전체` 버튼, 확대 뒤 좌우로 끌어 이동(마우스·터치). PC 휠·더블클릭은 그대로.
+- `publish.ps1`·`publish.bat` 은 실행하면 바로 멈춘다(루트를 v5 로 덮어쓰기 때문). 수동 경로는 `UPDATE.md`.
+- 의견 `ctx.page`: `/jisikin-jogan/`·`/jisikin-jogan/v6/` = v6, `/jisikin-jogan/v5/` = v5.
+- 되돌리기: 전환 PR 을 revert(`web/README.md`).
+
 ## 0-3. 2026-10-17 주간 점검 반영
 - 대시보드 차트 PC 휠 확대·드래그·더블클릭 초기화(의견 1건). 장 마감 뒤 종목 종가가 KRX 기준임을 문구로 표시.
-- 중계기 `/v1/daily` 국내 종목 시가·종가를 1분봉 기준 KRX 값으로 변경(`src`·`complete`·`nxt_open`·`nxt_close`). **VM 갱신 필요**: `cd ~/jisikin-jogan && git pull -q && sudo bash relay/install.sh` (사용자가 10/18 에 수행 예정). 갱신 뒤 루틴 연동(남은 일)을 시작할 수 있다.
-- R0: render.py 가 `out/day.json` 도 쓰고 publish.py 가 루트 `day.json` 으로 반영(첫 반영은 다음 평일 회차). R1: `web/` 앱을 빌드해 `v6/` 에 커밋(`web/README.md`). 병행(R2)은 `/jisikin-jogan/v6/` 를 지인에게 같이 보내며 시작, 의견 `ctx.page` 로 v5·v6 구분. `regress.py` 는 `fixtures/` 가 없어 이번엔 합성 입력으로 시험했다(다음 발행부터 자동 보관).
+- 중계기 `/v1/daily` 국내 종목 시가·종가를 1분봉 기준 KRX 값으로 변경(`src`·`complete`·`nxt_open`·`nxt_close`). **VM 갱신 완료(2026-10-18, PR #19 `complete` 수정 포함).** 주간 점검 세션이 `/v1/daily` 로 10/16 값을 받아 6종 시가·종가가 KRX 1분봉 기준과 맞는 것을 확인했다. `complete` 는 4종 true, ETF 2종(0167A0·442580)은 false — 시가·종가 1분봉에 체결이 없던 것으로 추정 [검증필요], 값은 통합 일봉과 같았다. 이제 루틴 연동(남은 일)을 시작할 수 있다. 연동 때 `complete: false` 종목은 Google Finance 와 대조한 뒤 쓴다.
+- R0: render.py 가 `out/day.json` 도 쓰고 publish.py 가 루트 `day.json` 으로 반영(첫 반영은 다음 평일 회차). R1: `web/` 앱을 빌드해 `v6/` 에 커밋(`web/README.md`). 병행(R2)은 `/jisikin-jogan/v6/` 를 지인에게 같이 보내며 시작, 의견 `ctx.page` 로 v5·v6 구분. `regress.py` 는 `fixtures/` 가 없어 이번엔 합성 입력으로 시험했다. 10/19 발행부터 `fixtures/last-fill.json` 이 저장소에 있다. 루트 `day.json` 첫 반영도 10/19 회차(제42호).
 
 ## 0. 현재 상태 (2026-09-28)
 - 루틴 정상 가동. 9/15~9/23 대부분 main 직접 반영. 9/21(PR #1)·9/28(PR #2)은 브랜치로 올라가 사람이 머지했다.
@@ -89,7 +98,7 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 6. 9/21 PR #1 이 main 거부 폴백이었는지 [검증필요]. 9/22·9/23 은 main 직접 push 가 됐으므로 "클라우드 세션은 main push 불가" 규칙(7ab4fbc)은 반영하지 않았다
 7. ~~첫 주간 점검(10/17)에서 코스피 반폭 판단~~ 2026-10-16 사용자 결정 — 비례 반폭(`DIRECTION.md` A1). `calibration.json` rule `half_width_mode=scaled`·`half_width_q=0.44`, `score.py` 의 `half_width()`. 고정 0.8 은 적용 뒤 5회(폴백 10/12 제외) 중 3회 구간 밖이었다. 주간 점검은 `analyze.py` "현행 규칙 점검" 줄만 보고, 10회 쌓이기 전에는 판정하지 않는다
 8. **개선 백로그는 `DIRECTION.md` 6절**(2026-10-16 벤치마킹: 나박AI·PRISM-INSIGHT·유사 서비스). 주간 점검이 계획을 쓸 때 이 번호(A1·B1·C1 …)로 후보를 고른다. 정체성·안 하는 일은 같은 문서 4·7절. 결정된 것은 같은 문서 0절 "결정 기록"(A1 비례 반영, E3 지인 KRX 실시간 유지)
-9. **10/17 주간 점검 안건 — UI 개편.** 사용자 요청: 토스결·업비트결, PC 브라우저 대응, TDS·shadcn/ui·StyleSeed 검토. 검토 결과와 단계안은 `DIRECTION.md` 9절. 추천은 React 전환 R안(R0 `render.py` 가 `out/day.json` 추가 출력 → R1 `web/` v6 앱을 `/v6/` 에 → R2 병행 2주 → R3 루트 전환, 루틴은 그대로). 대안은 U안(정적 유지 + 토큰 교체). TDS 는 라이선스상 불가. 지인 의견의 UI 건과 `ctx.w`(1024px 이상 비율)를 같이 보고 계획에 올린다. 지난 회차 HTML 이 `../style.css` 를 공유하니 새 화면은 새 클래스·새 스타일시트로
+9. **10/17 주간 점검 안건 — UI 개편.** 사용자 요청: 토스결·업비트결, PC 브라우저 대응, TDS·shadcn/ui·StyleSeed 검토. 검토 결과와 단계안은 `DIRECTION.md` 9절. 추천은 React 전환 R안(R0 `render.py` 가 `out/day.json` 추가 출력 → R1 `web/` v6 앱을 `/v6/` 에 → R2 병행 2주 → R3 루트 전환, 루틴은 그대로). **R0·R1 10/17, R3 10/19 완료(R2 건너뜀, 0-4절).** 대안은 U안(정적 유지 + 토큰 교체). TDS 는 라이선스상 불가. 지인 의견의 UI 건과 `ctx.w`(1024px 이상 비율)를 같이 보고 계획에 올린다. 지난 회차 HTML 이 `../style.css` 를 공유하니 새 화면은 새 클래스·새 스타일시트로
 
 ## 8. 작업지시 방법
 - 절차 → `RUNBOOK.md`. 사실·표기·금지 표현·이슈 범위 → `CONTEXT.md`. 휴장일 → `holidays.json`. 예측 규칙 → `calibration.json` 의 `rule`

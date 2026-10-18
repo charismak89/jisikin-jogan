@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DayData } from '../types'
+import { site } from '../lib/site'
 
 // 브리핑 본문은 render.py 가 만든 v5 HTML 그대로다(글자까지 같다). 기존 style.css 가 새 화면과 부딪치지 않도록 Shadow DOM 안에서 그린다.
 let cssP: Promise<string> | null = null
-const loadCss = () => (cssP ||= fetch('../style.css').then((r) => (r.ok ? r.text() : '')).catch(() => ''))
+const loadCss = () => (cssP ||= fetch(site('style.css')).then((r) => (r.ok ? r.text() : '')).catch(() => ''))
 // :root 선택자를 shadow host 로 옮긴다 (테마 속성 data-jj 는 host 에 단다)
 const scope = (css: string) => css
   .replace(/:root:not\(\[data-jj\]\)/g, ':host(:not([data-jj]))')
