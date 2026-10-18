@@ -14,7 +14,7 @@
 | 브랜치로 올라온 회차 PR 머지 | Claude Code 세션 또는 사람(아래) |
 | 루틴 편집·Run now·저장소 부착·Network access | **사람, 웹 UI(claude.ai/code/routines)에서만** |
 | 원격 브랜치 삭제 | **사람** (세션 권한으로 막혀 있음, 아래) |
-| 윈도우 로컬 폴더 정리·publish.bat | **사람** |
+| 윈도우 로컬 폴더 정리 | **사람** (publish.bat 은 2026-10-19 메인 전환 뒤 멈춤) |
 
 루틴 보고에 `not in this session's authorized repository set` 이 보이면 루틴의 저장소 부착이 풀린 것입니다. 루틴 편집 화면 → Repositories 에서 `charismak89/jisikin-jogan` 을 다시 붙이세요.
 
@@ -25,8 +25,13 @@
 3. **Merge pull request** → **Confirm merge**. 브랜치는 자동으로 지워집니다(저장소 설정 "Automatically delete head branches" 켜짐)
 - Claude Code 세션에 "오늘 회차 브랜치 머지해줘" 라고 해도 됩니다.
 
-## 세션이 "publish.bat 을 실행하면 반영됩니다" 라고 하면 — 수동 발행
-자동 발행 게이트(`GATE HOLD`)에 걸렸거나 push 가 전부 실패했을 때입니다. publish.bat 전에 아래 "로컬 폴더를 main 에 맞추기" 의 1~2단계로 폴더 상태부터 확인하세요.
+## push 가 전부 실패했을 때 — 수동 발행 (2026-10-19 바뀜)
+**publish.bat 은 더 쓰지 않습니다.** 메인 주소(루트 `index.html`)가 v6 화면이 됐는데, publish.bat 은 그 자리에 v5 화면을 덮어씁니다. 실행하면 바로 멈추도록 막아 두었습니다.
+- GATE HOLD 는 위 "회차가 브랜치로 올라왔을 때" 대로 PR 을 머지하면 됩니다.
+- push 가 전부 실패했으면 루틴의 저장소 부착을 다시 붙이고(맨 위 안내) 루틴을 **Run now** 로 다시 돌립니다.
+- 그래도 손으로 올려야 하면 Claude Code 세션에 맡기거나, 파이썬이 있는 곳에서 `python publish.py --index <index.html> --cal <calibration.json> --state <state.json> --push` 를 돌립니다.
+
+아래는 2026-10-18 까지의 옛 절차입니다(기록용).
 1. 세션이 보낸 `index.html` · `calibration.json` · `state.json` 세 개를 **다운로드 폴더에 저장**
 2. 리포 폴더의 **`publish.bat` 더블클릭** → `발행 완료!`
    - 세션이 자동 발행에 성공한 날에는 publish.bat 을 돌리지 마세요. 돌려도 발행일 검사와 원격 pull 이 막아 주지만, 같은 회차가 두 번 커밋될 수 있습니다.

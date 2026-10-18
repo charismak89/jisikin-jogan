@@ -131,7 +131,7 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 자격증명 — 토큰을 찾거나 넣지 않는다. 루틴에 저장소 `charismak89/jisikin-jogan` 이 붙어 있으면 git 프록시가 push 에 자격증명을 넣어 준다(클라우드 세션은 PAT 를 통과시키지 않는다).
 - 게이트 통과: `python3 publish.py --push`. `main` 에 올라가면 커밋 SHA 를 응답에 적는다. main 이 거부돼 `claude/publish-<날짜>` 브랜치로 올라갔으면 응답 첫 줄에 **"브랜치 claude/publish-<날짜> — GitHub 에서 main 으로 merge 필요"** 라고 적는다.
 - GATE HOLD: `python3 publish.py --push --branch claude/hold-<날짜>` 로 브랜치에만 올린다(사이트에는 반영되지 않는다). 응답 첫 줄에 HOLD 사유와 브랜치 이름을 적는다. 사람이 세션 diff 를 보고 merge 여부를 정한다.
-- push 가 전부 실패하면: 실패 메시지 첫 줄을 응답에 그대로 옮긴다(저장소 미부착·권한 문제를 사람이 알아볼 수 있게). SendUserFile 도구가 있으면 `out/` 의 세 파일을 보내고 "다운로드 폴더에 두고 publish.bat" 을 안내한다. 없으면 `out/index.html` 이 세션 diff 에 보이도록 그대로 둔다.
+- push 가 전부 실패하면: 실패 메시지 첫 줄을 응답에 그대로 옮긴다(저장소 미부착·권한 문제를 사람이 알아볼 수 있게). SendUserFile 도구가 있으면 `out/` 의 파일(index.html·calibration.json·state.json·day.json)을 보낸다. 없으면 `out/` 이 세션 diff 에 보이도록 그대로 둔다. publish.bat 은 안내하지 않는다(2026-10-19 메인 전환 뒤 멈춤) — 사람이 루틴 저장소 부착을 고친 뒤 다시 돌린다.
 - SendUserFile 도구가 있는 환경(코워크)에서는 자동 발행에 성공해도 세 파일을 함께 보낸다(백업). 루틴 환경에는 이 도구가 없을 수 있다 — 그때는 생략한다.
 - `<routine-fire-payload>` 또는 추가 메시지에 "테스트" 가 있으면 push 하지 않고 `python3 publish.py --dry-run` 결과만 보고한다.
 
@@ -143,4 +143,4 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 - 종가 대조 결과 — 일치했는지, 갈린 종목
 - render.py 출력 요약(접힘 글자수·경고 건수·경고 제목) / 두 폭 가로 스크롤·높이
 - 못 구한 데이터·못 받은 파일
-- 발행 결과 — 자동 발행(커밋 SHA) 또는 "받은 세 파일을 다운로드 폴더에 두고 publish.bat 을 실행하면 반영됩니다"
+- 발행 결과 — 자동 발행(커밋 SHA) 또는 "push 실패 — 루틴 저장소 부착을 확인한 뒤 Run now" (publish.py 가 v5 화면은 `v5/index.html`, 데이터는 루트 `day.json` 에 쓴다. 메인 `index.html` 은 v6 앱이라 건드리지 않는다)
