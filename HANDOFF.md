@@ -25,7 +25,7 @@
 - 메인 주소 `/jisikin-jogan/` 가 v6 앱(React)이다. 루트 `index.html` 은 `web/` 빌드가 만드는 셸이고 루틴은 건드리지 않는다. `/v6/` 주소도 같은 화면이다.
 - 이전 화면은 `/jisikin-jogan/v5/`. `publish.py` 가 render.py 산출물을 `v5/index.html` 에 쓰고(`style.css`·`archive/` 링크는 `../`), 전날 v5 화면을 `archive/<날짜>.html` 로 옮긴다. 데이터는 루트 `day.json`.
 - 지인 링크(`/#k=…`)는 그대로 v6 로 열리고 중계기 키도 그대로 읽는다(`web/src/lib/live.ts` 의 readRelayKey).
-- 차트: 오른쪽 위 `+` · `−` · `전체` 버튼, 확대 뒤 좌우로 끌어 이동(마우스·터치). PC 휠·더블클릭은 그대로.
+- 차트: 오른쪽 위 `+` · `−` · `전체` 버튼, 확대 뒤 좌우로 끌어 이동(마우스·터치). PC 휠·더블클릭은 그대로. 맨 오른쪽 크게 보기 버튼은 차트를 화면 가득 다시 그린다(PC 760×360, 모바일 360×460 좌표계, Esc 로 닫기).
 - `publish.ps1`·`publish.bat` 은 실행하면 바로 멈춘다(루트를 v5 로 덮어쓰기 때문). 수동 경로는 `UPDATE.md`.
 - 의견 `ctx.page`: `/jisikin-jogan/`·`/jisikin-jogan/v6/` = v6, `/jisikin-jogan/v5/` = v5.
 - 되돌리기: 전환 PR 을 revert(`web/README.md`).
