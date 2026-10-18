@@ -5,7 +5,15 @@ import { arrow, dir, hm, money, nf, sg, tk } from '../lib/fmt'
 import { Card, CardHead, Cap } from './ui/card'
 import { cn } from '../lib/cn'
 
-const W = 360, H = 236, L = 34, R = 58, T = 20, B = 22, PW = W - L - R
+const L = 34, R = 58, T = 20, B = 22
+// 차트 좌표계(viewBox). 평소 360×236. 크게 보기에서는 PC(720px~)는 가로로 넓게, 모바일은 세로로 길게 다시 그린다 — 글자 크기는 그대로 두고 그릴 칸을 늘린다
+const dimsOf = (exp: boolean, vw: number) => (!exp ? { W: 360, H: 236 } : vw >= 720 ? { W: 760, H: 360 } : { W: 360, H: 460 })
+const ExpandIcon = ({ open }: { open: boolean }) => (
+  <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    {open ? <><path d="M4 14h6v6" /><path d="M20 10h-6V4" /><path d="M14 10l7-7" /><path d="M3 21l7-7" /></>
+      : <><path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="M21 3l-7 7" /><path d="M3 21l7-7" /></>}
+  </svg>
+)
 const BAND_CLS: Record<string, string> = { 안: 'bg-brand-soft text-brand', 아래: 'bg-dn/10 text-dn', 위: 'bg-up/10 text-up' }
 
 export function LiveChart({ live }: { live: Live }) {
@@ -17,6 +25,21 @@ export function LiveChart({ live }: { live: Live }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const drag = useRef<{ x: number; a: number; b: number; moved: boolean } | null>(null)
   const e = D.ent[sel]
+  const [exp, setExp] = useState(false)
+  const [vw, setVw] = useState(() => window.innerWidth)
+  const { W, H } = dimsOf(exp, vw), PW = W - L - R
+  const dims = useRef({ W, PW }); dims.current = { W, PW }
+
+  // 크게 보기 — 화면 전체를 덮는다. Esc 로 닫고, 그동안 뒤 화면 스크롤은 막는다
+  useEffect(() => {
+    if (!exp) return
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') setExp(false) }
+    const onResize = () => setVw(window.innerWidth)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'; onResize()
+    window.addEventListener('keydown', onKey); window.addEventListener('resize', onResize)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize) }
+  }, [exp])
 
   const view = useMemo(() => {
     void ver
@@ -40,14 +63,14 @@ export function LiveChart({ live }: { live: Live }) {
     for (let g = lo; g <= hi + 1e-9; g += step) grid.push(g)
     const tips = ([...pre, ...tail.slice(1), ...ses] as (Bar | Pt)[]).map((p) => ({ x: X(p[0]), t: hm(p[0]), p: p[1] })).filter((b) => inX(b.x))
     return { X, Y, inX, pre, tail, ses, last, grid, tips, op: live.openPct(e) }
-  }, [ver, sel, zA, zB, live, e, D])
+  }, [ver, sel, zA, zB, live, e, D, W, H, PW])
 
   // 휠 확대(PC 마우스만) — 터치 화면은 스크롤을 건드리지 않는다
   useEffect(() => {
     const svg = svgRef.current
     if (!svg || !window.matchMedia('(pointer:fine)').matches) return
     const frac = (ev: MouseEvent) => {
-      const r = svg.getBoundingClientRect()
+      const r = svg.getBoundingClientRect(), { W, PW } = dims.current
       return Math.max(0, Math.min(1, ((ev.clientX - r.left) * W / r.width - L) / PW))
     }
     const onWheel = (ev: WheelEvent) => {
@@ -98,6 +121,8 @@ export function LiveChart({ live }: { live: Live }) {
 
   return (
     <Card aria-label="예측과 실시간">
+      <div className={exp ? 'fixed inset-0 z-50 overflow-y-auto bg-bg p-3 sm:p-6' : ''} role={exp ? 'dialog' : undefined} aria-modal={exp || undefined} aria-label={exp ? '예측 → 실시간 크게 보기' : undefined}>
+      <div className={exp ? 'mx-auto w-full max-w-[1240px] rounded-3xl bg-card p-4 shadow-[var(--shadow)] sm:p-6' : ''}>
       <CardHead title="예측 → 실시간" right={
         <span className="inline-flex items-center gap-1.5">
           <i className={cn('inline-block size-2 rounded-full', live.krxOK ? 'bg-[var(--ok)]' : live.liveOK ? 'bg-brand' : 'bg-tx3')} />
@@ -126,6 +151,12 @@ export function LiveChart({ live }: { live: Live }) {
           className="grid size-9 place-items-center rounded-full border border-line bg-card text-[18px] font-bold leading-none text-tx2 disabled:opacity-40">+</button>
         <button type="button" aria-label="축소" title="축소" onClick={() => zoomBy(1 / 0.6)} disabled={!zoomed}
           className="grid size-9 place-items-center rounded-full border border-line bg-card text-[18px] font-bold leading-none text-tx2 disabled:opacity-40">−</button>
+        <span className="mx-0.5 h-5 w-px bg-line" aria-hidden />
+        <button type="button" onClick={() => setExp((v) => !v)} aria-pressed={exp}
+          aria-label={exp ? '차트 원래 크기로' : '차트 크게 보기'} title={exp ? '원래 크기로 (Esc)' : '크게 보기'}
+          className={cn('grid h-9 place-items-center rounded-full border text-tx2', exp ? 'grid-flow-col gap-1.5 border-tx bg-tx px-3 text-[12px] font-semibold text-bg' : 'size-9 border-line bg-card')}>
+          <ExpandIcon open={exp} />{exp && '원래 크기'}
+        </button>
       </div>
       <div className="relative">
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="viz block w-full touch-pan-y select-none" role="img"
@@ -187,7 +218,10 @@ export function LiveChart({ live }: { live: Live }) {
       <Cap>
         왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중(KRX 연결 시 실제 시세, 아니면 추종가) ·
         오른쪽 위 + · − 로 확대·축소하고, 확대한 뒤에는 좌우로 끌어 옮깁니다. PC 는 마우스 휠도 되고, 더블클릭하면 원래대로 돌아갑니다.
+        맨 오른쪽 버튼은 차트를 화면 가득 크게 보여 줍니다(Esc 또는 같은 버튼으로 닫기).
       </Cap>
+      </div>
+      </div>
     </Card>
   )
 }
