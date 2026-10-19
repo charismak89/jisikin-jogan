@@ -892,6 +892,90 @@
     "perp_asof": "10/16 07:46"
    },
    "source": "2026-10-19 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-19",
+   "forecast_dir": "갭하락",
+   "low": 5360.0,
+   "high": 5580.0,
+   "band_width_pct": 3.88,
+   "prev_close": 5668.05,
+   "actual_open": 5488.41,
+   "gap_pct": -3.17,
+   "in_range": true,
+   "dir_hit": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -3.49,
+   "center_err_pct": 0.32,
+   "signals": {
+    "k200n_pct": -3.5,
+    "k200n_close": 850.25,
+    "k200n_asof": "10/19 05:00",
+    "k200f_close": 881.05,
+    "ewy_implied_pct": -6.33,
+    "adr_implied_pct": -8.0,
+    "news_flag": "주말 국내 반도체 신규 재료는 검색에서 확인하지 못함 · 금요일 밤 미국 나스닥 −2.15%·SOX −3.83% 급락, 원인 기사는 미확인",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.3,
+    "nq_pct": 0.62,
+    "us_fut_asof": "10/19 07:36",
+    "perp": {
+     "KOSPI": {
+      "p0500": -4.78,
+      "snap": -2.8
+     },
+     "005930": {
+      "p0500": -5.87,
+      "snap": -3.09
+     },
+     "000660": {
+      "p0500": -7.05,
+      "snap": -4.25
+     }
+    },
+    "perp_asof": "10/19 07:46"
+   },
+   "source": "2026-10-20 회차 채점 (score.py, prices.KOSPI.open)"
+  }
+ ],
+ "stock_records": [
+  {
+   "date": "2026-10-19",
+   "code": "000660",
+   "low": 1207000.0,
+   "high": 1239000.0,
+   "prev_close": 1272000.0,
+   "actual_open": 1212000.0,
+   "gap_pct": -4.72,
+   "in_range": true,
+   "center_pct": -3.87,
+   "center_err_pct": -0.85,
+   "band_width_pct": 2.52,
+   "inputs": {
+    "k200n_pct": -3.5,
+    "perp_pct": -4.25
+   },
+   "source": "2026-10-20 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-10-19",
+   "code": "005930",
+   "low": 205000.0,
+   "high": 211500.0,
+   "prev_close": 215500.0,
+   "actual_open": 207000.0,
+   "gap_pct": -3.94,
+   "in_range": true,
+   "center_pct": -3.29,
+   "center_err_pct": -0.65,
+   "band_width_pct": 3.02,
+   "inputs": {
+    "k200n_pct": -3.5,
+    "perp_pct": -3.09
+   },
+   "source": "2026-10-20 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
