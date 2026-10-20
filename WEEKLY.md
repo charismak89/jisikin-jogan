@@ -67,6 +67,7 @@ python3 analyze.py            # 기록 요약 (코스피 records, 종목 stock_r
    - 마지막 회차 입력(`fixtures/last-fill.json`)으로 고치기 전·후를 렌더해 비교한다.
    - 고친 뒤 GATE 가 통과해야 하고, `index.html` diff 가 의도한 부분만이어야 한다.
    - `template-v5.html` 의 `<style>` 과 `style.css` 는 같은 내용으로 유지한다.
+   - `web/`(v6)를 바꾸면 `cd web && npm run build` 뒤 `python3 uicheck.py`. `UICHECK PASS` 여야 한다.
 3. 중계기(`relay/`)를 바꾸면 VM 갱신 명령을 PR 본문과 보고에 적는다: `cd ~/jisikin-jogan && git pull -q && sudo bash relay/install.sh`.
 4. 규칙 변경은 `calibration.json` 의 해당 값 하나와 `history` 한 줄, `CALIBRATION.md` 기록 한 줄만 고친다.
 5. PR 을 만든다. 본문: 무엇이 바뀌나 · 근거(의견 id, 원문 없이) · 검증(regress 결과) · 되돌리는 법.

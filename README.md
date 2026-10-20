@@ -22,6 +22,7 @@
 | `score.py` | 직전 전망 채점 → calibration.json append | — |
 | `publish.py` | 아카이브·목록·링크 정리 + 커밋 + push (예약 세션용). 회차 입력을 `fixtures/` 에 남긴다 | — |
 | `regress.py` / `fixtures/` | 렌더 회귀 검사. 마지막 회차 입력으로 고치기 전·후를 렌더해 비교 | — |
+| `uicheck.py` | 화면 검사. 루트·v5·v6 를 390·1440px 로 열어 넘침·콘솔 오류·4xx 확인, 스크린샷 저장(클라우드 세션용) | — |
 | `publish.bat` / `publish.ps1` | 옛 수동 발행. 2026-10-19 메인 전환 뒤 실행하면 바로 멈춘다(루트 index.html 을 v5 로 덮어쓰기 때문) | — |
 | `web/` / `v6/` | v6 화면(React) 소스와 빌드 산출물. `cd web && npm ci && npm run build` 가 `v6/` 와 루트 `index.html` 을 함께 만든다(`web/README.md`) | 사람(UI 바꿀 때만) |
 | `day.json` | v6 화면이 읽는 오늘자 데이터. render.py → publish.py | publish |
