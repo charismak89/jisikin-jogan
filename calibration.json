@@ -938,6 +938,52 @@
     "perp_asof": "10/19 07:46"
    },
    "source": "2026-10-20 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-20",
+   "forecast_dir": "보합",
+   "low": 5730.0,
+   "high": 5790.0,
+   "band_width_pct": 1.04,
+   "prev_close": 5768.01,
+   "actual_open": 5733.57,
+   "gap_pct": -0.6,
+   "in_range": true,
+   "dir_hit": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -0.14,
+   "center_err_pct": -0.46,
+   "signals": {
+    "k200n_pct": -0.13,
+    "k200n_close": 892.1,
+    "k200n_asof": "10/20 06:05",
+    "k200f_close": 893.25,
+    "ewy_implied_pct": 2.32,
+    "adr_implied_pct": 4.31,
+    "news_flag": "새 주말·야간 재료는 검색에서 확인하지 못함 · 월요일 미국 SOX +1.61%·MU +2.97% 반등, 원인 기사는 미확인",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.16,
+    "nq_pct": 0.21,
+    "us_fut_asof": "10/20 07:36",
+    "perp": {
+     "KOSPI": {
+      "p0500": -0.72,
+      "snap": -0.13
+     },
+     "005930": {
+      "p0500": -0.03,
+      "snap": 1.01
+     },
+     "000660": {
+      "p0500": 0.3,
+      "snap": 1.03
+     }
+    },
+    "perp_asof": "10/20 07:46"
+   },
+   "source": "2026-10-21 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
