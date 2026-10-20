@@ -1,0 +1,28 @@
+name: check
+# PR 에서만 돈다. 평일 07:45 루틴의 main 직접 발행은 막지 않는다.
+on:
+  pull_request:
+jobs:
+  render:
+    # 렌더 회귀: 마지막 회차 입력(fixtures/)으로 main 과 PR 을 렌더해 GATE 를 비교한다 (regress.py)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: git fetch -q origin main:refs/remotes/origin/main
+      - run: python -m py_compile render.py score.py publish.py fetch_perp.py analyze.py regress.py relay/jogan_relay.py
+      - run: python regress.py
+  web:
+    # v6 앱(web/)의 빌드 산출물(v6/, 루트 index.html)이 소스와 맞는지 본다. 사이트는 커밋된 산출물을 그대로 쓴다
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: cd web && npm ci --no-audit --no-fund && npm run build
+      - run: git status --porcelain -- v6 index.html && test -z "$(git status --porcelain -- v6 index.html)"
