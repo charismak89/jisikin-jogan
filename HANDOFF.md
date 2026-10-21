@@ -57,7 +57,7 @@
 |---|---|
 | 현행 | `trig_017rnKLpNdYfD3c61DqqmLPP` · enabled · 웹에서 생성(`created_via http_api`) |
 | cron | `45 22 * * 0-4` UTC = 평일 07:45 KST (stagger 로 몇 분 늦을 수 있음) |
-| 설정 | 저장소 charismak89/jisikin-jogan 부착 · 환경 Default, Network access **Full** · 커넥터 없음 · 모델 **기본값**(트리거 `model` 비어 있음 — 사용자가 기본값으로 바꿈, 9/22 에는 claude-opus-5-5). 기본값은 회차마다 Opus·Sonnet 이 바뀐다. 10/21·10/22 는 claude-sonnet-5-5. 고정 여부는 사용자 결정 대기(2026-10-22 추천: 평일 Sonnet 5.5 · 토요일 주간 점검 Opus 5.5) |
+| 설정 | 저장소 charismak89/jisikin-jogan 부착 · 환경 Default, Network access **Full** · 커넥터 없음 · 모델 **claude-opus-5-5 고정**(2026-10-22 사용자 — 평일 회차·토요일 주간 점검 모두). 10/16~10/22 사이 기본값이었고 그때 10/21·10/22 회차는 Sonnet 5.5 로 돌았다 |
 | 프롬프트 | 부트스트랩 5줄 = `TRIGGER-PROMPT.md`. 절차는 `RUNBOOK.md` |
 | 비용 | 9/28 회차(Opus) 약 $2.1 · 5분 · 10/21(Sonnet) $0.67 · 약 2분 · 10/22(Sonnet) $0.49 · 약 1.5분 (get_session usage 기준) |
 | 구버전 | `trig_016XYcHaC8zkUPzByGAm4Eq7` 비활성. 이력 보존용, 삭제 금지 |
@@ -91,6 +91,7 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 ## 5. 예측 캘리브레이션
 - score.py 채점: hit = 실제 시초가가 구간 안(목표 80%). **2026-10-21 방향 3분류(갭상승·보합·갭하락) 폐지** — 전망에서도 `dir` 를 뺐고 기존 records 39건을 다시 계산했다(miss→hit 8건, `CALIBRATION.md`·`calibration.json` `metric.history`)
 - **2026-10-02 후보 2 적용**: 구간 중심 = 야간선물. 첫 적용 10/7. 반폭은 10/16 회차까지 0.8% 고정, **10/19 회차부터 비례 0.44 × (1 + |야간|)**(2026-10-16 사용자 결정, `rule.half_width_mode="scaled"`). 휴장 뒤 회차(10/12·12/28·1/4)는 score.py 가 강제 폴백(10/6 묵은 야간선물 실측). 롤백 기준은 `CALIBRATION.md` 지금 상태(고정 0.8 반사실보다 낮으면 fixed 로)
+- **롤백 판정 예약**: 2026-11-06(금) 16:00 KST, 이 관리 세션에 `send_later`(`trig_01DUKEdCqsSk46dk5AVGpyqD`). 기준은 위 비례 반폭 롤백 기준(10/19~10/30 10회, 비례 커버 vs 고정 0.8 반사실). 옛 예약 `trig_01Ucfe3tE4bWZmjxELUhf6YA`(반폭 0.8 고정·8/10 기준, 다른 세션)는 지시문을 이 세션에서 고칠 수 없어 꺼 두었다(삭제 안 함).
 - 진단·재계산: `python3 analyze.py`. 변경은 금요일 마감 뒤, 한 번에 한 변수. 다음 후보는 야간 ×0.8, 그다음 미국 지수선물(10/2 부터 기록)
 
 ## 6. 데이터 소스
