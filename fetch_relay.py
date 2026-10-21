@@ -117,7 +117,8 @@ def report(rel):
           ('' if P[k].get('complete') is not False else '*') for k in KR if k in P]
     print('  국내(KRX 1분봉) ' + ' · '.join(kr) + ('  * complete=false — 시가·종가 봉이 비었던 종목' if any(P[k].get('complete') is False for k in KR if k in P) else ''))
     us = ['%s %s' % (k, fmt(P[k]['close'])) for k in US if k in P]
-    if us: print('  미국(%s) ' % P[[k for k in US if k in P][0]]['date'] + ' · '.join(us))
+    if us: print('  미국(%s) ' % P[[k for k in US if k in P][0]]['date'] + ' · '.join(us) +
+                 '  — 대조용. 1순위는 stockanalysis 정규장 종가(토스 일봉 종가는 공식 종가와 소수점 차이가 난다 — 10/21 NVDA 221.86 vs 221.97)')
     if 'USDKRW' in P: print('  환율 %s (%s 매매기준율 — 서울 종가 근사, 웹 종가가 있으면 그쪽)' % (fmt(P['USDKRW']['close']), P['USDKRW']['asof'][11:16] or '15:30'))
     f = rel.get('flow')
     if f: print('  수급(억원) 외국인 %s · 기관 %s · 개인 %s · 기타법인 %s — %s %s' % (
@@ -127,7 +128,7 @@ def report(rel):
         print('  %s 순매수(주) 외국인 %s · 기관 %s · 개인 %s' % (k, *[sg(v.get(x)) for x in ('foreign', 'inst', 'retail')]))
     for n in calendar_notes(rel, date.fromisoformat(rel['issue_date'])): print('  달력 ' + n)
     for e in rel.get('errors') or []: print('  일부 실패 — %s' % e)
-    print('  → 위 값은 score.py·render.py 가 fill.json 빈칸에 자동으로 채운다. fill.json 에 적을 때는 이 값을 1순위로 쓴다.')
+    print('  → 국내 종가·시가·지수·수급은 1순위로 fill.json 에 쓴다. 미국 종가·환율은 웹 값이 1순위이고 못 구했을 때만 이 값을 쓴다. 빈칸은 score.py·render.py 가 채운다.')
 
 def covered(rel):
     """중계기가 이번에 받은 필드 (datalog 의 필드 이름)"""
