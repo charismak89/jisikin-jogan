@@ -57,9 +57,9 @@
 |---|---|
 | 현행 | `trig_017rnKLpNdYfD3c61DqqmLPP` · enabled · 웹에서 생성(`created_via http_api`) |
 | cron | `45 22 * * 0-4` UTC = 평일 07:45 KST (stagger 로 몇 분 늦을 수 있음) |
-| 설정 | 저장소 charismak89/jisikin-jogan 부착 · 환경 Default, Network access **Full** · 커넥터 없음 · 모델 claude-opus-5-5 (9/22 변경) |
+| 설정 | 저장소 charismak89/jisikin-jogan 부착 · 환경 Default, Network access **Full** · 커넥터 없음 · 모델 **기본값**(트리거 `model` 비어 있음 — 사용자가 기본값으로 바꿈, 9/22 에는 claude-opus-5-5). 기본값은 회차마다 Opus·Sonnet 이 바뀐다. 10/21·10/22 는 claude-sonnet-5-5. 고정 여부는 사용자 결정 대기(2026-10-22 추천: 평일 Sonnet 5.5 · 토요일 주간 점검 Opus 5.5) |
 | 프롬프트 | 부트스트랩 5줄 = `TRIGGER-PROMPT.md`. 절차는 `RUNBOOK.md` |
-| 비용 | 9/28 회차 약 $2.1 · 5분 (get_session usage 기준) |
+| 비용 | 9/28 회차(Opus) 약 $2.1 · 5분 · 10/21(Sonnet) $0.67 · 약 2분 · 10/22(Sonnet) $0.49 · 약 1.5분 (get_session usage 기준) |
 | 구버전 | `trig_016XYcHaC8zkUPzByGAm4Eq7` 비활성. 이력 보존용, 삭제 금지 |
 | BTC·ENA | `trig_01HPT262n5YqbxF94hEcZ2N7` 2026-09-01부터 비활성 |
 
