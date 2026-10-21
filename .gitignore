@@ -1,6 +1,7 @@
 # 회차 작업 파일 — 커밋하지 않는다
 fill.json
 perp.json
+relay.json
 out/
 # Google Finance curl 폴백 원본 (RUNBOOK 2단계 턴 A)
 gf_*.html

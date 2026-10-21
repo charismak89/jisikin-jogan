@@ -10,7 +10,11 @@
   /healthz                       키 없이. 토큰 상태만
   /v1/live                       코스피·삼전·하닉 현재가 (5초 캐시)                     — 키 없이(PUBLIC_VIEW) 또는 지인 키
   /v1/intraday?date=YYYY-MM-DD   그날 1분봉 종가 (코스피 09:00~15:30, 두 종목 08:00~20:00) — 키 없이(PUBLIC_VIEW) 또는 지인 키
-  /v1/daily?date=YYYY-MM-DD      그날 일봉(시고저종)·환율·코스피 투자자별 매매대금 (루틴용) — 루틴 키
+  /v1/daily?date=YYYY-MM-DD[&us_until=YYYY-MM-DD]
+                                 그날 일봉(시고저종)·환율·코스피 투자자별 매매대금 (루틴용) — 루틴 키
+                                 2026-10-21 추가: 미국 일봉은 us_until(발행일) 전날까지 5개, 수급은 그날 것(until=date),
+                                 fx_close(그날 15:30 매매기준율), stock_flow(삼전·하닉 투자자별 순매수 주식 수)
+  /v1/calendar?date=YYYY-MM-DD   국내·미국 장 운영(전·당·익 영업일) — 휴장일 대조용 — 루틴 키
   POST /v1/feedback              대시보드 '의견' 버튼. 본문 JSON {cat, text, nick, ctx} → STATE_DIR/feedback.jsonl — 키 없이(PUBLIC_VIEW) 또는 지인 키
   2026-10-19 부터 대시보드 화면용 셋(live·intraday·의견 쓰기)은 키 없이 연다. 메인 주소가 지인 키 없이도 KRX 시세를 쓰게 하기 위해서다.
   업스트림 호출은 캐시가 묶는다(live 5초, intraday 오늘 20초·지난날 1시간, 날짜는 30일 안). IP 당 분당 120회 제한은 그대로다.
@@ -187,7 +191,7 @@ def krx_day(s, d):
     return {'open': bars[0][1], 'close': bars[-1][2], 'src': 'krx-1m',
             'complete': bars[0][0] == ms(d, 9, 1) and bars[-1][0] == ms(d, 15, 31)}   # False 면 시가·종가 봉이 비었다 — 쓰기 전에 확인
 
-def daily(d):
+def daily(d, us_until=None):
     out = {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'kr': {}, 'us': {}, 'index': {}, 'errors': []}
     for s in DAILY_KR:
         try:
@@ -197,9 +201,13 @@ def daily(d):
             elif c: c['src'] = 'toss-1d'   # 1분봉이 없는 날(보관 기간 지남) — 시가·종가는 NXT 통합값이라 KRX 공식값과 다를 수 있다
             out['kr'][s] = c
         except Upstream as e: out['errors'].append('%s %s' % (s, e))
-    for s in DAILY_US:   # 미국 일봉의 날짜는 미국 거래일 (현지 자정을 KST 로 표기)
+    # 미국 일봉의 날짜는 미국 거래일 (현지 자정을 KST 로 표기 — 10/20 봉이 2026-10-20T13:00+09:00).
+    # us_until(발행일) 00:00 KST 이전 봉만 받는다 — 발행일 아침에는 그 전날 미국 거래일 봉이 마지막이다. 없으면 date 다음 날
+    ub = us_until or (d + timedelta(days=1))
+    for s in DAILY_US:
         try:
-            res = toss('/api/v1/candles', {'symbol': s, 'interval': '1d', 'count': 3}) or {}
+            res = toss('/api/v1/candles', {'symbol': s, 'interval': '1d', 'count': 5,
+                                           'before': datetime(ub.year, ub.month, ub.day, tzinfo=KST).isoformat()}) or {}
             cs = res.get('candles') or []
             out['us'][s] = [{'date': c['timestamp'], 'close': float(c['closePrice'])} for c in cs]
         except Upstream as e: out['errors'].append('%s %s' % (s, e))
@@ -210,14 +218,40 @@ def daily(d):
         fx = toss('/api/v1/exchange-rate', {'baseCurrency': 'USD', 'quoteCurrency': 'KRW'}) or {}
         out['fx'] = {'mid': float(fx['midRate']), 'from': fx.get('validFrom')}
     except Exception as e: out['errors'].append('fx %s' % e)
+    try:   # 그날 15:30 매매기준율 — 서울 외환시장 종가의 근사값(공식 종가 아님)
+        fx = toss('/api/v1/exchange-rate', {'baseCurrency': 'USD', 'quoteCurrency': 'KRW',
+                                            'dateTime': datetime(d.year, d.month, d.day, 15, 30, tzinfo=KST).isoformat()}) or {}
+        out['fx_close'] = {'mid': float(fx['midRate']), 'from': fx.get('validFrom')}
+    except Exception as e: out['errors'].append('fx_close %s' % e)
+    for s in STOCKS:   # 종목별 투자자 순매수(주식 수, KRX·NXT 통합). 외국인은 등록외국인 기준이라 시장 수급과 기준이 다르다
+        try:
+            res = toss('/api/v1/stocks/%s/investor-trading' % s, {'count': 1, 'until': d.isoformat()}) or {}
+            for r in res.get('records') or []:
+                if r.get('date') == d.isoformat():
+                    nv = lambda x: None if not x else int(float(x['netBuyVolume']))
+                    out.setdefault('stock_flow', {})[s] = {'foreign': nv(r.get('foreigner')), 'inst': nv(r.get('institution')),
+                                                          'retail': nv(r.get('individual')), 'other': nv(r.get('otherCorporation')),
+                                                          'updatedAt': r.get('updatedAt')}
+        except Exception as e: out['errors'].append('stock_flow %s %s' % (s, e))
     try:
-        res = toss('/api/v1/market-indicators/KOSPI/investor-trading', {'interval': '1d', 'count': 3}) or {}
+        res = toss('/api/v1/market-indicators/KOSPI/investor-trading', {'interval': '1d', 'count': 1, 'until': d.isoformat()}) or {}
         for r in res.get('records') or []:
             if r.get('date') == d.isoformat():
                 net = lambda x: None if not x else round((float(x['buyAmount']) - float(x['sellAmount'])) / 1e8)   # 억원
                 out['flow'] = {'foreign': net(r.get('foreigner')), 'inst': net(r.get('institution')), 'retail': net(r.get('individual')),
                                'other': net(r.get('otherCorporation')), 'updatedAt': r.get('updatedAt')}
     except Exception as e: out['errors'].append('flow %s' % e)
+    return out
+
+def calendar(d):
+    """국내·미국 장 운영. 각 시장의 전·당·익 영업일과 그날 열리는지(open). 미국 date 는 현지 날짜."""
+    out = {'date': d.isoformat(), 'errors': []}
+    for mk, key in (('KR', 'integrated'), ('US', 'regularMarket')):
+        try:
+            r = toss('/api/v1/market-calendar/%s' % mk, {'date': d.isoformat()}) or {}
+            out[mk.lower()] = {k: {'date': (r.get(k) or {}).get('date'), 'open': bool((r.get(k) or {}).get(key))}
+                               for k in ('previousBusinessDay', 'today', 'nextBusinessDay')}
+        except Exception as e: out['errors'].append('%s %s' % (mk, e))
     return out
 
 # ---------- 의견 ----------
@@ -330,7 +364,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send_json(200, cached(('intraday', d), 20 if d == today else 3600, lambda: intraday(d)))
             if u.path == '/v1/daily':
                 if not is_routine: return self.send_json(403, {'error': 'routine-key-required'})
-                return self.send_json(200, cached(('daily', d), 300, lambda: daily(d)))
+                try: uu = date.fromisoformat(q['us_until']) if q.get('us_until') else None
+                except ValueError: return self.send_json(400, {'error': 'bad-date'})
+                return self.send_json(200, cached(('daily', d, uu), 300, lambda: daily(d, uu)))
+            if u.path == '/v1/calendar':
+                if not is_routine: return self.send_json(403, {'error': 'routine-key-required'})
+                return self.send_json(200, cached(('calendar', d), 3600, lambda: calendar(d)))
             if u.path == '/v1/feedback':
                 if not is_routine: return self.send_json(403, {'error': 'routine-key-required'})
                 since = q.get('since') or (today - timedelta(days=7)).isoformat()

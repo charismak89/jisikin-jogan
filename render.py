@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """render.py — 지식인 조간 v5 렌더러 (2026-10-15 — 첫 화면 대시보드 + 브리핑 탭)
 
-fill.json(v2: 값과 문장만) + template-v5.html + state.json(직전 회차) + calibration.json + perp.json(있으면)
-  -> out/index.html, out/state.json(이번 회차), out/calibration.json(복사)
+fill.json(v2: 값과 문장만) + template-v5.html + state.json(직전 회차) + calibration.json + perp.json·relay.json(있으면)
+  -> out/index.html, out/state.json(이번 회차), out/calibration.json(복사), out/day.json, out/datalog.json
 perp.json 은 fetch_perp.py 가 만든다(해외 24시간 추종가). 없어도 렌더한다 — 대시보드 장외 구간만 브라우저가 직접 받는다.
+relay.json 은 fetch_relay.py 가 만든다(토스 중계기). fill.json 의 빈 시세·시가·수급을 채우고, 회차 값과 다르면 경고한다(2026-10-21).
 입력 파일은 고치지 않으므로 몇 번을 다시 돌려도 안전하다.
 
 회차(LLM)는 HTML 을 쓰지 않는다. 태그·화살표·색·등락률·시사 갭·채점 표시·차트는 전부 여기서 만든다.
@@ -232,8 +233,32 @@ def main():
     V['DATE_LABEL'] = '%d년 %d월 %d일 (%s)' % (d.year, d.month, d.day, DOW[d.weekday()])
     V['SUBTITLE'] = '07:45 KST · 전일 종가 &amp; 간밤 미국장 반영'
 
+    # ----- 중계기(토스) 보완 — relay.json 으로 빈칸을 채우고 회차 값과 다르면 알린다. 입력 파일은 고치지 않는다 -----
+    try:
+        from fetch_relay import merge_into
+        relay_state, relay_filled, relay_diff = merge_into(fill)
+    except Exception as e:
+        relay_state, relay_filled, relay_diff = 'fail', [], []
+        warn('중계기 보완 실패 — %s' % e)
+    if relay_filled: print('중계기 보완 %d건 — %s' % (len(relay_filled), ', '.join(relay_filled)))
+    for m in relay_diff: warn('회차 값과 중계기 값이 다름 — %s. 문장·data_note 에 회차 값을 썼으면 고칠 것' % m)
+    if relay_state == 'stale': warn('relay.json 이 오늘 것이 아님 — fetch_relay.py 를 다시 돌릴 것 (게이트 무관)')
+    elif relay_state == 'absent': warn('relay.json 없음 — 턴 0 에서 fetch_relay.py 를 돌리지 않았다 (게이트 무관)')
+    elif relay_state == 'fail': warn('중계기 실패 — 웹에서 받은 값만 쓴다 (게이트 무관)')
+
     # ----- 시세 -----
     prices = fill.get('prices') or {}
+    # 채점용 시가 — 없으면 다음 회차가 아니라 이번 회차 채점이 빠진다. 값을 채웠으면 score.py 부터 다시 돌린다
+    sf_prev, pf_prev = prev.get('stock_forecast') or {}, prev.get('forecast') or {}
+    for code in sorted(sf_prev.get('items') or {}):
+        p = prices.get(code) or {}
+        if p.get('open') in (None, '') or p.get('open_date') != sf_prev.get('date'):
+            warn('종목 시초가 미확보 — %s (전망 %s, open_date %s) · 종목 채점이 빠진다. fetch_relay.py 출력의 시가를 prices.%s.open·open_date 에 적고 score.py 부터 다시 돌릴 것' % (
+                code, sf_prev.get('date'), p.get('open_date'), code))
+    kp = prices.get('KOSPI') or {}
+    if pf_prev.get('date') and not (fill.get('score') or {}).get('actual_open') and (
+            kp.get('open') in (None, '') or (kp.get('open_date') and kp.get('open_date') != pf_prev['date'])):
+        warn('코스피 시초가 미확보 — 직전 전망(%s) 채점이 빠진다. prices.KOSPI.open 을 채우고 score.py 부터 다시 돌릴 것' % pf_prev['date'])
     prev_closes = (prev.get('closes') or {})
     pct = {}      # 계산 등락률
     close = {}
@@ -796,6 +821,15 @@ def main():
         os.makedirs('out', exist_ok=True)
         io.open(os.path.join('out', 'index.html'), 'w', encoding='utf-8', newline='').write(out)
         io.open(os.path.join('out', 'day.json'), 'w', encoding='utf-8', newline='\n').write(json.dumps(day6, ensure_ascii=False, separators=(',', ':')) + '\n')
+        try:   # 데이터 누락 기록 — datacheck.py 가 최근 회차를 세어 자주 빠지는 필드와 다음 경로를 고른다
+            from datacheck import missing_fields, append_entry
+            miss = missing_fields(fill, signals, prev_business_day(d).isoformat())
+            if signals['night_skipped']: miss = [m for m in miss if m != 'prices.K200N.close']   # 휴장 뒤는 세션이 없는 게 정상
+            log = append_entry({'date': issue_date, 'relay': relay_state, 'missing': miss, 'relay_filled': relay_filled, 'mismatch': relay_diff})
+            io.open(os.path.join('out', 'datalog.json'), 'w', encoding='utf-8', newline='\n').write(json.dumps(log, ensure_ascii=False, indent=1) + '\n')
+            print('데이터 누락 %d건%s' % (len(miss), (' — ' + ', '.join(miss)) if miss else ''))
+        except Exception as e:
+            warn('datalog 기록 실패 — %s' % e)
         try:
             io.open(os.path.join('out', 'calibration.json'), 'w', encoding='utf-8', newline='\n').write(io.open('calibration.json', encoding='utf-8').read())
         except Exception:

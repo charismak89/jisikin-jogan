@@ -6,7 +6,7 @@
   python3 regress.py --commit <sha>      그 발행 커밋의 입력으로
   python3 regress.py --fill <path>       fill.json 을 직접 지정 (fixtures 가 없던 회차를 시험할 때)
 
-입력: fill = fixtures/last-fill.json (publish.py 가 회차마다 남긴다), perp = fixtures/last-perp.json(있으면),
+입력: fill = fixtures/last-fill.json (publish.py 가 회차마다 남긴다), perp·relay = fixtures/last-perp.json·last-relay.json(있으면),
       state.json · calibration.json = 그 발행 커밋 직전 상태.
 결과: 두 쪽 GATE 줄, index.html 바뀐 줄 수, diff 파일 경로. 고친 뒤가 GATE PASS 면 종료 코드 0, 아니면 1, 입력이 없으면 2.
       지난 회차 입력이라 '발행일이 오늘이 아님' 보류만 있으면 통과로 본다.
@@ -22,7 +22,7 @@ def git(*a, binary=False):
     if r.returncode != 0: raise SystemExit('git %s 실패: %s' % (' '.join(a[:2]), r.stderr.decode('utf-8', 'replace').strip()[:300]))
     return r.stdout if binary else r.stdout.decode('utf-8').strip()
 
-SKIP = {'.git', 'out', 'fill.json', 'perp.json', '__pycache__'}
+SKIP = {'.git', 'out', 'fill.json', 'perp.json', 'relay.json', '__pycache__'}
 
 def main():
     root = git('rev-parse', '--show-toplevel'); os.chdir(root)
@@ -37,6 +37,8 @@ def main():
             print('fixtures/last-fill.json 이 %s 에 없음 — publish.py 가 남기기 시작한 뒤의 회차부터 쓸 수 있다. --fill 로 지정할 것' % b[:7]); return 2
     try: perp_s = git('show', '%s:fixtures/last-perp.json' % b)
     except SystemExit: perp_s = None
+    try: relay_s = git('show', '%s:fixtures/last-relay.json' % b)
+    except SystemExit: relay_s = None
     state_s, cal_s = git('show', '%s~:state.json' % b), git('show', '%s~:calibration.json' % b)
 
     tmp = tempfile.mkdtemp(prefix='regress-')
@@ -47,7 +49,7 @@ def main():
     shutil.copytree(root, new, ignore=lambda d, names: [n for n in names if n in SKIP])   # 고친 뒤 = 작업 트리
     res = {}
     for side, d in (('old', old), ('new', new)):
-        for name, s in (('fill.json', fill_s), ('perp.json', perp_s), ('state.json', state_s), ('calibration.json', cal_s)):
+        for name, s in (('fill.json', fill_s), ('perp.json', perp_s), ('relay.json', relay_s), ('state.json', state_s), ('calibration.json', cal_s)):
             p = os.path.join(d, name)
             if s is None:
                 if os.path.exists(p): os.remove(p)

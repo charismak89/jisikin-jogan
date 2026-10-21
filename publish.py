@@ -22,6 +22,7 @@ v6 앱이 읽는 데이터는 루트 day.json 이다.
   - 새 index.html 의 <meta name="generated"> 날짜가 오늘(KST)이 아니면 중단 (--allow-date 로 해제)
   - 새 calibration.json 의 records 수가 기존보다 적으면 calibration.json 은 건너뛴다
   - 새 state.json 에 issue_date/forecast/closes 가 없으면 state.json 은 건너뛴다
+  - 새 datalog.json(데이터 누락 기록) 의 줄 수가 기존보다 적으면 건너뛴다
   - 토큰은 인자로 받지 않는다. GH_TOKEN 환경변수가 있을 때만 폴백으로 쓰고 출력에 찍지 않는다
   - 클라우드 세션(Cowork·루틴)의 git 프록시는 PAT 를 그대로 통과시키지 않는다. 자동 발행은 루틴에 저장소를 붙여야 된다
 """
@@ -129,8 +130,18 @@ def main():
         try: json.loads(read(new_day)); write('day.json', read(new_day)); changed.append('day.json')
         except Exception as e: changed.append('[경고] day.json 이 올바른 JSON 이 아님 — 건너뜀 (%s)' % e)
 
+    # 2-0-1) 데이터 누락 기록 (render.py 가 기존 datalog.json 에 오늘 줄을 붙여 out/ 에 쓴다). datacheck.py 가 읽는다
+    new_log = os.path.join(os.path.dirname(new_index) or '.', 'datalog.json')
+    if os.path.exists(new_log):
+        try:
+            n_new = len(json.loads(read(new_log)).get('entries') or [])
+            ol = read('datalog.json'); n_old = len((json.loads(ol).get('entries') or [])) if ol else 0
+            if n_new < n_old: changed.append('[경고] datalog.json %d줄 < 기존 %d줄 — 건너뜀' % (n_new, n_old))
+            else: write('datalog.json', read(new_log)); changed.append('datalog.json (%d줄)' % n_new)
+        except Exception as e: changed.append('[경고] datalog.json 이 올바른 JSON 이 아님 — 건너뜀 (%s)' % e)
+
     # 2-1) 회차 입력 보관 — 주간 점검(WEEKLY.md)이 같은 입력으로 렌더 회귀를 돌린다. 화면에 이미 나간 값·문장뿐이다
-    for src, dst in (('fill.json', 'fixtures/last-fill.json'), ('perp.json', 'fixtures/last-perp.json')):
+    for src, dst in (('fill.json', 'fixtures/last-fill.json'), ('perp.json', 'fixtures/last-perp.json'), ('relay.json', 'fixtures/last-relay.json')):
         if os.path.exists(src):
             os.makedirs('fixtures', exist_ok=True); write(dst, read(src)); changed.append(dst)
 
