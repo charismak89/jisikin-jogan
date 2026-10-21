@@ -73,6 +73,7 @@
 | 회차 세션 상세 | `get_session` 에 `cse_…` 를 넣으면 된다(상태·브랜치·비용). 대화 본문은 웹 UI |
 | 저장소 수정 | 세션 지정 브랜치에 커밋·push → PR → 머지(GitHub MCP) |
 | 루틴 편집·Run now·저장소 부착·환경 | **웹 UI(claude.ai/code/routines)만.** `update_trigger`·`fire_trigger` 는 http_api 루틴에 안 먹힌다 |
+| 다른 세션에 묶인 예약(send_later 등)의 지시문 수정 | 그 세션에서만 된다. 여기서는 `update_trigger` 의 `enabled=false`(끄기)만 된다(2026-10-22 실측). 고칠 일이 있으면 끄고 이 세션에 다시 건다 |
 | 원격 브랜치 삭제 | 세션에서 `git push --delete` 는 auto mode 권한 판정에 막힘(09-28 실측). 사람이 월 1회 정리(UPDATE.md). PR 머지 브랜치는 자동 삭제 |
 | 코워크 세션 대화 | 여기서 조회 불가(세션 목록에서 빠짐) |
 
