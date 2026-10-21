@@ -350,22 +350,21 @@ def main():
                          (chip('미국선물 ES', es_pct, uf.get('asof') or '') if es_pct is not None else ''))
 
     # ----- 전망 -----
+    # 전망은 구간(low·high)만. 방향 3분류(갭상승·보합·갭하락)는 2026-10-21 폐지 — fill 에 dir 가 남아 있어도 읽지 않는다
     fc = fill.get('forecast') or {}
-    fdir = str(fc.get('dir') or '').strip()
     low, high = as_num(fc.get('low'), 'forecast.low'), as_num(fc.get('high'), 'forecast.high')
     kospi_close = close.get('KOSPI')
-    if fdir not in ('갭상승', '보합', '갭하락'): fail('forecast.dir 는 갭상승|보합|갭하락 중 하나: %r' % fdir)
+    lo_p = hi_p = None
     if low is None or high is None: fail('forecast.low/high 없음')
     elif low >= high: fail('forecast.low >= high')
     elif kospi_close:
         lo_p, hi_p = (low / kospi_close - 1) * 100, (high / kospi_close - 1) * 100
-        if low > kospi_close and fdir != '갭상승': warn('구간 전체가 전일 종가 위인데 방향이 %s' % fdir)
-        if high < kospi_close and fdir != '갭하락': warn('구간 전체가 전일 종가 아래인데 방향이 %s' % fdir)
         if hi_p - lo_p < 1.0: warn('구간 폭 %.2f%%p — 최근 |갭| 중앙값(1.3%%) 보다 좁다' % (hi_p - lo_p))
     else:
-        lo_p = hi_p = None
         warn('코스피 종가가 없어 구간 % 를 계산하지 못함')
-    V['OPEN_FORECAST'] = esc(fdir) + ' 출발' if fdir else '전망 없음'
+    center_p = None if lo_p is None else (lo_p + hi_p) / 2
+    V['OPEN_FORECAST'] = ((('+' if center_p > 0 else '−' if center_p < 0 else '') + '%.2f%% 안팎 출발' % abs(center_p)) if center_p is not None
+                          else ('구간 전망' if low and high else '전망 없음'))
     if low is not None and high is not None:
         rng = '코스피 %s ~ %s' % (num(low, 0), num(high, 0))
         if lo_p is not None:
@@ -411,14 +410,14 @@ def main():
             return iso
     strip = ['<div class="s wait">오늘</div>']
     for r in reversed(recs[-9:]):
-        strip.append('<div class="s %s">%s</div>' % ('hit' if r.get('verdict') == 'hit' else 'miss', md(r.get('date', ''))))
+        strip.append('<div class="s %s">%s</div>' % ('hit' if r.get('in_range') else 'miss', md(r.get('date', ''))))
     while len(strip) < 10: strip.append('<div class="s">—</div>')
     V['SCORE_STRIP'] = ''.join(strip)
 
     sc = fill.get('score') or {}
     if today_scored:
-        V['VERDICT_CLASS'] = 'hit' if last.get('verdict') == 'hit' else 'miss'
-        V['VERDICT'] = '%s 회차 — %s' % (md(last['date']), '적중' if last.get('verdict') == 'hit' else '빗나감')
+        V['VERDICT_CLASS'] = 'hit' if last.get('in_range') else 'miss'
+        V['VERDICT'] = '%s 회차 — %s' % (md(last['date']), '적중' if last.get('in_range') else '빗나감')
         lead = sc.get('lead') or ''
         if last.get('actual_open') is not None and num(last['actual_open'], 2).replace(',', '') not in str(lead).replace(',', ''):
             warn('score.lead 에 실제 시초가 %s 가 없음' % num(last['actual_open'], 2))
@@ -433,10 +432,9 @@ def main():
 
     if scored:
         cov = sum(1 for r in scored if r['in_range']) / len(scored)
-        dirh = sum(1 for r in recs if r.get('dir_hit')) / len(recs)
         bws = [r['band_width_pct'] for r in recs if r.get('band_width_pct') is not None]
-        V['COVERAGE'] = '누적 %d회차 — 구간 커버리지 %.1f%% (%d/%d) · 방향 적중 %.1f%% · 평균 구간폭 %.2f%%p' % (
-            len(recs), cov * 100, sum(1 for r in scored if r['in_range']), len(scored), dirh * 100,
+        V['COVERAGE'] = '누적 %d회차 — 적중(구간 안) %.1f%% (%d/%d, 목표 80%%) · 평균 구간폭 %.2f%%p' % (
+            len(recs), cov * 100, sum(1 for r in scored if r['in_range']), len(scored),
             (sum(bws) / len(bws)) if bws else 0)
         last10 = scored[-10:]
         errs = []
@@ -446,9 +444,8 @@ def main():
                 errs.append(abs(r['gap_pct'] - c))
         errs.sort()
         med = errs[len(errs) // 2] if errs else None
-        V['CONF_LINE'] = '최근 %d회 — 구간 안 %d · 방향 %d · 중심 오차 중앙 %s' % (
-            len(last10), sum(1 for r in last10 if r['in_range']), sum(1 for r in last10 if r.get('dir_hit')),
-            ('%.2f%%p' % med) if med is not None else '—')
+        V['CONF_LINE'] = '최근 %d회 — 구간 안 %d · 중심 오차 중앙 %s' % (
+            len(last10), sum(1 for r in last10 if r['in_range']), ('%.2f%%p' % med) if med is not None else '—')
     else:
         V['COVERAGE'] = '누적 기록 없음'
         V['CONF_LINE'] = '채점 기록이 쌓이면 여기에 최근 적중률이 붙습니다'
@@ -552,7 +549,7 @@ def main():
         esc_keep(base.get('h')), esc_keep(base.get('b')), esc_keep(base.get('cond')), esc_keep(alt.get('h')), esc_keep(alt.get('b')), esc_keep(alt.get('cond')))
 
     why = fill.get('why') or []
-    if len(why) != 4: warn('why 는 4개 문단 (아래로 미는 힘 / 위로 받치는 힘 / 왜 이 방향 / 구간 폭 근거), 지금 %d개' % len(why))
+    if len(why) != 4: warn('why 는 4개 문단 (아래로 미는 힘 / 위로 받치는 힘 / 왜 이 중심 / 구간 폭 근거), 지금 %d개' % len(why))
     for i, w in enumerate(why, 1): check_len('why[%d]' % i, w, LIMITS['why'])
     V['FCAST_WHY'] = plist(why)
 
@@ -714,7 +711,7 @@ def main():
             if x in kcl and x <= pday: tp['c'] = num(kcl[x], 2)
             if r and r.get('low') is not None:
                 tp.update(b='%s~%s' % (num(r['low'], 0), num(r['high'], 0)), o=num(r['actual_open'], 2) if r.get('actual_open') else '—',
-                          v='적중' if r.get('verdict') == 'hit' else ('구간 안·방향 틀림' if r.get('in_range') else '구간 밖'))
+                          v='적중' if r.get('in_range') else '구간 밖')
             if x == d and low and high: tp.update(b='%s~%s' % (num(low, 0), num(high, 0)), v='오늘 전망')
             tips.append(tp)
         if low and high:
@@ -728,7 +725,7 @@ def main():
     V['K20_TIPS'] = esc(json.dumps(tips, ensure_ascii=False)).replace("'", '&#x27;')
     V['K20_HEAD'] = ('%s <b class="%s">%s</b>' % (num(kospi_close, 2), cls(pct.get('KOSPI')), pct_str(pct.get('KOSPI')))) if kospi_close else '—'
     l10 = scored[-10:]
-    V['K20_CAP'] = ('최근 %d회 구간 안 %d · 방향 %d' % (len(l10), sum(1 for r in l10 if r['in_range']), sum(1 for r in l10 if r.get('dir_hit')))) if l10 else '채점 기록 없음'
+    V['K20_CAP'] = ('최근 %d회 구간 안 %d' % (len(l10), sum(1 for r in l10 if r['in_range']))) if l10 else '채점 기록 없음'
 
     def mtile(k, label):
         c, q = close.get(k), pct.get(k)
@@ -751,7 +748,7 @@ def main():
         row.update(low=lo_, high=hi_, open=r.get('actual_open'), in_range=r.get('in_range'), verdict=r.get('verdict'))
         k20_rows.append(row)
     day6 = {'schema': 1, 'issue': issue_date, 'issue_no': V['ISSUE'], 'date_label': V['DATE_LABEL'],
-            'forecast': {'dir': fdir or None, 'low': low, 'high': high, 'prev_close': kospi_close, 'night': k200n_now,
+            'forecast': {'low': low, 'high': high, 'prev_close': kospi_close, 'night': k200n_now,
                          'low_pct': None if not (low and kospi_close) else round((low / kospi_close - 1) * 100, 3),
                          'high_pct': None if not (high and kospi_close) else round((high / kospi_close - 1) * 100, 3)},
             'concl': [{'h': plain(t.get('h')), 'b': plain(t.get('b'))} for t in tl[:3]],
@@ -805,8 +802,8 @@ def main():
             pass
     print('OK   out/index.html (%d bytes)' % len(out.encode('utf-8')))
     print('접힘 %d자 / 전체 %d자  %s' % (collapsed, full, 'OK' if collapsed <= 4000 else '*** 4,000자 초과'))
-    print('전망 %s %s~%s (%s) · 야간선물 %s · EWY시사 %s · ADR시사 %s' % (
-        fdir, num(low, 0) if low else '—', num(high, 0) if high else '—', V['OPEN_RANGE'].split('<br>')[-1].strip('()'),
+    print('전망 %s~%s (%s) · 야간선물 %s · EWY시사 %s · ADR시사 %s' % (
+        num(low, 0) if low else '—', num(high, 0) if high else '—', V['OPEN_RANGE'].split('<br>')[-1].strip('()'),
         pct_str(signals['k200n_pct']), pct_str(signals['ewy_implied_pct']), pct_str(signals['adr_implied_pct'])))
     print(V['COVERAGE'])
     print('종목 예측 — ' + (' · '.join('%s %s~%s (중심 %+.2f%%)' % (c, num(v['low'], 0), num(v['high'], 0), v['center_pct']) for c, v in stock_fc.items()) or '없음')
@@ -820,7 +817,7 @@ def main():
         state = {'schema': 2,
                  'note': '회차 간 인수인계 파일. render.py 가 매 회차 통째로 갱신한다. 아카이브 HTML 을 파싱하지 않기 위해 존재한다.',
                  'issue_date': issue_date,
-                 'forecast': {'date': issue_date, 'dir': fdir, 'low': low, 'high': high, 'prev_close': kospi_close,
+                 'forecast': {'date': issue_date, 'low': low, 'high': high, 'prev_close': kospi_close,
                               'note': '다음 회차가 이 전망을 실제 시초가와 대조해 채점한다'},
                  'signals': signals,
                  'stock_forecast': {'date': issue_date, 'items': stock_fc,

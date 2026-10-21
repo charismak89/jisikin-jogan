@@ -6,8 +6,7 @@
 쓰는 것 : calibration.json (records 끝에 1건 append. rule 블록은 절대 손대지 않는다)
 
 규칙 (CALIBRATION.md 와 같다)
-  방향 판정 : |갭| <= 0.5% 는 보합, +0.5% 초과 갭상승, -0.5% 미만 갭하락
-  hit       : 방향이 맞고 동시에 실제 시초가가 [low, high] 안. 그 외 전부 miss
+  hit       : 실제 시초가가 [low, high] 안. 그 외 전부 miss. 방향 3분류(갭상승·보합·갭하락)는 2026-10-21 폐지
   sign_hit  : 구간 중심(low·high 평균)의 부호와 실제 갭 부호가 같은가 (참고용, 판정에 안 씀)
 
 종목 채점 (2026-10-15 v5 추가)
@@ -29,17 +28,6 @@ def num(v):
     except Exception:
         return None
 
-def direction(gap):
-    if gap > 0.5: return '갭상승'
-    if gap < -0.5: return '갭하락'
-    return '보합'
-
-def norm_dir(s):
-    s = str(s or '')
-    for d in ('갭상승', '갭하락', '보합'):
-        if s.startswith(d): return d
-    return s
-
 def pctl(xs, p):
     xs = sorted(xs)
     if not xs: return None
@@ -60,7 +48,7 @@ def main():
     fill = json.load(io.open('fill.json', encoding='utf-8'))
 
     fc = state.get('forecast') or {}
-    fdate, fdir = fc.get('date'), norm_dir(fc.get('dir'))
+    fdate = fc.get('date')
     low, high, prev_close = num(fc.get('low')), num(fc.get('high')), num(fc.get('prev_close'))
     if not fdate or prev_close is None:
         print('채점 불가 — state.forecast 에 date/prev_close 없음'); return 0
@@ -87,18 +75,16 @@ def main():
 
     gap = (actual / prev_close - 1) * 100
     in_range = (low <= actual <= high) if (low is not None and high is not None) else None
-    adir = direction(gap)
-    dir_hit = (adir == fdir)
-    verdict = 'hit' if (dir_hit and in_range) else 'miss'
+    verdict = 'hit' if in_range else 'miss'
     center = ((low + high) / 2 / prev_close - 1) * 100 if in_range is not None else None
     sign_hit = (None if center is None else ((center > 0) == (gap > 0)) if abs(gap) > 0.005 else None)
     rec = {
-        'date': fdate, 'forecast_dir': fdir,
+        'date': fdate,
         'low': low, 'high': high,
         'band_width_pct': round((high - low) / prev_close * 100, 2) if in_range is not None else None,
         'prev_close': prev_close, 'actual_open': actual,
         'gap_pct': round(gap, 2),
-        'in_range': in_range, 'dir_hit': dir_hit, 'verdict': verdict,
+        'in_range': in_range, 'verdict': verdict,
         'sign_hit': sign_hit,
         'center_pct': round(center, 2) if center is not None else None,
         'center_err_pct': round(gap - center, 2) if center is not None else None,
@@ -108,10 +94,10 @@ def main():
     if abs(gap) > 15:
         print('경고 갭 %+.1f%% — 시초가나 기준 종가가 잘못됐을 가능성. 기록은 남기되 사람이 확인할 것' % gap)
     recs.append(rec)
-    print('%s 회차 — %s (전망 %s %s~%s / 실제 시초가 %s, 갭 %+.2f%%, 실제 방향 %s, 구간 %s)' % (
-        fdate, '적중' if verdict == 'hit' else '빗나감', fdir,
+    print('%s 회차 — %s (전망 %s~%s / 실제 시초가 %s, 갭 %+.2f%%, 구간 %s)' % (
+        fdate, '적중' if verdict == 'hit' else '빗나감',
         '{:,.0f}'.format(low) if low is not None else '—', '{:,.0f}'.format(high) if high is not None else '—',
-        '{:,.2f}'.format(actual), gap, adir, '안' if in_range else '밖'))
+        '{:,.2f}'.format(actual), gap, '안' if in_range else '밖'))
     if not dry:
         io.open('calibration.json', 'w', encoding='utf-8', newline='\n').write(json.dumps(cal, ensure_ascii=False, indent=1) + '\n')
         print('calibration.json 기록 %d건' % len(recs))
@@ -125,10 +111,9 @@ def print_summary(cal):
     sc = [r for r in recs if r.get('in_range') is not None]
     if not recs: print('누적 기록 없음'); return
     cov = sum(1 for r in sc if r['in_range']) / len(sc) if sc else 0
-    dirh = sum(1 for r in recs if r.get('dir_hit')) / len(recs)
     bws = [r['band_width_pct'] for r in recs if r.get('band_width_pct') is not None]
-    print('누적 %d회차 — 구간 커버리지 %.1f%% (%d/%d) · 방향 적중 %.1f%% · 평균 구간폭 %.2f%%p' % (
-        len(recs), cov * 100, sum(1 for r in sc if r['in_range']), len(sc), dirh * 100, sum(bws) / len(bws) if bws else 0))
+    print('누적 %d회차 — 적중(구간 안) %.1f%% (%d/%d, 목표 80%%) · 평균 구간폭 %.2f%%p' % (
+        len(recs), cov * 100, sum(1 for r in sc if r['in_range']), len(sc), sum(bws) / len(bws) if bws else 0))
     gaps = [abs(r['gap_pct']) for r in recs[-10:] if r.get('gap_pct') is not None]
     if gaps:
         print('참고 — 최근 %d회 |갭| 중앙 %.2f%% · 80퍼센타일 %.2f%%' % (len(gaps), pctl(gaps, 0.5), pctl(gaps, 0.8)))
@@ -166,9 +151,8 @@ def print_rule(cal, fill):
         print('규칙 적용 실패 — 휴장(%s) 뒤 회차라 야간선물이 휴장 중 미국장을 반영하지 못한다(값이 있어도 묵은 값). RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % ', '.join(hol))
     elif cs == 'k200n' and k200n is not None and prev and hw is not None:
         lo, hi = prev * (1 + (k200n - hw) / 100), prev * (1 + (k200n + hw) / 100)
-        d = '갭상승' if k200n > 0.5 else ('갭하락' if k200n < -0.5 else '보합')
-        print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% (%s) → %s %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
-            k200n, hw, how, d, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))
+        print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% (%s) → %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
+            k200n, hw, how, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))
     else:
         print('규칙 적용 실패 — center_signal=%s 인데 야간선물 값 또는 반폭이 없음. RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % cs)
 
