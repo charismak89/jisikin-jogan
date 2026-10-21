@@ -50,7 +50,7 @@ export function K20Chart({ data }: { data: DayData }) {
             style={{ left: `${Math.max(64, Math.min(W - 64, X(tip))) / W * 100}%` }}>
             <b>{md(t.date)}</b>{t.close != null && <><br />종가 {nf(t.close, 2)}</>}
             {t.low != null && t.high != null && <><br />{t.today ? '오늘 전망' : '전망'} {nf(t.low, 0)}~{nf(t.high, 0)}</>}
-            {t.open != null && <><br />시초가 {nf(t.open, 2)} · {t.verdict === 'hit' ? '적중' : t.in_range ? '구간 안·방향 틀림' : '구간 밖'}</>}
+            {t.open != null && <><br />시초가 {nf(t.open, 2)} · {t.in_range ? '적중' : '구간 밖'}</>}
           </div>
         )}
       </div>

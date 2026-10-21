@@ -17,7 +17,7 @@ export interface K20Row {
 }
 export interface DayData {
   schema: number; issue: string; issue_no: string; date_label: string
-  forecast: { dir: string | null; low: number | null; high: number | null; prev_close: number | null; night: number | null; low_pct: number | null; high_pct: number | null }
+  forecast: { low: number | null; high: number | null; prev_close: number | null; night: number | null; low_pct: number | null; high_pct: number | null }
   concl: { h: string; b: string }[]
   signals: { k200n_pct: number | null; k200n_asof: string | null; ewy_implied_pct: number | null; adr_implied_pct: number | null; es_pct: number | null; nq_pct: number | null; perp_asof: string | null }
   day: DayCfg
