@@ -920,6 +920,42 @@
  ],
  "stock_records": [
   {
+   "date": "2026-10-16",
+   "code": "000660",
+   "low": 1295000,
+   "high": 1326000,
+   "prev_close": 1262000.0,
+   "actual_open": 1290000.0,
+   "gap_pct": 2.22,
+   "in_range": false,
+   "center_pct": 3.84,
+   "center_err_pct": -1.62,
+   "band_width_pct": 2.46,
+   "inputs": {
+    "k200n_pct": 3.91,
+    "perp_pct": 3.77
+   },
+   "source": "2026-10-21 사후 채점 (중계기 /v1/daily kr.000660.open = KRX 09:01 봉 시가 — 회차가 시가를 못 구해 빠졌던 기록)"
+  },
+  {
+   "date": "2026-10-16",
+   "code": "005930",
+   "low": 215500,
+   "high": 222000,
+   "prev_close": 210000.0,
+   "actual_open": 215000.0,
+   "gap_pct": 2.38,
+   "in_range": false,
+   "center_pct": 4.22,
+   "center_err_pct": -1.84,
+   "band_width_pct": 3.1,
+   "inputs": {
+    "k200n_pct": 3.91,
+    "perp_pct": 4.52
+   },
+   "source": "2026-10-21 사후 채점 (중계기 /v1/daily kr.005930.open = KRX 09:01 봉 시가 — 회차가 시가를 못 구해 빠졌던 기록)"
+  },
+  {
    "date": "2026-10-19",
    "code": "000660",
    "low": 1207000.0,
@@ -954,6 +990,42 @@
     "perp_pct": -3.09
    },
    "source": "2026-10-20 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-10-20",
+   "code": "000660",
+   "low": 1267000,
+   "high": 1299000,
+   "prev_close": 1277000.0,
+   "actual_open": 1265000.0,
+   "gap_pct": -0.94,
+   "in_range": false,
+   "center_pct": 0.45,
+   "center_err_pct": -1.39,
+   "band_width_pct": 2.51,
+   "inputs": {
+    "k200n_pct": -0.13,
+    "perp_pct": 1.03
+   },
+   "source": "2026-10-21 사후 채점 (중계기 /v1/daily kr.000660.open = KRX 09:01 봉 시가 — 회차가 시가를 못 구해 빠졌던 기록)"
+  },
+  {
+   "date": "2026-10-20",
+   "code": "005930",
+   "low": 215500,
+   "high": 222000,
+   "prev_close": 218000.0,
+   "actual_open": 219500.0,
+   "gap_pct": 0.69,
+   "in_range": true,
+   "center_pct": 0.44,
+   "center_err_pct": 0.25,
+   "band_width_pct": 2.98,
+   "inputs": {
+    "k200n_pct": -0.13,
+    "perp_pct": 1.01
+   },
+   "source": "2026-10-21 사후 채점 (중계기 /v1/daily kr.005930.open = KRX 09:01 봉 시가 — 회차가 시가를 못 구해 빠졌던 기록)"
   }
  ]
 }

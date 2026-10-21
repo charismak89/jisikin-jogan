@@ -13,6 +13,9 @@
   state.stock_forecast(직전 회차 삼전·하닉 예측 구간)를 fill.json prices.<코드>.open(직전 영업일 시초가)과 대조해
   calibration.json 의 stock_records 에 append 한다. 코스피 채점(records·rule)과 섞지 않는다. 같은 (날짜, 코드)는 두 번 기록하지 않는다.
 
+중계기 보완 (2026-10-21)
+  fill.json 을 읽은 뒤 relay.json(fetch_relay.py)으로 빈 시가를 채운다. 회차가 시가를 못 구해도 중계기가 받았으면 채점된다.
+
 사용법
   python3 score.py            채점하고 calibration.json 에 기록
   python3 score.py --dry-run  기록하지 않고 결과만 출력
@@ -35,6 +38,16 @@ def pctl(xs, p):
     lo, hi = math.floor(k), math.ceil(k)
     return xs[int(k)] if lo == hi else xs[lo] + (xs[hi] - xs[lo]) * (k - lo)
 
+def load_fill(say=False):
+    fill = json.load(io.open('fill.json', encoding='utf-8'))
+    try:
+        from fetch_relay import merge_into
+        st, filled, _ = merge_into(fill)
+        if say and filled: print('중계기 보완(시가) — %s' % ', '.join(f for f in filled if f.endswith('.open')))
+    except Exception as e:
+        if say: print('중계기 보완 건너뜀 — %s' % e)
+    return fill
+
 def main():
     dry = '--dry-run' in sys.argv
     try:
@@ -45,7 +58,7 @@ def main():
         cal = json.load(io.open('calibration.json', encoding='utf-8'))
     except Exception:
         print('채점 불가 — calibration.json 을 읽지 못함. 새로 만들지 않는다.'); return 0
-    fill = json.load(io.open('fill.json', encoding='utf-8'))
+    fill = load_fill(say=True)
 
     fc = state.get('forecast') or {}
     fdate = fc.get('date')
@@ -160,7 +173,7 @@ def score_stocks(dry):
     """삼전·하닉 시초가 채점 → calibration.json stock_records. 코스피 채점이 끝난 뒤 파일을 다시 읽어 붙인다."""
     try:
         state = json.load(io.open('state.json', encoding='utf-8'))
-        fill = json.load(io.open('fill.json', encoding='utf-8'))
+        fill = load_fill()
         cal = json.load(io.open('calibration.json', encoding='utf-8'))
     except Exception as e:
         print('종목 채점 불가 — %s' % e); return

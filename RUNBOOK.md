@@ -7,7 +7,7 @@
 발행을 중단하는 경우는 둘뿐이다. (1) 휴장일 (2) `template-v5.html` 이 없을 때. 그 밖에 어떤 데이터가 없어도 없다고 밝히고 발행한다.
 
 ## 토큰 규칙 (이 작업의 제약 조건)
-1. `template-v5.html` · `calibration.json` · `archive/` · `perp.json` 을 열지 않는다. 스크립트가 처리한다. 읽는 파일은 `CONTEXT.md` 와 `state.json` 둘뿐이다.
+1. `template-v5.html` · `calibration.json` · `archive/` · `perp.json` · `relay.json` · `datalog.json` 을 열지 않는다. 스크립트가 처리한다. 읽는 파일은 `CONTEXT.md` 와 `state.json` 둘뿐이다.
 2. `index.html` 을 직접 쓰지 않는다. 값과 문장만 `fill.json` 에 쓴다. HTML 태그·화살표·색·등락률·시사 갭·채점 문구는 `render.py` 가 만든다.
 3. 시세 WebFetch 는 **한 턴에 병렬로** 부른다. 같은 URL 을 두 번 부르지 않는다. 프롬프트는 값만 짧게.
 4. 스크린샷을 찍지 않는다. 레이아웃 검증은 `page.evaluate` 숫자만.
@@ -20,9 +20,15 @@
 모든 작업은 저장소 루트에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
 
 ## 2. 시세 — 병렬 3턴
-**턴 0 · `python3 fetch_perp.py`** — 해외 24시간 추종가(Hyperliquid 코스피200·삼성전자·SK하이닉스) 15분봉을 `perp.json` 에 받는다. WebFetch 가 아니라 스크립트라 토큰을 쓰지 않는다. 실패해도 종료 코드 0 이고 그대로 진행한다(render.py 가 경고만 남기고 대시보드는 브라우저가 직접 받는다). 출력 세 줄을 9단계 응답에 옮긴다.
+**턴 0 · `python3 fetch_perp.py ; python3 fetch_relay.py`** — 둘 다 스크립트라 토큰을 쓰지 않고, 실패해도 종료 코드 0 이다.
+- `fetch_perp.py` — 해외 24시간 추종가(Hyperliquid 코스피200·삼성전자·SK하이닉스) 15분봉을 `perp.json` 에 받는다. 실패하면 render.py 가 경고만 남기고 대시보드는 브라우저가 직접 받는다. 출력 세 줄을 9단계 응답에 옮긴다.
+- `fetch_relay.py` (2026-10-21) — 토스 중계기(`/v1/daily`)에서 직전 영업일의 **국내 6종 종가·시가(KRX 1분봉), 코스피·코스닥 종가·시가, 코스피 투자자별 순매수(외국인·기관·개인·기타법인, 18시 뒤 확정치), 미국 4종 종가, 15:30 환율**을 `relay.json` 에 받는다. 환경 변수 `JJ_RELAY_URL`·`JJ_RELAY_TOKEN` 을 쓴다.
+  - 첫 줄이 `중계기 OK` 면 그 값들이 1순위다. fill.json 의 같은 칸에 그대로 적는다. 빈칸으로 둬도 score.py·render.py 가 relay.json 으로 채운다. 적은 값이 다르면 render.py 가 "회차 값과 중계기 값이 다름" 경고를 낸다 — 국내 종가·시가·지수·수급은 중계기 값이 화면에 나가니, 문장·`data_note` 의 숫자를 중계기 값으로 고친다.
+  - `중계기 실패` 면 아래 턴 A(Google Finance)부터 예전 경로 그대로 받는다.
+  - `연속 누락 n회 — <필드> → 이번 회차에 시도: [경로]` 줄이 나오면 그 경로를 턴 B 에 1회 더한다(필드당 1회). 결과를 9단계 "못 구한 데이터" 에 경로 id 와 같이 적는다. 경로 목록은 `sources.json`, 고치는 일은 토요일 주간 점검이 한다.
+  - `달력` 줄(휴장일 불일치·미국 휴장)이 나오면 9단계 응답에 옮긴다. holidays.json 은 회차가 고치지 않는다.
 
-**턴 A · Google Finance 12개를 한 턴에 병렬로.** 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
+**턴 A · 중계기 OK 면 건너뛴다.** 중계기 실패일 때만 Google Finance 12개를 한 턴에 병렬로. 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
 `KOSPI:KRX` `005930:KRX` `000660:KRX` `402340:KRX` `009150:KRX` `0167A0:KRX` `442580:KRX` `NVDA:NASDAQ` `MU:NASDAQ` `EWY:NYSEARCA` `SKHY:NASDAQ` `USD-KRW` (`https://www.google.com/finance/quote/…`)
 
 **curl 폴백** — WebFetch 가 `Your device isn't supported` 만 돌려주면(2026-09-21 회차 실측) 같은 턴을 다시 부르지 말고 데스크톱 User-Agent 를 단 curl 로 12개를 한 번에 받는다.
@@ -39,21 +45,23 @@ curl 로 받은 HTML 은 숫자만 평문이고 `Previous close`·`Open` 같은 
 - 이때는 아래 판정 규칙의 "Google Finance 시각 15:30 대" 대신 한국경제의 `장마감` 표기로 종가 여부를 판단한다.
 - `gf_*.html` 은 `.gitignore` 에 있다. publish.py 가 `git add -A` 를 써도 커밋되지 않는다.
 KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드시 챙기고, 그 세션 날짜를 `open_date` 에 적는다. `state.forecast.date` 와 다르면(회차를 건너뛴 날) 그 날짜의 시가를 마감시황 기사에서 찾아 `score.actual_open`·`score.actual_open_date` 에 넣는다. 못 찾으면 채점 불가로 두고 억지로 채점하지 않는다.
-**삼성전자·SK하이닉스의 Open** 도 같은 식으로 `prices.005930.open`·`prices.000660.open` 과 `open_date` 에 적는다. 직전 회차 종목 예측 구간을 score.py 가 이 값으로 채점한다(2026-10-15 추가). 날짜가 다르거나 못 구하면 비워 둔다.
+**삼성전자·SK하이닉스의 Open** 도 같은 식으로 `prices.005930.open`·`prices.000660.open` 과 `open_date` 에 적는다. 직전 회차 종목 예측 구간을 score.py 가 이 값으로 채점한다(2026-10-15 추가). 날짜가 다르거나 못 구하면 비워 둔다. 중계기 OK 면 relay.json 이 채운다 — render.py 가 "시초가 미확보" 경고를 내면 값을 채우고 score.py 부터 다시 돌린다.
 
 **턴 B · 대조와 보완, 한 턴에 병렬로.**
-- 한국경제 `https://markets.hankyung.com/stock/<코드>` 국내 6종 + 코스피 — `2026.09.11 장마감` 처럼 상태와 기준일이 찍힌다. `장중` 이면 종가가 아니다.
+- 한국경제 `https://markets.hankyung.com/stock/<코드>` 국내 6종 + 코스피 — `2026.09.11 장마감` 처럼 상태와 기준일이 찍힌다. `장중` 이면 종가가 아니다. 중계기 OK 면 중계기 값과 대조하는 두 번째 소스다.
 - **야간선물** `https://sonmul.co.kr/` — 야간 종가·등락률·기준시각·주간선물 종가. 월요일 값은 금요일 밤 세션이다(일요일 밤 세션은 없다).
   - 휴장일 전날 밤에는 세션이 없다. 직전 영업일과 발행일 사이에 `holidays.json` 휴장일이 끼면(예: 10/6·10/12·12/28·2027-01-04) 페이지에 연휴 전 세션 값이 남아 있을 수 있다. `asof` 가 직전 영업일 밤 세션이 아니면 `K200N.close: null` 로 두고 `asof` 에 `연휴 휴장` 이라고 적는다. render.py 가 이 회차는 야간선물 누락을 경고로만 남기고 게이트에서 뺀다.
 - **미국 지수선물** `https://kr.investing.com/indices/us-spx-500-futures` (ES) · `https://kr.investing.com/indices/nq-100-futures` (NQ) — 현재가·등락률·전일 종가·표시 시각. 등락률은 직전 정산가(미국 현물 마감 무렵) 대비이므로 **야간선물 마감 뒤 ~ 회차 시점의 움직임**이다. `signals.us_fut` 에 `es_pct`·`nq_pct`(%, 페이지 등락률)·`asof`(KST 표시 시각)를 적는다. 못 받으면 null. curl 은 403 이라 WebFetch 로만 받는다(2026-10-01 확인). 2026-10-01 도입, **기록 전용** — 전망 구간을 이 값으로 옮기지 않는다(CALIBRATION.md 후보 3)
 - 주간 선물 `https://markets.hankyung.com/indices/kospi-future` (기준일 확인) · SOX `https://kr.investing.com/indices/phlx-semiconductor`
-- WebSearch 1회: 직전 영업일 마감시황 기사 → 외국인·기관·개인 순매수, 코스닥 종가, 원달러 서울 종가
+- 미국 4종 `https://stockanalysis.com/` — 1순위. 중계기 미국 종가는 대조용이다.
+- WebSearch 1회: 직전 영업일 마감시황 기사 → 원달러 서울 종가(+ 중계기 실패 때는 외국인·기관·개인 순매수, 코스닥 종가). 기사 수급은 장 마감 직후 잠정치라 중계기 확정치와 다를 수 있다 — 중계기 값을 쓴다.
 
 **턴 C · 빠진 것만 보충.** 없으면 생략한다.
 
 판정 규칙
 - 국내 종목·ETF·지수는 Google Finance 시각이 **15:30 대**여야 종가다. 09:00~15:20 이면 장중값이라 쓰지 않는다.
 - 두 소스가 일치하면 확정. 어긋나면 기준일이 명시된 쪽을 채택하고 `data_note.more` 에 두 값과 채택 근거를 쓴다. 한 소스뿐이면 그렇게 밝힌다.
+- 중계기(KRX 1분봉·지수·확정 수급)는 기준일이 명시된 소스다. 국내 종가·시가·지수·수급이 웹과 갈리면 중계기 값을 채택한다. 기사 잠정치와 확정치의 수급 차이는 `diverged` 에 세지 않는다. 미국 종가·환율은 웹(stockanalysis·investing·기사) 값을 채택한다.
 - 끝내 못 찾으면 `close: null`. **추정값 금지.** 몇 종목이 비어도 발행한다.
 - 등락률은 `render.py` 가 `state.closes` 로 계산한다. 회차는 화면 등락률을 `pct_screen` 에 적기만 한다. 둘이 0.05%p 이상 다르면 render.py 가 경고하니 다시 확인하고 `data_note` 에 남긴다. −50% 같은 값이 나오면 액면분할을 의심하고 검색한다.
 - EWY·ADR 시사 갭은 render.py 가 환율까지 넣어 계산한다. 회차가 계산하지 않는다.
@@ -107,17 +115,20 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
  "score":{"open_source":"Google Finance","actual_open":null,"actual_open_date":null,     ← KOSPI.open 의 날짜가 전망 날짜와 다를 때만 채움
           "lead":"무엇이 맞고 틀렸는지 + 실제 시가 숫자, 110자","more":["맞은 것 150자","놓친 것 150자","반복 패턴 150자"]},
  "sources":"출처 — 매체·대상·기준일. 종목별로 어느 두 소스를 대조했는지",
- "data_note":{"lead":"대조 결과 한 줄 (전부 일치면 '종가는 Google Finance와 한국경제에서 일치했습니다.')","more":["갈린 항목의 두 값과 채택 근거"],"diverged":<갈린 항목 수, 정수>}}
+ "data_note":{"lead":"대조 결과 한 줄 (전부 일치면 '종가는 중계기(KRX)와 한국경제에서 일치했습니다.')","more":["갈린 항목의 두 값과 채택 근거"],"diverged":<갈린 항목 수, 정수>}}
 ```
 `cm` 은 모든 종목 필수, "상승 마감" 같은 빈 문장 금지. 회차 번호·날짜 라벨·지난 회차 링크·COVERAGE·채점 띠는 스크립트가 만든다.
 
 ## 7. 실행과 검증
 ```
 python3 fetch_perp.py # 해외 24시간 추종가 → perp.json (턴 0 에서 이미 돌렸으면 생략)
+python3 fetch_relay.py # 토스 중계기 → relay.json (턴 0 에서 이미 돌렸으면 생략)
 python3 score.py      # 직전 전망 채점 → calibration.json append (같은 날짜는 두 번 기록하지 않는다). 종목 채점은 stock_records 에
 python3 render.py     # fill.json → out/index.html · out/state.json · out/calibration.json
 ```
 - `FAIL` 이 뜨면 fill.json 을 고쳐 `render.py` 만 다시 돌린다(입력을 안 고치므로 몇 번이든 안전).
+- `시초가 미확보` 경고는 채점이 빠진다는 뜻이다. 시가를 채운 뒤 `score.py` 부터 다시 돌린다(같은 날짜는 두 번 기록하지 않는다).
+- render.py 가 `데이터 누락 n건 — …` 줄을 낸다. 그대로 9단계 "못 구한 데이터" 에 옮긴다. 이 기록은 `out/datalog.json` 에 남고 주간 점검이 센다.
 - 경고를 읽고 고칠 수 있는 것은 고친다. 특히 **금지 표현·글자 초과·등락률 불일치**. 못 고치는 경고(미확보 등)는 8단계 응답에 적는다.
 - 레이아웃: Playwright(chromium) 360·390px 두 폭에서 `out/index.html` 을 열고 `page.evaluate` 로 아래만 받는다. `doc`·`tables` 가 0 이 아니면 종목명(`CONTEXT.md` 표기명)을 줄인다. `height` 는 브리핑 탭 기준이다 — `out/index.html#brief` 로 열어 잰다. 8,500 을 넘으면 `more` 로 더 옮긴다(2026-10-15 회차 기준 390px 에서 6,550 안팎). 대시보드(주소 그대로)는 `doc` 만 0 인지 본다. Playwright 가 없거나 실패해도 발행한다.
 ```
@@ -140,7 +151,8 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 - 종목 예측 한 줄(render.py 의 `종목 예측 —` 줄) · 추종가 확보 여부(fetch_perp.py 출력)
 - 직전 회차 채점 한 줄 (실제 시가 숫자, hit/miss 근거) · 누적 커버리지 한 줄
 - 오늘 가장 중요한 리스크 1건
+- 중계기 — fetch_relay.py 첫 줄(OK·실패 사유)과 render.py 의 `중계기 보완 n건` 줄
 - 종가 대조 결과 — 일치했는지, 갈린 종목
 - render.py 출력 요약(접힘 글자수·경고 건수·경고 제목) / 두 폭 가로 스크롤·높이
-- 못 구한 데이터·못 받은 파일
+- 못 구한 데이터·못 받은 파일 — render.py `데이터 누락` 줄, 연속 누락으로 더 시도한 경로와 결과
 - 발행 결과 — 자동 발행(커밋 SHA) 또는 "push 실패 — 루틴 저장소 부착을 확인한 뒤 Run now" (publish.py 가 v5 화면은 `v5/index.html`, 데이터는 루트 `day.json` 에 쓴다. 메인 `index.html` 은 v6 앱이라 건드리지 않는다)

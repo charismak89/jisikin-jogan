@@ -1,0 +1,64 @@
+{
+ "schema": 1,
+ "note": "필드별 데이터 경로 등록부. 위에서부터 시도한다. status: primary(1순위) · fallback(1순위 실패 때) · candidate(검증 전 대안 — 주간 점검이 시험) · degraded(고장 이력, 대조용만) · dead(쓰지 말 것). 루틴은 primary·fallback 만 쓰고, 연속 누락 필드는 다음 루트를 1회 더 시도한다. candidate 를 올리거나 내리는 일은 토요일 주간 점검이 시험 결과와 함께 제안하고 사용자가 승인한다(WEEKLY.md 2-1). 바꾸면 verified 날짜와 note 를 고친다.",
+ "groups": [
+  {"id": "kr_close", "label": "국내 6종 종가", "fields": ["prices.005930.close", "prices.000660.close", "prices.402340.close", "prices.009150.close", "prices.0167A0.close", "prices.442580.close"],
+   "routes": [
+    {"id": "relay", "status": "primary", "how": "fetch_relay.py → /v1/daily kr.<코드>.close (KRX 1분봉 15:31 봉 종가)", "verified": "2026-10-21", "note": "10/16·10/20 6종 모두 회차 값과 일치. ETF 2종은 complete=false 가 늘 붙지만 값은 맞았다"},
+    {"id": "hankyung", "status": "fallback", "how": "https://markets.hankyung.com/stock/<코드> — '장마감' 표기 확인", "verified": "2026-10-21", "note": "중계기와 대조용 2순위"},
+    {"id": "gfinance", "status": "degraded", "how": "https://www.google.com/finance/quote/<코드>:KRX", "verified": null, "note": "2026-09-21 부터 WebFetch 'device not supported', curl 은 라벨 없는 숫자만 — 대조용"}
+   ]},
+  {"id": "open", "label": "채점용 시가 (코스피·삼전·하닉)", "fields": ["prices.KOSPI.open", "prices.005930.open", "prices.000660.open"],
+   "routes": [
+    {"id": "relay", "status": "primary", "how": "fetch_relay.py → /v1/daily index.KOSPI.open · kr.<코드>.open (09:01 봉 시가)", "verified": "2026-10-21", "note": "10/20 회차가 이미 중계기 1분봉 시가를 썼다"},
+    {"id": "news", "status": "fallback", "how": "WebSearch '<날짜> 코스피 출발' 마감시황·개장 기사", "verified": null, "note": "코스피만. 종목 시가는 기사에 드물다"},
+    {"id": "gfinance", "status": "degraded", "how": "Google Finance Open 라벨", "verified": null, "note": "curl 은 라벨이 없어 못 쓴다"}
+   ]},
+  {"id": "index_close", "label": "코스피·코스닥 종가", "fields": ["prices.KOSPI.close", "prices.KOSDAQ.close"],
+   "routes": [
+    {"id": "relay", "status": "primary", "how": "fetch_relay.py → /v1/daily index.<KOSPI|KOSDAQ>", "verified": "2026-10-21", "note": "코스닥 10/16 794.78 회차 값과 일치. 10/20·10/21 회차는 코스닥을 못 구했다"},
+    {"id": "investing", "status": "fallback", "how": "https://kr.investing.com/indices/kospi · /indices/kosdaq", "verified": "2026-10-21", "note": ""},
+    {"id": "news", "status": "fallback", "how": "WebSearch 마감시황 기사", "verified": null, "note": ""}
+   ]},
+  {"id": "flow", "label": "코스피 투자자별 순매수(억원)", "fields": ["flow.foreign", "flow.inst", "flow.retail", "flow.other"],
+   "routes": [
+    {"id": "relay", "status": "primary", "how": "fetch_relay.py → /v1/daily flow (토스 market-indicators/KOSPI/investor-trading, 18시 뒤 확정치)", "verified": "2026-10-21", "note": "네 분류 합이 0. 10/20 기사(외국인 −5,420억)와 토스(−7,326억)가 크게 달랐다 — 기사는 장 마감 직후 잠정치로 추정 [검증필요: KRX 정보데이터시스템 한 날 대조]"},
+    {"id": "news", "status": "fallback", "how": "WebSearch 직전 영업일 마감시황 — 외국인·기관·개인 순매수", "verified": null, "note": "기타법인은 기사에 거의 없다(8/25 이후 대부분 회차 미확보). 기사마다 집계가 다르다(10/21 회차 보고)"}
+   ]},
+  {"id": "us_close", "label": "미국 4종 종가", "fields": ["prices.NVDA.close", "prices.MU.close", "prices.EWY.close", "prices.SKHY.close"],
+   "routes": [
+    {"id": "stockanalysis", "status": "primary", "how": "https://stockanalysis.com/stocks/<티커>/ · /etf/ewy/ — 4:00 PM EDT 표기", "verified": "2026-10-21", "note": ""},
+    {"id": "relay", "status": "fallback", "how": "fetch_relay.py → /v1/daily us.<티커> (발행일 전날까지 마지막 봉)", "verified": "2026-10-21", "note": "10/20 4종 모두 회차 값과 일치"}
+   ]},
+  {"id": "sox", "label": "SOX 종가", "fields": ["prices.SOX.close"],
+   "routes": [
+    {"id": "investing", "status": "primary", "how": "https://kr.investing.com/indices/phlx-semiconductor", "verified": "2026-10-21", "note": "9/10·9/11 이틀 전일 값에서 멈춘 이력"},
+    {"id": "gfinance", "status": "degraded", "how": "https://www.google.com/finance/quote/SOX:INDEXNASDAQ", "verified": null, "note": "9/1 대체로 쓴 적 있음. 지금은 WebFetch 차단"},
+    {"id": "news", "status": "candidate", "how": "WebSearch '필라델피아 반도체지수 <날짜> 마감'", "verified": null, "note": "등락률만 나오는 기사가 많다 — 레벨 역산 금지"}
+   ]},
+  {"id": "k200n", "label": "코스피200 야간선물", "fields": ["prices.K200N.close"],
+   "routes": [
+    {"id": "sonmul", "status": "primary", "how": "https://sonmul.co.kr/", "verified": "2026-10-21", "note": "9/14 도입 뒤 휴장 회차 말고는 빠진 적 없음"},
+    {"id": "none", "status": "candidate", "how": "대안 없음 — 단일 경로", "verified": null, "note": "investing korea-200-futures 는 기준이 달라 쓰지 말 것(CONTEXT.md). 주간 점검이 대안을 찾는다"}
+   ]},
+  {"id": "k200f", "label": "코스피200 주간선물", "fields": ["prices.K200F.close"],
+   "routes": [
+    {"id": "hankyung", "status": "primary", "how": "https://markets.hankyung.com/indices/kospi-future — '장마감' 표기", "verified": "2026-10-21", "note": ""},
+    {"id": "sonmul", "status": "fallback", "how": "https://sonmul.co.kr/ 의 주간선물 종가", "verified": "2026-10-21", "note": ""}
+   ]},
+  {"id": "fx", "label": "원달러", "fields": ["prices.USDKRW.close"],
+   "routes": [
+    {"id": "news", "status": "primary", "how": "WebSearch 서울 외환시장 종가 기사", "verified": null, "note": "9/28·10/7·10/16·10/21 회차가 서울 종가를 못 찾았다"},
+    {"id": "investing", "status": "fallback", "how": "https://kr.investing.com/currencies/usd-krw", "verified": "2026-10-21", "note": "서울 종가가 아니라 시점 값 — asof 를 적는다"},
+    {"id": "relay", "status": "fallback", "how": "fetch_relay.py → /v1/daily fx_close (그날 15:30 토스 매매기준율)", "verified": null, "note": "2026-10-21 추가, VM 갱신 뒤 사용. 서울 종가 근사값 — 빈칸일 때만 자동으로 채운다"}
+   ]},
+  {"id": "us_fut", "label": "미국 지수선물(ES·NQ)", "fields": ["signals.us_fut.es_pct", "signals.us_fut.nq_pct"],
+   "routes": [
+    {"id": "investing", "status": "primary", "how": "https://kr.investing.com/indices/us-spx-500-futures · /nq-100-futures (WebFetch 만, curl 403)", "verified": "2026-10-21", "note": "기록 전용"}
+   ]},
+  {"id": "perp", "label": "해외 24시간 추종가", "fields": ["signals.perp_asof"],
+   "routes": [
+    {"id": "hyperliquid", "status": "primary", "how": "fetch_perp.py (Hyperliquid info API)", "verified": "2026-10-21", "note": "바이낸스는 이 클라우드에서 지역 차단"}
+   ]}
+ ]
+}
