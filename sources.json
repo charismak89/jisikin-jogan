@@ -28,7 +28,7 @@
   {"id": "us_close", "label": "미국 4종 종가", "fields": ["prices.NVDA.close", "prices.MU.close", "prices.EWY.close", "prices.SKHY.close"],
    "routes": [
     {"id": "stockanalysis", "status": "primary", "how": "https://stockanalysis.com/stocks/<티커>/ · /etf/ewy/ — 4:00 PM EDT 표기", "verified": "2026-10-21", "note": ""},
-    {"id": "relay", "status": "fallback", "how": "fetch_relay.py → /v1/daily us.<티커> (발행일 전날까지 마지막 봉)", "verified": "2026-10-21", "note": "10/20 4종 모두 회차 값과 일치"}
+    {"id": "relay", "status": "fallback", "how": "fetch_relay.py → /v1/daily us.<티커> (발행일 전날까지 마지막 봉)", "verified": "2026-10-22", "note": "10/20 4종 일치. 10/21 은 NVDA 221.86(공식 221.97)·MU 913.62(913.67)로 소수점 차이, EWY·SKHY 는 일치. 애프터마켓 가격은 아니다(NVDA 애프터 220.71). 대조·빈칸 채움용"}
    ]},
   {"id": "sox", "label": "SOX 종가", "fields": ["prices.SOX.close"],
    "routes": [
