@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """uicheck.py — 화면 검사. 저장소를 GitHub Pages 와 같은 주소(/jisikin-jogan/)로 잠깐 띄우고 브라우저로 연다.
 
-  python3 uicheck.py                     루트(v6) · v5/ · v6/ 를 390px·1440px 로
+  python3 uicheck.py                     루트(v6) · v6/ · archive/(지난 회차 목록) 를 390px·1440px 로
   python3 uicheck.py --out <폴더>        스크린샷을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
   python3 uicheck.py --path '#k=test'    검사할 주소를 하나 더 (루트 기준, 여러 번 써도 된다)
 
@@ -16,7 +16,7 @@ import functools, http.server, os, subprocess, sys, tempfile, threading
 from urllib.parse import urlsplit
 
 BASE = '/jisikin-jogan/'
-PAGES = ['', 'v5/', 'v6/']
+PAGES = ['', 'v6/', 'archive/']   # v5/ 는 2026-10-22 삭제
 WIDTHS = [(390, 844), (1440, 900)]
 CHROMIUM = '/opt/pw-browsers/chromium'  # 클라우드 세션에 깔린 브라우저. playwright install 로 받지 않는다
 ALLOW = ('https://cdn.jsdelivr.net/',)  # Pretendard 글꼴. 글꼴이 바뀌면 줄바꿈·넘침이 달라져서 받는다

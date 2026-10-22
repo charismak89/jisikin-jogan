@@ -2,7 +2,7 @@
 
 반도체·메모리 모닝 대시보드. GitHub Pages로 서빙합니다. 평일 07:45 KST 예약작업이 만듭니다.
 
-배포 주소: https://charismak89.github.io/jisikin-jogan/ (v6 화면, 2026-10-19 부터) · 이전 화면: https://charismak89.github.io/jisikin-jogan/v5/
+배포 주소: https://charismak89.github.io/jisikin-jogan/ (v6 화면, 2026-10-19 부터) · 지난 회차: https://charismak89.github.io/jisikin-jogan/archive/ (이전 화면 `/v5/` 는 2026-10-22 삭제)
 
 ## 구조 (v2 · 2026-09-15, 화면 v5 · 2026-10-15)
 
@@ -22,13 +22,13 @@
 | `score.py` | 직전 전망 채점 → calibration.json append | — |
 | `publish.py` | 아카이브·목록·링크 정리 + 커밋 + push (예약 세션용). 회차 입력을 `fixtures/` 에 남긴다 | — |
 | `regress.py` / `fixtures/` | 렌더 회귀 검사. 마지막 회차 입력으로 고치기 전·후를 렌더해 비교 | — |
-| `uicheck.py` | 화면 검사. 루트·v5·v6 를 390·1440px 로 열어 넘침·콘솔 오류·4xx 확인, 스크린샷 저장(클라우드 세션용) | — |
+| `uicheck.py` | 화면 검사. 루트·v6·archive 목록을 390·1440px 로 열어 넘침·콘솔 오류·4xx 확인, 스크린샷 저장(클라우드 세션용) | — |
 | `publish.bat` / `publish.ps1` | 옛 수동 발행. 2026-10-19 메인 전환 뒤 실행하면 바로 멈춘다(루트 index.html 을 v5 로 덮어쓰기 때문) | — |
 | `web/` / `v6/` | v6 화면(React) 소스와 빌드 산출물. `cd web && npm ci && npm run build` 가 `v6/` 와 루트 `index.html` 을 함께 만든다(`web/README.md`) | 사람(UI 바꿀 때만) |
 | `day.json` | v6 화면이 읽는 오늘자 데이터. render.py → publish.py | publish |
 | `state.json` | 회차 간 인수인계 (직전 전망·직전 종가·신호) | render.py |
 | `index.html` | 메인 = v6 앱 셸. 루틴은 건드리지 않는다 | web 빌드 |
-| `v5/index.html` / `archive/` | 오늘자 v5 화면 · 지난 회차(v5) | publish |
+| `archive/` | 지난 회차 HTML 화면(render.py 산출물). 발행 날 바로 `archive/<발행일>.html` 로 쓴다. `style.css` 를 공유한다 | publish |
 | `template.html` / `fill.py` | v1 잔재. v2 가 안정되면 삭제 | — |
 
 ## 발행 경로

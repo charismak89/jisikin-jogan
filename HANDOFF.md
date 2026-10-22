@@ -4,6 +4,13 @@
 2026-09-28 에 관리 주체를 코워크에서 Claude Code(클라우드 세션, 저장소 부착)로 옮겼다. 코워크 시절 핸드오프의 사실은 여기로 옮겼고, 로컬 윈도우 폴더·device_bash 경로는 더 쓰지 않는다.
 사람이 해야 할 작업 줄에는 확인 명령과 기대값을 같이 적는다. 다음 세션은 그 명령으로 확인하고 줄을 고친다(다른 세션 기록을 뒤지지 않는다).
 
+## 0-7. 2026-10-22 v5 화면 삭제(사용자 결정)
+- `/v5/` 주소를 없앴다(404). v6 의 '기존 화면(v5)' 링크는 '지난 회차'(`archive/`)로 바꿨다.
+- render.py 의 HTML 화면(`template-v5.html`·`style.css`)은 남긴다. 브리핑 탭 본문(`day.json.brief_html`)과 접힘 4,000자 게이트가 여기서 나온다.
+- `publish.py` 는 그날 화면을 `v5/index.html` 대신 `archive/<발행일>.html` 에 바로 쓴다(같은 날 재발행이면 덮어씀). 10/22 화면은 이 PR 에서 `archive/2026-10-22.html` 로 옮겼다.
+- 확인: 10/23 회차 뒤 `archive/2026-10-23.html` 이 생기고 `archive/index.html` 맨 위가 10/23 이면 정상. 이 세션이 10/23 08:15 KST 에 확인을 걸어 두었다.
+- 되돌리기: 이 PR revert.
+
 ## 0-6. 2026-10-22 v6 화면 손질(사용자 요청 3건)
 - 대시보드 차트 두 개(예측 → 실시간, 코스피 20거래일)의 오른쪽 빈 여백을 없앴다. 그래프가 카드 폭 끝까지 간다. 15:30 끝값 글자는 점 왼쪽 위로 옮겨 붙는다.
 - 브리핑 전문 탭을 대시보드와 같은 토스풍으로 바꿨다. 본문 HTML(render.py)은 그대로이고 모양만 `web/src/brief.css` 가 입힌다. PC(1024px~)는 간밤·국내 표를 나란히 놓는다. v5·archive 는 그대로 `style.css`.
@@ -40,11 +47,11 @@
 
 ## 0-4. 2026-10-19 메인 전환 (R3, R2 병행은 건너뜀 — 사용자 결정)
 - 메인 주소 `/jisikin-jogan/` 가 v6 앱(React)이다. 루트 `index.html` 은 `web/` 빌드가 만드는 셸이고 루틴은 건드리지 않는다. `/v6/` 주소도 같은 화면이다.
-- 이전 화면은 `/jisikin-jogan/v5/`. `publish.py` 가 render.py 산출물을 `v5/index.html` 에 쓰고(`style.css`·`archive/` 링크는 `../`), 전날 v5 화면을 `archive/<날짜>.html` 로 옮긴다. 데이터는 루트 `day.json`.
+- ~~이전 화면은 `/jisikin-jogan/v5/`.~~ 2026-10-22 삭제(0-7절). 데이터는 루트 `day.json`.
 - 지인 링크(`/#k=…`)는 그대로 v6 로 열리고 중계기 키도 그대로 읽는다(`web/src/lib/live.ts` 의 readRelayKey).
 - 차트: 오른쪽 위 `+` · `−` · `전체` 버튼, 확대 뒤 좌우로 끌어 이동(마우스·터치). PC 휠·더블클릭은 그대로. 맨 오른쪽 크게 보기 버튼은 차트를 화면 가득 다시 그린다(PC 760×360, 모바일 360×460 좌표계, Esc 로 닫기).
 - `publish.ps1`·`publish.bat` 은 실행하면 바로 멈춘다(루트를 v5 로 덮어쓰기 때문). 수동 경로는 `UPDATE.md`.
-- 의견 `ctx.page`: `/jisikin-jogan/`·`/jisikin-jogan/v6/` = v6, `/jisikin-jogan/v5/` = v5.
+- 의견 `ctx.page`: `/jisikin-jogan/`·`/jisikin-jogan/v6/` = v6, `/jisikin-jogan/archive/…` = 지난 회차 화면(10/22 전 기록의 `/v5/` 는 옛 v5).
 - **2026-10-19 토스 시세 기본화(사용자 결정)**: v6 는 지인 키 없이도 중계기를 부르고, 토스 시세를 받는 동안 추종가를 부르지 않는다. 중계기는 `PUBLIC_VIEW`(기본 1)로 `/v1/live`·`/v1/intraday`·의견 쓰기를 키 없이 연다. **VM 갱신 완료(2026-10-19 08:46 KST 확인)**: 키 없이 `/v1/live`·`/v1/intraday` 200, `/v1/daily`·의견 읽기 401. 새 브라우저(키 없음)로 메인을 열면 상태 KRX, Hyperliquid 호출 0건. 다시 잠그기: env 에 `PUBLIC_VIEW=0`.
 - 되돌리기: 전환 PR 을 revert(`web/README.md`).
 

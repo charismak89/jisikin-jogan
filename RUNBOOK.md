@@ -155,4 +155,4 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 - 종가 대조 결과 — 일치했는지, 갈린 종목
 - render.py 출력 요약(접힘 글자수·경고 건수·경고 제목) / 두 폭 가로 스크롤·높이
 - 못 구한 데이터·못 받은 파일 — render.py `데이터 누락` 줄, 연속 누락으로 더 시도한 경로와 결과
-- 발행 결과 — 자동 발행(커밋 SHA) 또는 "push 실패 — 루틴 저장소 부착을 확인한 뒤 Run now" (publish.py 가 v5 화면은 `v5/index.html`, 데이터는 루트 `day.json` 에 쓴다. 메인 `index.html` 은 v6 앱이라 건드리지 않는다)
+- 발행 결과 — 자동 발행(커밋 SHA) 또는 "push 실패 — 루틴 저장소 부착을 확인한 뒤 Run now" (publish.py 가 HTML 화면은 `archive/<발행일>.html`, 데이터는 루트 `day.json` 에 쓴다. 메인 `index.html` 은 v6 앱이라 건드리지 않는다. `/v5/` 는 2026-10-22 삭제)
