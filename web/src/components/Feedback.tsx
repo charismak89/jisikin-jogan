@@ -33,10 +33,11 @@ export function Feedback({ live, tab }: { live: Live; tab: string }) {
       <Dialog.Trigger className="rounded-full border border-line bg-card px-3.5 py-1.5 text-[13px] font-bold text-tx2">의견</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-        <Dialog.Content className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-3xl bg-card p-5 shadow-xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2">
+        {/* 모바일은 아래에서 올라오는 창, 태블릿·PC 는 가운데 창. 화면이 넓을수록 창과 입력 칸도 커진다(2026-10-22) */}
+        <Dialog.Content className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-3xl bg-card p-5 shadow-xl sm:bottom-auto sm:top-1/2 sm:max-w-xl sm:-translate-y-1/2 sm:p-6 lg:max-w-2xl lg:p-8 xl:max-w-3xl">
           <form onSubmit={send}>
-            <Dialog.Title className="text-[17px] font-bold text-tx">의견 보내기</Dialog.Title>
-            <Dialog.Description className="mt-1 text-[13px] leading-relaxed text-tx3">틀린 값, 보고 싶은 것, 예측이 맞았는지 무엇이든 적어 주세요. 운영자와 Claude가 읽고 매주 토요일 개선 계획에 반영합니다.</Dialog.Description>
+            <Dialog.Title className="text-[17px] font-bold text-tx lg:text-[20px]">의견 보내기</Dialog.Title>
+            <Dialog.Description className="mt-1 text-[13px] leading-relaxed text-tx3 lg:text-[14px]">틀린 값, 보고 싶은 것, 예측이 맞았는지 무엇이든 적어 주세요. 운영자와 Claude가 읽고 매주 토요일 개선 계획에 반영합니다.</Dialog.Description>
             <div role="radiogroup" aria-label="분류" className="mt-3 flex gap-2">
               {CATS.map((c) => (
                 <button key={c} type="button" role="radio" aria-checked={cat === c} onClick={() => setCat(c)}
@@ -45,7 +46,7 @@ export function Feedback({ live, tab }: { live: Live; tab: string }) {
             </div>
             <textarea value={text} onChange={(e) => setText(e.target.value)} maxLength={1000} rows={4} autoFocus
               placeholder="예) 하이닉스 시가가 증권 앱과 달라요 / 코스닥도 보고 싶어요"
-              className="mt-3 w-full resize-none rounded-2xl border border-line bg-card2 p-3 text-[14px] text-tx placeholder:text-tx3" />
+              className="mt-3 w-full resize-none rounded-2xl border border-line bg-card2 p-3 text-[14px] text-tx placeholder:text-tx3 sm:min-h-40 sm:resize-y lg:min-h-56 lg:p-4 lg:text-[15px]" />
             <div className="mt-3 flex gap-2">
               <input value={nick} onChange={(e) => setNick(e.target.value)} maxLength={20} placeholder="닉네임 (선택)" autoComplete="nickname"
                 className="min-w-0 flex-1 rounded-2xl border border-line bg-card2 px-3 text-[14px] text-tx placeholder:text-tx3" />

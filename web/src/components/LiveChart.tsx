@@ -5,7 +5,8 @@ import { arrow, dir, hm, money, nf, sg, tk } from '../lib/fmt'
 import { Card, CardHead, Cap } from './ui/card'
 import { cn } from '../lib/cn'
 
-const L = 34, R = 58, T = 20, B = 22
+// 오른쪽 여백은 점 반지름만큼만 둔다 — 그래프가 카드 폭 끝까지 닿게(2026-10-22). 끝값 글자는 오른쪽 끝에 닿으면 점 왼쪽 위로 옮긴다
+const L = 34, R = 6, T = 20, B = 22
 // 차트 좌표계(viewBox). 평소 360×236. 크게 보기에서는 PC(720px~)는 가로로 넓게, 모바일은 세로로 길게 다시 그린다 — 글자 크기는 그대로 두고 그릴 칸을 늘린다
 const dimsOf = (exp: boolean, vw: number) => (!exp ? { W: 360, H: 236 } : vw >= 720 ? { W: 760, H: 360 } : { W: 360, H: 460 })
 const ExpandIcon = ({ open }: { open: boolean }) => (
@@ -181,25 +182,28 @@ export function LiveChart({ live }: { live: Live }) {
             {tail.length > 1 && <polyline points={poly(tail)} fill="none" stroke="var(--tx2)" strokeWidth={1.6} />}
             {e.night != null && (() => { const nx = X(D.t_night), ny = Y(e.night); return <g><path d={`M${nx} ${ny - 5}L${nx + 5} ${ny}L${nx} ${ny + 5}L${nx - 5} ${ny}Z`} fill="var(--brand)" />
               <text x={nx - 7} y={ny + 3.5} textAnchor="end" fontSize={9} fill="var(--tx2)">야간 {sg(e.night)}</text></g> })()}
-            {ses.length > 0 ? (() => {
-              const ep = ses[ses.length - 1]
-              return <g>
+            {ses.length > 0 ? <g>
                 <polyline points={poly(ses)} fill="none" stroke={col} strokeWidth={2} strokeLinejoin="round" />
                 {op != null && <circle cx={xo} cy={Y(op)} r={4.5} fill="var(--card)" stroke={col} strokeWidth={2} />}
-                <circle cx={X(ep[0])} cy={Y(ep[1])} r={4} fill={col} />
-                <text x={X(ep[0]) + 7} y={Y(ep[1]) + 3.5} fontSize={9} fontWeight={700} fill="var(--tx)">{sg(ep[1])}</text>
-              </g>
-            })() : <text x={(xo + L + PW) / 2} y={(T + H - B) / 2} textAnchor="middle" fontSize={11} fill="var(--tx3)">
+              </g> : <text x={(xo + L + PW) / 2} y={(T + H - B) / 2} textAnchor="middle" fontSize={11} fill="var(--tx3)">
               {live.isPast && !live.liveOK ? '장중 기록 없음' : '09:00 개장 후 실시간'}</text>}
             {tip && <line x1={tip.x} x2={tip.x} y1={T} y2={H - B} stroke="var(--tx3)" strokeWidth={0.8} />}
           </g>
+          {/* 끝 점·끝값은 잘림 영역 밖에 그린다 — 15:30 점이 그래프 오른쪽 끝에 붙어도 반쪽으로 잘리지 않게 */}
+          {ses.length > 0 && (() => {
+            const ep = ses[ses.length - 1], ex = X(ep[0]), ey = Y(ep[1]), flip = ex > L + PW - 40
+            return inX(ex) && <g>
+              <circle cx={ex} cy={ey} r={4} fill={col} />
+              <text x={flip ? ex - 7 : ex + 7} y={flip ? ey - 8 : ey + 3.5} textAnchor={flip ? 'end' : 'start'} fontSize={9} fontWeight={700} fill="var(--tx)">{sg(ep[1])}</text>
+            </g>
+          })()}
           {grid.map((g) => <text key={g} x={L - 5} y={Y(g) + 3.5} textAnchor="end" fontSize={9} fill="var(--tx3)">{Math.abs(g) < 1e-9 ? '0' : (g > 0 ? '+' : '') + g}</text>)}
           <text x={xo - 4} y={T - 8} textAnchor="end" fontSize={9} fill="var(--tx3)">장외</text>
           <text x={xo + 4} y={T - 8} fontSize={9} fill="var(--tx3)">장중</text>
           {([[D.t_open, '09:00'], [D.t_prev, '15:30'], [D.t_night, '05:00'], [D.t_open + 108e5, '12:00'], [D.t_close, '15:30']] as [number, string][])
             .filter(([t]) => inX(X(t)))
             .filter(([t], i, arr) => arr.slice(0, i).every(([u]) => Math.abs(X(u) - X(t)) >= 26))   // 겹치는 시각 글자는 뒤의 것을 뺀다(09:00 우선)
-            .map(([t, s]) => <text key={s + t} x={X(t)} y={H - 6} textAnchor="middle" fontSize={9} fill="var(--tx3)">{s}</text>)}
+            .map(([t, s]) => <text key={s + t} x={X(t)} y={H - 6} textAnchor={X(t) > L + PW - 14 ? 'end' : 'middle'} fontSize={9} fill="var(--tx3)">{s}</text>)}
         </svg>
         {tip && (
           <div className="pointer-events-none absolute -top-1.5 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-xl bg-tx px-2.5 py-1.5 text-[12px] leading-snug text-bg"
