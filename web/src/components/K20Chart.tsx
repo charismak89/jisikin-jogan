@@ -3,7 +3,8 @@ import type { DayData } from '../types'
 import { md, nf, dir, sg } from '../lib/fmt'
 import { Card, CardHead, Cap } from './ui/card'
 
-const W = 360, H = 210, L = 40, R = 46, T = 14, B = 24
+// 오른쪽 여백은 마지막 막대와 날짜 글자만큼만 — 그래프가 카드 폭 끝까지 닿게(2026-10-22). '오늘' 글자는 마지막 막대 위에 둔다
+const W = 360, H = 210, L = 40, R = 14, T = 14, B = 24
 
 export function K20Chart({ data }: { data: DayData }) {
   const rows = data.k20.rows
@@ -33,7 +34,7 @@ export function K20Chart({ data }: { data: DayData }) {
       <div className="relative">
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="viz block w-full touch-pan-y" role="img" onPointerMove={onMove} onPointerLeave={() => setTip(null)}
           aria-label={`코스피 최근 ${closes.length}거래일 종가와 회차별 예상 구간, 실제 시초가`}>
-          {grid.map((g) => <g key={g}><line x1={L} x2={W - R + 8} y1={Y(g)} y2={Y(g)} stroke="var(--line)" />
+          {grid.map((g) => <g key={g}><line x1={L} x2={W - 2} y1={Y(g)} y2={Y(g)} stroke="var(--line)" />
             <text x={L - 6} y={Y(g) + 3.5} textAnchor="end" fontSize={9} fill="var(--tx3)">{nf(g, 0)}</text></g>)}
           {rows.map((r, i) => r.low != null && r.high != null && (
             <rect key={r.date} x={X(i) - 3.5} y={Y(r.high)} width={7} height={Math.max(2, Y(r.low) - Y(r.high))} rx={2}
@@ -41,7 +42,7 @@ export function K20Chart({ data }: { data: DayData }) {
           <polyline points={line} fill="none" stroke="var(--tx)" strokeWidth={1.8} strokeLinejoin="round" />
           {rows.map((r, i) => r.open != null && (
             <circle key={r.date} cx={X(i)} cy={Y(r.open)} r={4} fill={r.in_range ? 'var(--ok)' : 'var(--card)'} stroke={r.in_range ? 'var(--ok)' : 'var(--tx2)'} strokeWidth={1.8} />))}
-          {data.forecast.low != null && data.forecast.high != null && <text x={X(rows.length - 1) + 7} y={Y(((data.forecast.low + data.forecast.high) / 2)) + 4} fontSize={10} fontWeight={700} fill="var(--tx2)">오늘</text>}
+          {data.forecast.low != null && data.forecast.high != null && <text x={X(rows.length - 1)} y={Math.max(10, Y(Math.max(data.forecast.low, data.forecast.high)) - 5)} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--tx2)">오늘</text>}
           {labelIdx.map((i) => <text key={i} x={X(rows.findIndex((r) => r === closes[i]))} y={H - 6} textAnchor="middle" fontSize={9} fill="var(--tx3)">{md(closes[i].date)}</text>)}
           {tip != null && <line x1={X(tip)} x2={X(tip)} y1={T} y2={H - B} stroke="var(--tx3)" strokeWidth={0.8} />}
         </svg>

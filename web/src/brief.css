@@ -1,0 +1,169 @@
+/* 브리핑 전문 탭 — Shadow DOM 안에서만 쓴다(BriefTab.tsx 가 문자열로 넣는다).
+   본문 HTML 은 render.py 가 v5 와 똑같이 만든다. 이 파일은 그 클래스 이름에 대시보드와 같은 토스풍 모양만 입힌다.
+   색 토큰(--card, --tx, --up …)은 문서 :root(index.css)에서 상속받는다. v5·archive 가 쓰는 style.css 는 건드리지 않는다. */
+:host {
+  display: block; color: var(--tx); font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
+  word-break: keep-all; overflow-wrap: break-word;
+  /* 본문 안 채점 차트(인라인 SVG)가 v5 토큰 이름을 쓴다 */
+  --panel: var(--card); --line2: #d1d6db;
+  --warn-bg: #fff6e6; --warn-tx: #6b4a00; --warn-strong: #d97a00;
+}
+:host([data-jj="dark"]) { --line2: #3d434c; --warn-bg: #2a2313; --warn-tx: #f1dcaa; --warn-strong: #f5b400; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.up { color: var(--up); } .down { color: var(--dn); } .flat, .na { color: var(--tx3); }
+
+/* 카드 배치 — 모바일 한 열. PC(1024px~)는 간밤·국내 표를 나란히, 나머지는 가로 전체 */
+.wrap { display: grid; gap: 16px; container: wrap / inline-size; }
+.tldr, section { background: var(--card); border-radius: 24px; padding: 20px; box-shadow: var(--shadow); container: card / inline-size; min-width: 0; }
+@media (min-width: 640px) { .tldr, section { padding: 24px; } }
+@media (min-width: 1024px) {
+  .wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .tldr, #s-issue, #s-scen, #s-score { grid-column: 1 / -1; }
+}
+
+/* 오늘 한눈에 — 대시보드 전망 카드의 번호 목록과 같은 모양. PC 는 세 줄을 가로로 */
+.tt { font-size: 13px; font-weight: 600; color: var(--tx3); margin-bottom: 12px; }
+.tl { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.tt + .tl { border-top: 0; padding-top: 0; }
+.tl:last-child { padding-bottom: 0; }
+.tn { width: 22px; height: 22px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+  font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.th { font-size: 17px; font-weight: 700; line-height: 1.45; letter-spacing: -0.02em; }
+.tb { font-size: 14px; color: var(--tx2); margin-top: 4px; }
+@media (min-width: 1024px) {
+  .tldr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 28px; }
+  .tt { grid-column: 1 / -1; }
+  .tl, .tt + .tl { border-top: 0; padding: 0; }
+}
+
+/* 섹션 머리 — 대시보드 카드 제목(17px)과 같은 크기 */
+.sh { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+.stag { font-size: 13px; color: var(--tx3); white-space: nowrap; }
+.sum { font-size: 15px; color: var(--tx2); margin: 6px 0 14px; }
+
+/* 시세 표 — 토스 목록처럼: 이름·코드 왼쪽, 가격·등락 오른쪽, 한 줄 설명은 아래 */
+.tblwrap { overflow-x: auto; }
+table.q { width: 100%; border-collapse: collapse; }
+table.q th { font-size: 12px; font-weight: 500; color: var(--tx3); text-align: left; padding: 0 0 6px; }
+table.q th.r { text-align: right; }
+table.q td { padding: 12px 0 0; vertical-align: baseline; }
+tbody.st { border-top: 1px solid var(--line); }
+td.nm { font-size: 15px; font-weight: 600; padding-right: 10px; overflow-wrap: anywhere; }
+td.nm .cd { display: block; font-size: 12px; font-weight: 400; color: var(--tx3); margin-top: 1px; white-space: nowrap; }
+td.pr { text-align: right; font-size: 15px; font-weight: 700; color: var(--tx); white-space: nowrap; padding: 12px 12px 0 10px; }
+td.ch { text-align: right; font-size: 14px; font-weight: 600; white-space: nowrap; min-width: 76px; }
+td.cm { font-size: 14px; color: var(--tx2); padding: 2px 0 12px; }
+
+/* 접힘 — '더 보기'·'근거' */
+details { margin-top: 6px; }
+summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--tx3); padding: 2px 0; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg); transition: transform .15s; }
+details[open] > summary::after { transform: translateY(1px) rotate(-135deg); }
+summary:hover { color: var(--brand); }
+summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+.dbody { font-size: 14px; color: var(--tx2); margin-top: 8px; padding: 12px 14px; border-radius: 14px; background: var(--card2); }
+.dbody p + p { margin-top: 8px; }
+@media (prefers-reduced-motion: reduce) { summary::after { transition: none; } }
+
+/* 하방 체크 — 회색 상자. '가장 약한 고리'만 주황 */
+.chk { background: var(--warn-bg); border-radius: 16px; padding: 14px 16px; margin-top: 16px; }
+.ct { font-size: 12px; font-weight: 700; color: var(--warn-strong); }
+.cl { font-size: 15px; font-weight: 600; color: var(--warn-tx); margin-top: 4px; line-height: 1.55; }
+.chk summary { color: var(--warn-strong); }
+.chk .dbody { color: var(--warn-tx); background: color-mix(in srgb, var(--card) 65%, transparent); }
+.chk.soft { background: var(--card2); }
+.chk.soft .ct { color: var(--tx3); }
+.chk.soft .cl { color: var(--tx2); font-weight: 500; }
+.chk.soft summary { color: var(--tx3); }
+.chk.soft .dbody { color: var(--tx2); background: var(--card); }
+
+/* 수급 — 대시보드 '간밤 시장' 타일과 같은 모양 */
+.flow { margin-top: 16px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@container card (min-width: 600px) { .fgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.fgrid > div { background: var(--card2); border-radius: 16px; padding: 12px; }
+.fk { display: block; font-size: 12px; font-weight: 600; color: var(--tx2); }
+.fv { display: block; font-size: 16px; font-weight: 700; margin-top: 2px; white-space: nowrap; }
+.fn { font-size: 14px; color: var(--tx2); margin-top: 12px; }
+
+/* 메모리 이슈 — 올릴 힘 · 누를 힘 */
+.split { display: grid; gap: 12px; }
+@container card (min-width: 480px) { .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.col { background: var(--card2); border-radius: 16px; padding: 16px; }
+.col h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.col.bull h3 { color: var(--up); } .col.bear h3 { color: var(--dn); }
+.col li { list-style: none; }
+.col li + li { margin-top: 12px; }
+.col li b { display: block; font-size: 15px; font-weight: 600; line-height: 1.45; }
+.col li span { display: block; font-size: 14px; color: var(--tx2); margin-top: 2px; }
+
+/* 장중 시나리오 — 가격 사다리, 시나리오 두 장, 확인 포인트 */
+.ladder { display: flex; flex-direction: column; gap: 6px; }
+.lv { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: baseline; gap: 12px;
+  padding: 12px 14px; border-radius: 14px; background: var(--card2); }
+.lvl { font-size: 16px; font-weight: 700; }
+.lvd { font-size: 13px; color: var(--tx2); }
+.lv.res .lvl { color: var(--up); }
+.lv.sup .lvl { color: var(--dn); }
+.lv.sup2 .lvl { color: var(--tx3); }
+/* 전일 종가 줄 — 지지(파랑)와 헷갈리지 않게 색 대신 테두리로 표시 */
+.lv.now { background: var(--card); box-shadow: inset 0 0 0 1.5px var(--line2); }
+.lv.now .lvd { color: var(--tx); font-weight: 600; }
+@container card (max-width: 340px) { .lv { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+
+.scen { display: grid; gap: 12px; margin-top: 16px; }
+@container card (min-width: 480px) { .scen { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.sc { background: var(--card2); border-radius: 16px; padding: 16px; }
+.sc .st { font-size: 12px; font-weight: 700; color: var(--tx3); }
+.sc.base .st { color: var(--brand); } .sc.alt .st { color: var(--warn-strong); }
+.sch { font-size: 16px; font-weight: 700; margin-top: 4px; line-height: 1.45; letter-spacing: -0.02em; }
+.scb { font-size: 14px; color: var(--tx2); margin-top: 6px; }
+.sif { font-size: 13px; color: var(--tx3); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+
+.pts { margin-top: 16px; }
+.pth { font-size: 13px; font-weight: 600; color: var(--tx3); margin-bottom: 10px; }
+.pt { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; }
+.pt + .pt { margin-top: 12px; }
+.pn { width: 22px; height: 22px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+  font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.pt b { display: block; font-size: 15px; font-weight: 600; line-height: 1.45; }
+.pt span { display: block; font-size: 14px; color: var(--tx2); margin-top: 2px; }
+
+/* 넓은 화면의 가로 전체 카드 — 사다리|시나리오, 포인트|하방 체크를 나란히 */
+@container wrap (min-width: 760px) {
+  #s-scen { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 20px; align-items: start; }
+  #s-scen > .sh, #s-scen > .sum, #s-scen > details { grid-column: 1 / -1; }
+  #s-scen > .scen { grid-template-columns: minmax(0, 1fr); margin-top: 0; }
+}
+
+/* 예측 채점 */
+.score { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.s { min-width: 50px; height: 32px; padding: 0 10px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; background: var(--card2); color: var(--tx3); }
+.s.hit { background: color-mix(in srgb, var(--ok) 14%, var(--card)); color: var(--ok); }
+.s.wait { background: transparent; color: var(--tx2); border: 1px dashed var(--line2); }
+.legend { font-size: 12px; color: var(--tx3); margin-top: 10px; }
+.verdict { display: inline-block; justify-self: start; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 999px; margin-top: 14px;
+  background: var(--card2); color: var(--tx2); }
+.verdict.hit { background: color-mix(in srgb, var(--ok) 14%, var(--card)); color: var(--ok); }
+.verdict.miss { color: var(--tx3); }
+.note { font-size: 15px; color: var(--tx2); margin-top: 8px; }
+.note b { color: var(--tx); }
+.schart { margin-top: 16px; }
+.schart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.schart .sl { font-size: 12px; color: var(--tx3); margin-top: 6px; }
+.cov { font-size: 13px; color: var(--tx3); margin-top: 12px; }
+/* 넓은 화면의 가로 전체 카드 — 채점 차트를 오른쪽에 둬서 차트 글자가 커지지 않게 한다 */
+@container wrap (min-width: 760px) {
+  #s-score { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: repeat(7, auto) 1fr; column-gap: 28px; }
+  #s-score > * { grid-column: 1; }
+  #s-score > .sh { grid-column: 1 / -1; }
+  #s-score > .schart { grid-column: 2; grid-row: 2 / -1; margin-top: 12px; }
+}
+
+footer { margin-top: 16px; padding: 0 8px; font-size: 12px; line-height: 1.7; color: var(--tx3); }
