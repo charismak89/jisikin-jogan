@@ -5,8 +5,8 @@
 예약 세션이 clone 한 저장소 안에서 돌린다. publish.ps1(수동 경로)은 2026-10-19 메인 전환 뒤 쓰지 않는다.
 
 2026-10-19 메인 전환 — 루트 index.html 은 v6 앱(web/ 빌드)이다. 이 스크립트는 루트 index.html 을 건드리지 않는다.
-render.py 가 만든 v5 화면은 v5/index.html 에 쓴다. 한 단계 깊으니 style.css·archive 링크는 ../ 로 바꿔 쓴다.
-v6 앱이 읽는 데이터는 루트 day.json 이다.
+2026-10-22 v5 화면(/v5/) 삭제 — render.py 가 만든 HTML 화면은 발행 날 바로 archive/<발행일>.html 에 쓴다(지난 회차 기록).
+한 단계 깊으니 style.css·archive 링크는 ../ 로 바꿔 쓴다. v6 앱이 읽는 데이터는 루트 day.json 이다.
 
 사용법 (저장소 루트에서. 기본 입력은 render.py 가 만든 out/ 의 세 파일)
   python3 publish.py                    # 아카이브·목록·링크 정리 + 커밋
@@ -32,10 +32,9 @@ from datetime import datetime, timedelta, timezone, date
 KST = timezone(timedelta(hours=9))
 DOW = '일월화수목금토'   # datetime.weekday: 월=0 → 아래에서 변환
 FIRST_ISSUE = date(2026, 8, 21)
-V5 = os.path.join('v5', 'index.html')   # v5 화면(render.py 산출물)의 게시 위치
 
-def v5_paths(html):
-    """루트 기준 상대 경로(style.css, ./archive/)를 v5/ 와 archive/ 깊이(한 단계)에 맞게 ../ 로"""
+def arch_paths(html):
+    """루트 기준 상대 경로(style.css, ./archive/)를 archive/ 깊이(한 단계)에 맞게 ../ 로"""
     html = re.sub(r'(href\s*=\s*["\'])(?!\.\./)style\.css', r'\1../style.css', html)
     return html.replace('href="./archive/', 'href="../archive/')
 
@@ -91,19 +90,12 @@ def main():
         raise SystemExit('[중단] 발행일 %s 가 오늘(KST %s)과 다름. 테스트면 --allow-date' % (new_date, today))
 
     changed = []
-    # 1) 기존 v5 화면을 아카이브로 (전환 전 저장소면 루트 index.html 이 v5 화면이다 — meta generated 로 구분)
-    cur_html = read(V5) or (read('index.html') if gen_date(read('index.html')) else '')
-    cur_date = gen_date(cur_html)
-    if cur_html and cur_date and cur_date != new_date:
-        ap = os.path.join('archive', cur_date + '.html')
-        if not os.path.exists(ap):
-            write(ap, v5_paths(cur_html)); changed.append('archive/%s.html 생성' % cur_date)
-    elif cur_date == new_date:
-        changed.append('같은 날짜 재발행 — 아카이브 생성 없음')
+    # 1) 오늘 화면을 바로 지난 회차로. 같은 날짜 재발행이면 덮어쓴다. 루트 index.html(v6 앱)은 그대로 둔다
+    ap = os.path.join('archive', new_date + '.html')
+    changed.append(('archive/%s.html 다시 씀(같은 날짜 재발행)' if os.path.exists(ap) else 'archive/%s.html 생성') % new_date)
+    write(ap, arch_paths(new_html))
 
-    # 2) 새 파일 반영 — v5 화면은 v5/index.html 로. 루트 index.html(v6 앱)은 그대로 둔다
-    os.makedirs('v5', exist_ok=True)
-    write(V5, v5_paths(new_html)); changed.append('v5/index.html ← %s' % new_date)
+    # 2) 데이터 파일 반영
     if new_cal and os.path.exists(new_cal):
         try:
             nc = json.loads(read(new_cal)); n_new = len(nc.get('records') or [])
@@ -154,13 +146,13 @@ def main():
         nt = re.sub(r'<!-- ARCHIVE_LIST_START -->.*?<!-- ARCHIVE_LIST_END -->', lambda m: block, lt, flags=re.S)
         if nt != lt: write(lp, nt); changed.append('archive/index.html 목록 %d개' % len(files))
 
-    # 4) 새 v5 화면의 지난 회차 링크를 실제 파일 기준으로 (v5/ 에서 보는 주소라 ../archive/)
+    # 4) 오늘 화면의 지난 회차 링크를 실제 파일 기준으로 (archive/ 에서 보는 주소라 ../archive/)
     recent = [iso for iso in reversed(files) if iso < new_date][:3]
     links = ['<a href="../archive/%s.html">%d/%d (%s)</a>' % (iso, date.fromisoformat(iso).month, date.fromisoformat(iso).day, '월화수목금토일'[date.fromisoformat(iso).weekday()]) for iso in recent]
     links.append('<a href="../archive/">전체 보기</a>')
-    idx = read(V5)
+    idx = read(ap)
     idx2 = re.sub(r'<div class="arch">.*?</div>', lambda m: '<div class="arch">' + ' '.join(links) + '</div>', idx, count=1, flags=re.S)
-    if idx2 != idx: write(V5, idx2); changed.append('지난 회차 링크 %d개' % len(recent))
+    if idx2 != idx: write(ap, idx2); changed.append('지난 회차 링크 %d개' % len(recent))
 
     # 5) 평일 누락 참고
     for c in changed: print('·', c)

@@ -59,7 +59,7 @@ export default function App() {
         <ThemeSwitch />
       </header>
       {!data ? (
-        <Card className="text-center text-[15px] text-tx2">{err || '불러오는 중…'}<div className="mt-3"><a className="font-bold text-brand" href={site('v5/')}>기존 화면(v5)으로 →</a></div></Card>
+        <Card className="text-center text-[15px] text-tx2">{err || '불러오는 중…'}<div className="mt-3"><a className="font-bold text-brand" href={site('archive/')}>지난 회차 보기 →</a></div></Card>
       ) : (
         <Tabs.Root value={tab} onValueChange={go}>
           <div className="mb-4 flex items-end justify-between gap-3">
@@ -89,7 +89,7 @@ export default function App() {
             </div>
           </Tabs.Content>
           <Tabs.Content value="brief"><BriefTab data={data} /></Tabs.Content>
-          <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('v5/')}>기존 화면(v5)</a></p>
+          <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a></p>
         </Tabs.Root>
       )}
     </div>

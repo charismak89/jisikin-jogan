@@ -1,10 +1,10 @@
 /* 브리핑 전문 탭 — Shadow DOM 안에서만 쓴다(BriefTab.tsx 가 문자열로 넣는다).
-   본문 HTML 은 render.py 가 v5 와 똑같이 만든다. 이 파일은 그 클래스 이름에 대시보드와 같은 토스풍 모양만 입힌다.
-   색 토큰(--card, --tx, --up …)은 문서 :root(index.css)에서 상속받는다. v5·archive 가 쓰는 style.css 는 건드리지 않는다. */
+   본문 HTML 은 render.py 가 template-v5.html 로 만든다(지난 회차 archive/ 와 같은 글). 이 파일은 그 클래스 이름에 대시보드와 같은 토스풍 모양만 입힌다.
+   색 토큰(--card, --tx, --up …)은 문서 :root(index.css)에서 상속받는다. archive/ 가 쓰는 style.css 는 건드리지 않는다. */
 :host {
   display: block; color: var(--tx); font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
   word-break: keep-all; overflow-wrap: break-word;
-  /* 본문 안 채점 차트(인라인 SVG)가 v5 토큰 이름을 쓴다 */
+  /* 본문 안 채점 차트(인라인 SVG)가 style.css 토큰 이름을 쓴다 */
   --panel: var(--card); --line2: #d1d6db;
   --warn-bg: #fff6e6; --warn-tx: #6b4a00; --warn-strong: #d97a00;
 }

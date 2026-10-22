@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { DayData } from '../types'
 import briefCss from '../brief.css?inline'
 
-// 브리핑 본문은 render.py 가 만든 v5 HTML 그대로다(글자까지 같다). 모양은 대시보드와 같은 토스풍 brief.css 로 입힌다(2026-10-22).
-// Tailwind 유틸리티와 본문 클래스 이름(.num .up .grid 등)이 부딪치지 않도록 Shadow DOM 안에서 그린다. v5·archive 는 그대로 style.css 를 쓴다.
+// 브리핑 본문은 render.py 가 template-v5.html 로 만든 HTML 그대로다(지난 회차 archive/ 와 글자까지 같다). 모양은 대시보드와 같은 토스풍 brief.css 로 입힌다(2026-10-22).
+// Tailwind 유틸리티와 본문 클래스 이름(.num .up .grid 등)이 부딪치지 않도록 Shadow DOM 안에서 그린다. archive/ 는 그대로 style.css 를 쓴다.
 export function BriefTab({ data }: { data: DayData }) {
   const host = useRef<HTMLDivElement>(null)
   const root = useRef<ShadowRoot | null>(null)
