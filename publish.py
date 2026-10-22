@@ -32,6 +32,7 @@ from datetime import datetime, timedelta, timezone, date
 KST = timezone(timedelta(hours=9))
 DOW = '일월화수목금토'   # datetime.weekday: 월=0 → 아래에서 변환
 FIRST_ISSUE = date(2026, 8, 21)
+
 def arch_paths(html):
     """루트 기준 상대 경로(style.css, ./archive/)를 archive/ 깊이(한 단계)에 맞게 ../ 로"""
     html = re.sub(r'(href\s*=\s*["\'])(?!\.\./)style\.css', r'\1../style.css', html)
