@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: git fetch -q origin main:refs/remotes/origin/main
-      - run: python -m py_compile render.py score.py publish.py fetch_perp.py fetch_relay.py datacheck.py analyze.py regress.py uicheck.py relay/jogan_relay.py
+      - run: python -m py_compile render.py score.py publish.py fetch_perp.py fetch_relay.py datacheck.py analyze.py regress.py uicheck.py uishots.py relay/jogan_relay.py
       - run: python regress.py
   web:
     # v6 앱(web/)의 빌드 산출물(v6/, 루트 index.html)이 소스와 맞는지 본다. 사이트는 커밋된 산출물을 그대로 쓴다

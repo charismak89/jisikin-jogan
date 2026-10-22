@@ -14,7 +14,7 @@
 | `CONTEXT.md` | 종목 사실·표기명·소스 우선순위·금지 표현·이슈 수집 범위 | 사람 |
 | `CALIBRATION.md` / `calibration.json` | 채점 규칙·기록. records 는 score.py 가 append | score.py |
 | `holidays.json` | 휴장일. 임시공휴일이 생기면 한 줄 추가. 휴장 다음 회차의 야간선물 게이트 면제도 이 파일로 판정 | 사람 |
-| `template-v5.html` / `style.css` | 뼈대와 디자인. 첫 화면 대시보드 + 브리핑 탭 (인라인 CSS 와 style.css 는 같은 내용) | 사람 |
+| `template-v5.html` / `style.css` | render.py 가 쓰는 HTML 뼈대·디자인(인라인 CSS 와 style.css 는 같은 내용). `/v5/` 화면은 2026-10-22 삭제했지만 브리핑 탭 본문(`day.json.brief_html`)·접힘 4,000자 게이트·지난 회차(`archive/`) 화면이 여기서 나온다. 이름에 v5 가 남았어도 지우지 않는다 | 사람 |
 | `template-v4.html` | v4 뼈대. 되돌릴 때 render.py 의 TEMPLATE 한 줄만 바꾼다 | — |
 | `fetch_perp.py` | 해외 24시간 추종가(Hyperliquid) → `perp.json`. 대시보드 장외 구간·종목 예측 입력 | — |
 | `relay/` | 토스증권 Open API 중계기(오라클 VM 에서 돈다). 설치·운영은 `relay/README.md` | 사람(VM) |
@@ -23,6 +23,7 @@
 | `publish.py` | 아카이브·목록·링크 정리 + 커밋 + push (예약 세션용). 회차 입력을 `fixtures/` 에 남긴다 | — |
 | `regress.py` / `fixtures/` | 렌더 회귀 검사. 마지막 회차 입력으로 고치기 전·후를 렌더해 비교 | — |
 | `uicheck.py` | 화면 검사. 루트·v6·archive 목록을 390·1440px 로 열어 넘침·콘솔 오류·4xx 확인, 스크린샷 저장(클라우드 세션용) | — |
+| `uishots.py` | 화면 상태별 사진(브리핑 전부 펼치기·의견 창·차트 크게 보기·다크, `--intraday` 는 가짜 장중 봉). 판정 없이 사진만 | — |
 | `publish.bat` / `publish.ps1` | 옛 수동 발행. 2026-10-19 메인 전환 뒤 실행하면 바로 멈춘다(루트 index.html 을 v5 로 덮어쓰기 때문) | — |
 | `web/` / `v6/` | v6 화면(React) 소스와 빌드 산출물. `cd web && npm ci && npm run build` 가 `v6/` 와 루트 `index.html` 을 함께 만든다(`web/README.md`) | 사람(UI 바꿀 때만) |
 | `day.json` | v6 화면이 읽는 오늘자 데이터. render.py → publish.py | publish |
