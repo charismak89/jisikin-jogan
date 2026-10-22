@@ -960,6 +960,50 @@
     "perp_asof": "10/21 07:46"
    },
    "source": "2026-10-22 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-22",
+   "low": 5670.0,
+   "high": 5740.0,
+   "band_width_pct": 1.22,
+   "prev_close": 5735.66,
+   "actual_open": 5670.11,
+   "gap_pct": -1.14,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -0.53,
+   "center_err_pct": -0.61,
+   "signals": {
+    "k200n_pct": -0.53,
+    "k200n_close": 888.3,
+    "k200n_asof": "10/22 06:05",
+    "k200f_close": 893.05,
+    "ewy_implied_pct": -1.43,
+    "adr_implied_pct": -3.2,
+    "news_flag": "10/21 낙폭 과대 반등과 외국인 순매수 전환, 미국 SOX +1.97%. 이후 새 악재는 확인하지 못함",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.33,
+    "nq_pct": -0.5,
+    "us_fut_asof": "10/22 07:36",
+    "perp": {
+     "KOSPI": {
+      "p0500": -0.18,
+      "snap": -1.38
+     },
+     "005930": {
+      "p0500": -0.34,
+      "snap": -2.29
+     },
+     "000660": {
+      "p0500": -1.04,
+      "snap": -2.49
+     }
+    },
+    "perp_asof": "10/22 07:46"
+   },
+   "source": "2026-10-23 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1106,6 +1150,42 @@
     "perp_pct": 4.33
    },
    "source": "2026-10-22 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-10-22",
+   "code": "000660",
+   "low": 1258000.0,
+   "high": 1291000.0,
+   "prev_close": 1294000.0,
+   "actual_open": 1273000.0,
+   "gap_pct": -1.62,
+   "in_range": true,
+   "center_pct": -1.51,
+   "center_err_pct": -0.11,
+   "band_width_pct": 2.55,
+   "inputs": {
+    "k200n_pct": -0.53,
+    "perp_pct": -2.49
+   },
+   "source": "2026-10-23 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-10-22",
+   "code": "005930",
+   "low": 217000.0,
+   "high": 223500.0,
+   "prev_close": 223500.0,
+   "actual_open": 221500.0,
+   "gap_pct": -0.89,
+   "in_range": true,
+   "center_pct": -1.41,
+   "center_err_pct": 0.52,
+   "band_width_pct": 2.91,
+   "inputs": {
+    "k200n_pct": -0.53,
+    "perp_pct": -2.29
+   },
+   "source": "2026-10-23 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
