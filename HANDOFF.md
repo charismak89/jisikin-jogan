@@ -9,7 +9,7 @@
 - render.py 의 HTML 화면(`template-v5.html`·`style.css`)은 남긴다. 브리핑 탭 본문(`day.json.brief_html`)과 접힘 4,000자 게이트가 여기서 나온다.
 - `publish.py` 는 그날 화면을 `v5/index.html` 대신 `archive/<발행일>.html` 에 바로 쓴다(같은 날 재발행이면 덮어씀). 10/22 화면은 이 PR 에서 `archive/2026-10-22.html` 로 옮겼다.
 - 확인 완료(10/23 08:15 KST): 10/23 회차(`a2d06a6`, GATE PASS)가 `archive/2026-10-23.html` 을 만들었고 목록 맨 위가 10/23(제 46 호). 링크 `../style.css`·`../archive/2026-10-22·21·20.html`, `v5/` 다시 안 생김, 사이트 `/v5/` 404. MU 10/22 종가 856.49 는 stockanalysis 원값과 일치(중계기 857.01 은 대조용 — 0-5절).
-- 관찰(미반영): 10/23 회차가 RUNBOOK 레이아웃 검사(Playwright) 때 playwright 가 없어 세 번째 시도(`python3 -m pip install -q playwright`)에서야 돌았다. RUNBOOK 레이아웃 절에 설치 한 줄을 넣을지는 사용자 판단.
+- 10/23 회차가 RUNBOOK 레이아웃 검사(Playwright) 때 playwright 가 없어 세 번째 시도(`python3 -m pip install -q playwright`)에서야 돌았다. 사용자 승인으로 RUNBOOK 7절 레이아웃 줄 앞에 설치 명령을 넣었다(2026-10-23). 확인: 10/26 회차 보고에 두 폭 레이아웃 숫자가 있고 `ModuleNotFoundError` 가 없으면 정상(이 세션이 10/26 08:15 KST 에 확인).
 - 되돌리기: 이 PR revert.
 
 ## 0-6. 2026-10-22 v6 화면 손질(사용자 요청 3건)
