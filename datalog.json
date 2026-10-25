@@ -259,6 +259,13 @@
    "mismatch": [
     "prices.MU.close 회차 856.49 / 중계기 857.01 → 회차 값 유지"
    ]
+  },
+  {
+   "date": "2026-10-26",
+   "relay": "ok",
+   "missing": [],
+   "relay_filled": [],
+   "mismatch": []
   }
  ],
  "note": "render.py 가 회차마다 한 줄 남긴다. 점검은 datacheck.py. 사람이 고치지 않는다."

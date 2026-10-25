@@ -1004,6 +1004,50 @@
     "perp_asof": "10/22 07:46"
    },
    "source": "2026-10-23 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-23",
+   "low": 5300.0,
+   "high": 5480.0,
+   "band_width_pct": 3.25,
+   "prev_close": 5533.77,
+   "actual_open": 5403.17,
+   "gap_pct": -2.36,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -2.6,
+   "center_err_pct": 0.24,
+   "signals": {
+    "k200n_pct": -2.61,
+    "k200n_close": 834.6,
+    "k200n_asof": "10/23 06:05",
+    "k200f_close": 857.0,
+    "ewy_implied_pct": -1.64,
+    "adr_implied_pct": -2.85,
+    "news_flag": "10/22 미국 SOX −6.72%·ADR −8.07% 급락. 원인 기사는 확인하지 못했고 10월 AI 투자 지속성 우려 흐름과 같은 방향",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.06,
+    "nq_pct": -0.02,
+    "us_fut_asof": "10/23 07:35",
+    "perp": {
+     "KOSPI": {
+      "p0500": -2.29,
+      "snap": -3.08
+     },
+     "005930": {
+      "p0500": -3.1,
+      "snap": -3.94
+     },
+     "000660": {
+      "p0500": -2.79,
+      "snap": -3.0
+     }
+    },
+    "perp_asof": "10/23 07:46"
+   },
+   "source": "2026-10-26 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1186,6 +1230,42 @@
     "perp_pct": -2.29
    },
    "source": "2026-10-23 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-10-23",
+   "code": "000660",
+   "low": 1173000.0,
+   "high": 1204000.0,
+   "prev_close": 1223000.0,
+   "actual_open": 1200000.0,
+   "gap_pct": -1.88,
+   "in_range": true,
+   "center_pct": -2.81,
+   "center_err_pct": 0.93,
+   "band_width_pct": 2.53,
+   "inputs": {
+    "k200n_pct": -2.61,
+    "perp_pct": -3.0
+   },
+   "source": "2026-10-26 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-10-23",
+   "code": "005930",
+   "low": 204500.0,
+   "high": 210500.0,
+   "prev_close": 214500.0,
+   "actual_open": 206000.0,
+   "gap_pct": -3.96,
+   "in_range": true,
+   "center_pct": -3.27,
+   "center_err_pct": -0.69,
+   "band_width_pct": 2.8,
+   "inputs": {
+    "k200n_pct": -2.61,
+    "perp_pct": -3.94
+   },
+   "source": "2026-10-26 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
