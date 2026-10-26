@@ -1048,6 +1048,50 @@
     "perp_asof": "10/23 07:46"
    },
    "source": "2026-10-26 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-26",
+   "low": 5510.0,
+   "high": 5570.0,
+   "band_width_pct": 1.08,
+   "prev_close": 5550.3,
+   "actual_open": 5499.05,
+   "gap_pct": -0.92,
+   "in_range": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -0.19,
+   "center_err_pct": -0.74,
+   "signals": {
+    "k200n_pct": -0.19,
+    "k200n_close": 861.7,
+    "k200n_asof": "10/24 05:00",
+    "k200f_close": 863.3,
+    "ewy_implied_pct": 1.23,
+    "adr_implied_pct": -0.3,
+    "news_flag": "10/23 후티의 사우디 추가 공격으로 WTI 103달러·브렌트 116달러. 주말 기사는 확인하지 못함",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.42,
+    "nq_pct": 0.38,
+    "us_fut_asof": "10/26 07:36",
+    "perp": {
+     "KOSPI": {
+      "p0500": 0.55,
+      "snap": 0.56
+     },
+     "005930": {
+      "p0500": 0.16,
+      "snap": 0.1
+     },
+     "000660": {
+      "p0500": 0.3,
+      "snap": 0.18
+     }
+    },
+    "perp_asof": "10/26 07:46"
+   },
+   "source": "2026-10-27 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1266,6 +1310,42 @@
     "perp_pct": -3.94
    },
    "source": "2026-10-26 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-10-26",
+   "code": "000660",
+   "low": 1261000.0,
+   "high": 1293000.0,
+   "prev_close": 1277000.0,
+   "actual_open": 1279000.0,
+   "gap_pct": 0.16,
+   "in_range": true,
+   "center_pct": -0.01,
+   "center_err_pct": 0.17,
+   "band_width_pct": 2.51,
+   "inputs": {
+    "k200n_pct": -0.19,
+    "perp_pct": 0.18
+   },
+   "source": "2026-10-27 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-10-26",
+   "code": "005930",
+   "low": 212000.0,
+   "high": 218500.0,
+   "prev_close": 215500.0,
+   "actual_open": 213500.0,
+   "gap_pct": -0.93,
+   "in_range": true,
+   "center_pct": -0.05,
+   "center_err_pct": -0.88,
+   "band_width_pct": 3.02,
+   "inputs": {
+    "k200n_pct": -0.19,
+    "perp_pct": 0.1
+   },
+   "source": "2026-10-27 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
