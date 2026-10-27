@@ -1092,6 +1092,50 @@
     "perp_asof": "10/26 07:46"
    },
    "source": "2026-10-27 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-27",
+   "low": 5530.0,
+   "high": 5700.0,
+   "band_width_pct": 3.11,
+   "prev_close": 5469.47,
+   "actual_open": 5658.65,
+   "gap_pct": 3.46,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": 2.66,
+   "center_err_pct": 0.8,
+   "signals": {
+    "k200n_pct": 2.63,
+    "k200n_close": 872.35,
+    "k200n_asof": "10/27 05:00",
+    "k200f_close": 850.0,
+    "ewy_implied_pct": 2.35,
+    "adr_implied_pct": 4.14,
+    "news_flag": "10/26 앤트로픽 상장 신고서(S-1) 제출 뒤 SOX +2.82%. 이번 주 FOMC와 삼성전자·SK하이닉스 3분기 실적 발표",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.06,
+    "nq_pct": 0.23,
+    "us_fut_asof": "10/27 07:36",
+    "perp": {
+     "KOSPI": {
+      "p0500": 2.26,
+      "snap": 2.87
+     },
+     "005930": {
+      "p0500": 2.48,
+      "snap": 3.81
+     },
+     "000660": {
+      "p0500": 2.21,
+      "snap": 3.1
+     }
+    },
+    "perp_asof": "10/27 07:46"
+   },
+   "source": "2026-10-28 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1346,6 +1390,42 @@
     "perp_pct": 0.1
    },
    "source": "2026-10-27 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-10-27",
+   "code": "000660",
+   "low": 1295000.0,
+   "high": 1328000.0,
+   "prev_close": 1275000.0,
+   "actual_open": 1346000.0,
+   "gap_pct": 5.57,
+   "in_range": false,
+   "center_pct": 2.86,
+   "center_err_pct": 2.71,
+   "band_width_pct": 2.59,
+   "inputs": {
+    "k200n_pct": 2.63,
+    "perp_pct": 3.1
+   },
+   "source": "2026-10-28 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-10-27",
+   "code": "005930",
+   "low": 216500.0,
+   "high": 223000.0,
+   "prev_close": 213000.0,
+   "actual_open": 222000.0,
+   "gap_pct": 4.23,
+   "in_range": true,
+   "center_pct": 3.22,
+   "center_err_pct": 1.01,
+   "band_width_pct": 3.05,
+   "inputs": {
+    "k200n_pct": 2.63,
+    "perp_pct": 3.81
+   },
+   "source": "2026-10-28 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }

@@ -273,6 +273,13 @@
    "missing": [],
    "relay_filled": [],
    "mismatch": []
+  },
+  {
+   "date": "2026-10-28",
+   "relay": "ok",
+   "missing": [],
+   "relay_filled": [],
+   "mismatch": []
   }
  ],
  "note": "render.py 가 회차마다 한 줄 남긴다. 점검은 datacheck.py. 사람이 고치지 않는다."
