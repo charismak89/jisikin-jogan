@@ -7,11 +7,12 @@ paths:
   - "style-v2.css"
   - "template-v5.html"
   - "render.py"
+  - "DESIGN.md"
 ---
 
 # 화면을 고칠 때
 
-- 색·글자·숫자 표기·배치 규칙은 루트 `DESIGN.md`. 토큰이나 `fmt.ts` 를 바꾸면 그 표와 대비 값을 같은 PR 에서 고친다. 1절(공통)은 코인 집사 `DESIGN.md` 1절과 같은 글이다.
+- 색·글자·숫자 표기·배치 규칙은 루트 `DESIGN.md`. 토큰이나 `fmt.ts` 를 바꾸면 그 표와 대비 값을 같은 PR 에서 고친다. 1절(공통)은 코인 집사 `DESIGN.md` 1절과 같은 글이다. 코인 집사 저장소는 세션에 기본으로 붙어 있지 않다. 1절을 대조하거나 고칠 일이면 첫 턴에 add_repo 허용을 사용자에게 받는다(2026-10-28 첫 시도는 auto mode 가 거부, 허용 뒤 성공).
 - `v6/` 와 루트 `index.html` 은 `web/` 빌드 산출물이다. 직접 고치지 않는다. `cd web && npm ci && npm run build` 후 `v6/`·`index.html` 을 소스와 같은 커밋에 넣는다. PR 의 `check / web` 잡이 둘이 맞는지 본다.
 - 지난 회차 HTML(`archive/`)은 `../style.css` 를 공유한다. 기존 클래스 이름을 새 뜻으로 쓰지 않는다. 새 화면은 새 클래스·새 스타일시트로(2026-10-15 `.hv/.hr` 충돌).
 - `template-v5.html`·`style.css` 는 이름에 v5 가 남았지만 지우지 않는다. `/v5/` 화면은 2026-10-22 삭제했어도, render.py 가 이 템플릿으로 만든 HTML 에서 브리핑 본문(`day.json.brief_html`, `brief_m`)을 잘라내고 접힘 4,000자 게이트도 이 HTML 로 잰다. `archive/<날짜>.html` 도 이 HTML 이다.
