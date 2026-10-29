@@ -1180,6 +1180,50 @@
     "perp_asof": "10/28 07:46"
    },
    "source": "2026-10-29 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-29",
+   "low": 6000.0,
+   "high": 6090.0,
+   "band_width_pct": 1.5,
+   "prev_close": 6012.44,
+   "actual_open": 6017.22,
+   "gap_pct": 0.08,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": 0.54,
+   "center_err_pct": -0.46,
+   "signals": {
+    "k200n_pct": 0.55,
+    "k200n_close": 951.0,
+    "k200n_asof": "10/29 06:05",
+    "k200f_close": 945.8,
+    "ewy_implied_pct": -0.13,
+    "adr_implied_pct": 3.28,
+    "news_flag": "알파벳이 2026년 캐펙스 동결 발표 뒤 시간외 약 10% 하락(CNBC, 단일 소스). 나스닥100 선물 −1.12%. 오늘 삼성전자 3분기 확정 실적 발표",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.46,
+    "nq_pct": -1.12,
+    "us_fut_asof": "10/29 07:36",
+    "perp": {
+     "KOSPI": {
+      "p0500": 2.42,
+      "snap": 0.45
+     },
+     "005930": {
+      "p0500": 1.93,
+      "snap": -0.53
+     },
+     "000660": {
+      "p0500": 3.61,
+      "snap": 1.09
+     }
+    },
+    "perp_asof": "10/29 07:46"
+   },
+   "source": "2026-10-30 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1506,6 +1550,42 @@
     "perp_pct": 2.8
    },
    "source": "2026-10-29 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-10-29",
+   "code": "000660",
+   "low": 1481000.0,
+   "high": 1518000.0,
+   "prev_close": 1487000.0,
+   "actual_open": 1511000.0,
+   "gap_pct": 1.61,
+   "in_range": true,
+   "center_pct": 0.82,
+   "center_err_pct": 0.79,
+   "band_width_pct": 2.49,
+   "inputs": {
+    "k200n_pct": 0.55,
+    "perp_pct": 1.09
+   },
+   "source": "2026-10-30 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-10-29",
+   "code": "005930",
+   "low": 238500.0,
+   "high": 245500.0,
+   "prev_close": 242000.0,
+   "actual_open": 241000.0,
+   "gap_pct": -0.41,
+   "in_range": true,
+   "center_pct": 0.01,
+   "center_err_pct": -0.42,
+   "band_width_pct": 2.89,
+   "inputs": {
+    "k200n_pct": 0.55,
+    "perp_pct": -0.53
+   },
+   "source": "2026-10-30 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
