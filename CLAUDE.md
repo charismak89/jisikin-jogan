@@ -49,3 +49,6 @@
 - main 에 머지 = 발행. GitHub Pages 가 1~2분 뒤 사이트에 반영한다. PR 검사는 `check / render`·`check / web` 이고, 통과하면 위 "PR 머지"대로 바로 머지한다.
 - 머지 예외: `claude/hold-<날짜>` 회차 브랜치. 게이트가 막은 회차라 HOLD 사유와 diff 요약을 한 줄로 알리고 내 판단을 받는다. `claude/publish-<날짜>`(게이트 통과, main push 만 거부된 회차)는 바로 머지한다.
 - `relay/` 를 바꾼 PR 은 머지해도 VM 에 반영되지 않는다. 머지 뒤 VM 에서 돌릴 명령과 정상 응답을 준다(`.claude/rules/relay.md`).
+
+## 설치 교훈
+- playwright: `pip install playwright` 는 `/usr/bin` 파이썬에 깔려 `python3`(`/usr/local/bin`)가 못 찾았다(`uicheck.py` "playwright 가 없음"). `python3 -m pip install playwright` 로 풀렸다(2026-10-31).

@@ -3,13 +3,13 @@
 /* 토큰 — 토스결: 연한 회색 바탕 위의 흰 카드, 큰 숫자, 파란 강조. 한국 증시 관례대로 상승 빨강·하락 파랑.
    테마 키(data-jj, localStorage jj-theme)는 v5 와 같아서 지인이 고른 테마가 그대로 이어진다. */
 :root {
-  --bg: #f2f4f6; --card: #ffffff; --card2: #f9fafb; --tx: #191f28; --tx2: #4e5968; --tx3: #8b95a1;
-  --line: #e5e8eb; --brand: #3182f6; --brand-soft: #e8f3ff; --up: #f04452; --dn: #3182f6;
+  --bg: #f2f4f6; --card: #ffffff; --card2: #f9fafb; --tx: #191f28; --tx2: #4e5968; --tx3: #6b7684;
+  --line: #e5e8eb; --brand: #3182f6; --brand-soft: #e8f3ff; --up: #e42939; --dn: #1b64da;
   --band: #ffe9a8; --band-line: #f5b800; --ok: #15b573; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
 }
 :root[data-jj="dark"] {
   --bg: #101114; --card: #1b1d22; --card2: #23262c; --tx: #f2f4f6; --tx2: #b0b8c1; --tx3: #7e8793;
-  --line: #2c3037; --brand: #4593fc; --brand-soft: #1c2a3d; --up: #f6616d; --dn: #4593fc;
+  --line: #2c3037; --brand: #4593fc; --brand-soft: #1c2a3d; --up: #f6616d; --dn: #5b9dff;
   --band: #4a3b10; --band-line: #d9a400; --ok: #2fd08c; --shadow: none;
 }
 @theme inline {

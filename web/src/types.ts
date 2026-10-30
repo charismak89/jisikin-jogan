@@ -23,6 +23,7 @@ export interface DayData {
   day: DayCfg
   k20: { rows: K20Row[]; close: number | null; pct: number | null; cap: string }
   market: { key: string; label: string; close: number | null; pct: number | null; asof: string | null }[]
+  issue_src?: { t: string; origin: string; at: string | null; verify: string | null }[]   // 이슈 출처(B6). 2026-10-31 전 회차에는 없다
   global_tag: string; stock_note: string; brief_html: string
   footer: { sources: string; data_note: string }
 }
