@@ -40,8 +40,21 @@ export function Hero({ data, onBrief }: { data: DayData; onBrief: () => void }) 
           </li>
         ))}
       </ol>
+      <Unverified data={data} />
       <button type="button" onClick={onBrief} className="mt-4 text-[13px] font-bold text-brand">근거와 시나리오는 브리핑에서 →</button>
     </Card>
+  )
+}
+
+/** 공시·회사 발표·공식 통계로 확인되지 않은 이슈(B6) — 확인 출처가 없는 것만 꼬리표로 */
+function Unverified({ data }: { data: DayData }) {
+  const list = (data.issue_src ?? []).filter((x) => !x.verify)
+  if (!list.length) return null
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[12px] leading-snug text-tx3">
+      <span className="rounded-full bg-card2 px-2 py-0.5 text-[11px] font-bold text-tx2">미확인</span>
+      <span>{list.map((x) => x.t).join(' · ')} — 공시·공식 발표로 확인 전</span>
+    </div>
   )
 }
 

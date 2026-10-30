@@ -154,6 +154,47 @@ def prev_business_day(d):
 def kst_ms(d, h, m):
     return int(datetime(d.year, d.month, d.day, h, m, tzinfo=KST).timestamp() * 1000)
 
+def issue_window(d):
+    """CONTEXT.md '조회 창' — 직전 영업일 15:30 ~ 발행일 07:45 (KST). 월요일·연휴 뒤도 prev_business_day 가 마지막 영업일을 준다."""
+    p = prev_business_day(d)
+    return datetime(p.year, p.month, p.day, 15, 30, tzinfo=KST), datetime(d.year, d.month, d.day, 7, 45, tzinfo=KST)
+
+def parse_at(s, d):
+    """기사 시각 'M/D HH:mm'(KST) → datetime. 연도는 발행일 기준(발행일보다 뒤 달이면 전년). 못 읽으면 None."""
+    m = re.match(r'^\s*(\d{1,2})/(\d{1,2})\s+(\d{1,2}):(\d{2})\s*$', str(s or ''))
+    if not m: return None
+    mo, dd, hh, mi = (int(x) for x in m.groups())
+    try:
+        return datetime(d.year - (1 if mo > d.month else 0), mo, dd, hh, mi, tzinfo=KST)
+    except ValueError:
+        return None
+
+def issue_sources(src, d):
+    """checks.issue.src(B6 출처 3분류 + D3 기사 시각) → (details HTML, day.json 목록, 미확인 건수). 경고만 내고 게이트에는 넣지 않는다."""
+    if not src:
+        warn('checks.issue.src 없음 — 이슈마다 최초 보도·확산·확인 출처와 기사 시각(at)을 적을 것 (게이트 무관)')
+        return '', [], 0
+    w0, w1 = issue_window(d)
+    items, rows, unv = [], [], 0
+    for x in src if isinstance(src, list) else []:
+        if not isinstance(x, dict) or not x.get('t'): continue
+        t, origin, at = str(x.get('t')), x.get('origin') or '', x.get('at')
+        mom, ver = x.get('momentum') or '', x.get('verify') or ''
+        dt = parse_at(at, d)
+        if not at: warn('이슈 출처 "%s" 기사 시각(at) 없음 (게이트 무관)' % t)
+        elif dt is None: warn('이슈 출처 "%s" 기사 시각 %r 형식 오류 — "M/D HH:mm" (게이트 무관)' % (t, at))
+        elif not (w0 <= dt <= w1):
+            warn('이슈 출처 "%s" 기사 시각 %s 가 조회 창(%s ~ %s) 밖 — 묵은 기사인지 확인 (게이트 무관)' % (
+                t, at, '%d/%d %s' % (w0.month, w0.day, w0.strftime('%H:%M')), '%d/%d %s' % (w1.month, w1.day, w1.strftime('%H:%M'))))
+        if not ver: unv += 1
+        parts = ['%s — 최초 %s%s' % (t, origin or '미기재', ' (%s)' % at if at else '')]
+        if mom: parts.append('확산 %s' % mom)
+        parts.append('확인 %s' % ver if ver else '확인 출처 없음(미확인)')
+        items.append(' · '.join(parts))
+        rows.append({'t': t, 'origin': origin, 'at': at, 'verify': ver or None})
+    head = '이슈 출처 %d건%s' % (len(rows), ' · 미확인 %d건' % unv if unv else '')
+    return details(head, items), rows, unv
+
 def krx_tick(p):
     """KRX 호가단위 (2023-01 개편 기준)."""
     for lim, t in ((2000, 1), (5000, 5), (20000, 10), (50000, 50), (200000, 100), (500000, 500)):
@@ -592,6 +633,8 @@ def main():
         if not c.get('lead'): fail('checks.%s.lead 없음 — 상승장이어도 4개 모두 채운다' % k)
         check_len('checks.%s.lead' % k, c.get('lead'), LIMITS['checks.lead'])
         V[key] = '<div class="cl">%s</div>%s' % (esc_keep(c.get('lead')), details('근거', c.get('more')))
+    src_html, issue_src, _ = issue_sources((chks.get('issue') or {}).get('src'), d)
+    V['ISSUE_CHK'] += src_html   # details 안이라 접힘 4,000자에 들지 않는다
 
     # 지난 회차 링크 — 채점 기록의 날짜(=발행일) 최근 3개. publish 스크립트가 실제 파일 기준으로 다시 쓴다.
     past = [r['date'] for r in recs if r.get('date') and r['date'] < issue_date]
@@ -781,6 +824,7 @@ def main():
             'day': day, 'k20': {'rows': k20_rows, 'close': kospi_close, 'pct': pct.get('KOSPI'), 'cap': plain(V['K20_CAP'])},
             'market': [{'key': k, 'label': lab, 'close': close.get(k), 'pct': pct.get(k), 'asof': (prices.get(k) or {}).get('asof') if k == 'K200N' else None}
                        for k, lab in (('K200N', 'K200 야간'), ('SOX', 'SOX'), ('NVDA', names['NVDA'][0]), ('MU', names['MU'][0]), ('EWY', 'EWY'), ('USDKRW', names['USDKRW'][0]))],
+            'issue_src': issue_src,
             'global_tag': plain(tags.get('global')), 'stock_note': V['STOCK_NOTE'],
             'brief_html': '', 'footer': {'sources': plain(src), 'data_note': plain(dn.get('lead'))}}
 
@@ -810,6 +854,8 @@ def main():
     for pat in banned:
         n = plain.count(pat)
         if n: warn('금지 표현 "%s" %d회' % (pat, n))
+    n = plain.count('당일')   # 시점어(D3+) — '금일'은 금지 표현 표에 있다. '당일 고가'처럼 우리 문장에도 쓰여 게이트에는 넣지 않는다
+    if n: warn("'당일' %d회 — 기사 원문의 '당일'을 옮긴 것이면 날짜로 바꿀 것 (게이트 무관)" % n)
     for pat, lim in (('한 셈입니다', 2), ('반영했습니다', 3)):
         n = plain.count(pat)
         if n > lim: warn('"%s" %d회 (상한 %d)' % (pat, n, lim))
