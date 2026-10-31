@@ -94,3 +94,4 @@ python3 datacheck.py          # 최근 10회 필드별 누락 · 중계기 상�
    - 승인·보류·고르지 않은 번호 모두 `DIRECTION.md` 0절 결정 기록에 번호마다 한 줄씩 적는다. 고르지 않은 번호는 '보류(미선택)'.
    - 그 안건 줄은 7절 7번처럼 제목에 취소선을 긋고 결과 한 줄만 남긴다. `DIRECTION.md` 6절 백로그 행은 지우지 않는다.
    - 승인 작업이 있으면 그 PR 에 같이 넣는다. '보류'만 나왔으면 이 두 문서만 고친 PR 을 만든다.
+9. 회차 파일(`RUNBOOK.md`·`CONTEXT.md`·`render.py`·`score.py`·`fetch_*.py`·`datacheck.py`·`sources.json`·`holidays.json`·`template-v5.html`·`style.css`·`calibration.json`)을 바꿔 머지했으면, 월요일 08:15 결과 확인은 예약 작업 "지식인 조간 — 월요일 회차 확인"(`trig_01966XhBzHkZbYHr2Pg3ecif`)이 한다. 이 세션에는 `send_later` 가 없으니 걸려고 하지 않는다. 보고 끝에 "월요일 08:15 확인 작업이 본다" 한 줄만 쓴다(2026-10-31).
