@@ -89,6 +89,7 @@
 | 루틴 편집·Run now·저장소 부착·환경 | **웹 UI(claude.ai/code/routines)만.** `update_trigger`·`fire_trigger` 는 http_api 루틴에 안 먹힌다 |
 | 다른 세션에 묶인 예약(send_later 등)의 지시문 수정 | 그 세션에서만 된다. 여기서는 `update_trigger` 의 `enabled=false`(끄기)만 된다(2026-10-22 실측). 고칠 일이 있으면 끄고 이 세션에 다시 건다 |
 | 원격 브랜치 삭제 | 세션에서 `git push --delete` 는 auto mode 권한 판정에 막힘(09-28 실측). 사람이 월 1회 정리(UPDATE.md). PR 머지 브랜치는 자동 삭제 |
+| 주간 점검 세션의 예약 조회·`send_later` | 안 된다. 주간 점검 루틴(`trig_011hXXTLEZSpsDUtgUncyTng`)에 커넥터가 없다(`mcp_connections: []`, 2026-10-31 확인). 평일 루틴에는 `Claude_Code_Remote` 가 붙어 있다. 주간 점검이 RUNBOOK·render.py 를 바꾸면 08:15 결과 확인은 관리 세션이 건다 |
 | 코워크 세션 대화 | 여기서 조회 불가(세션 목록에서 빠짐) |
 
 ## 3. 회차 판독법
@@ -129,6 +130,12 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
 9. ~~10/17 주간 점검 안건 — UI 개편~~ 2026-10-19 끝남. React 전환 R안으로 R0·R1 10/17, R3 10/19(R2 건너뜀, 0-4절). 검토와 단계안은 `DIRECTION.md` 9절, 결정은 같은 문서 0절. TDS 는 라이선스상 불가. 지난 회차 HTML 이 `../style.css` 를 공유하니 새 화면은 새 클래스·새 스타일시트로(`.claude/rules/web.md`)
 10. ~~10/31 주간 점검 안건 — 외부 사례 벤치마킹 4건~~ 2026-10-31 결정: D3+(시점어·기사 시각 경고)·B6(이슈 출처 3분류)·D1+(가설 등록부, D1 원안 포함) 승인·반영, B2+(DART 일정 후보) 보류 — DART 인증키 발급 전. 기록은 `DIRECTION.md` 0절
 11. ~~10/31 주간 점검 안건 — 화면 글자 대비~~ 2026-10-31 승인·반영(`DESIGN.md` 2·4절, `web/src/index.css`). 같은 날 SK하이닉스 반폭 1.22→1.5 승인(`CALIBRATION.md` H4)
+12. 10/31 주간 점검(PR #47) 후속 — 관리 세션이 2026-10-31 에 확인
+    - 머지 뒤 상태: 사이트에 새 화면 파일(`index-BGc9xEwd.js`·`index-D8_3BgQK.css`) 반영, `calibration.json` 하닉 반폭 1.5, `regress.py` 전·후 GATE 같음(+0 −0 줄). 11/2 기준 이슈 조회 창은 10/30 15:30 ~ 11/2 07:45 로 계산되고 '금일'은 금지 표현 목록에 들어가 HOLD 대상이다
+    - 하닉 반폭을 언급하는 다른 예약은 없다(`list_triggers` 5건). 코스피 롤백 판정 예약(`trig_01DUKEdCqsSk46dk5AVGpyqD`, 11/6 16:00)은 코스피만 본다
+    - 11/2 08:15 KST 결과 확인 예약: `trig_01BrMkVaa9PXcd4Tcdb9FocM`(관리 세션 `session_01BmTkVg1xZY9Qu6YvzaS1JX`). 이슈 출처 경고·'금일'·하닉 반폭 1.5 를 본다. 확인 명령: `get_trigger trig_01BrMkVaa9PXcd4Tcdb9FocM` → `last_run` 이 SUCCEEDED
+    - [사용자 확인 대기] H4 경계: 주간 점검 보고는 "6번 이하이면 되돌린다", `CALIBRATION.md` 는 "6/10 미만 롤백 · 7/10 이상 채택" 이라 정확히 6/10 일 때 처리가 비어 있다. 등록부 규칙 1(등록 뒤 기준 변경 금지) 때문에 11/2 회차 채점 전에 정해야 한다
+    - [사용자 확인 대기] 주간 점검 루틴에 예약 도구 붙이기(2절 표). 정하기 전까지 주간 점검이 RUNBOOK·render.py 를 바꾸면 관리 세션에서 08:15 확인을 건다
 
 ## 8. 작업지시 방법
 - 절차 → `RUNBOOK.md`. 사실·표기·금지 표현·이슈 범위 → `CONTEXT.md`. 휴장일 → `holidays.json`. 예측 규칙 → `calibration.json` 의 `rule`
