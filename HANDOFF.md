@@ -86,7 +86,7 @@
 | 작업 | 방법 |
 |---|---|
 | 루틴 상태·최근 실행 | `list_triggers` → `last_run.session_id`(cse_…) |
-| 회차 세션 상세 | `get_session` 에 `cse_…` 를 넣으면 된다(상태·브랜치·비용). 대화 본문은 웹 UI |
+| 회차 세션 상세 | `get_session` 에 `cse_…` 를 넣으면 된다(상태·브랜치·비용). 대화 본문은 `list_events` 에 `kinds=["assistant"]`, `limit` 20 으로 읽는다. 마지막 assistant text 가 회차·주간 점검의 최종 보고다. `user` 를 넣으면 스크린샷 tool_result 때문에 100건이 106만 자, assistant 만이어도 100건은 9만 자로 응답 한도를 넘는다(2026-10-31 실측). 더 앞은 `before_id` 로 20건씩 |
 | 저장소 수정 | 세션 지정 브랜치에 커밋·push → PR → 머지(GitHub MCP) |
 | 루틴 편집·Run now·저장소 부착·환경 | **웹 UI(claude.ai/code/routines)만.** `update_trigger`·`fire_trigger` 는 http_api 루틴에 안 먹힌다 |
 | 다른 세션에 묶인 예약(send_later 등)의 지시문 수정 | 그 세션에서만 된다. 여기서는 `update_trigger` 의 `enabled=false`(끄기)만 된다(2026-10-22 실측). 고칠 일이 있으면 끄고 이 세션에 다시 건다 |
