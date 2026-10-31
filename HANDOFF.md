@@ -76,6 +76,8 @@
 | 비용 | 9/28 회차(Opus) 약 $2.1 · 5분 · 10/21(Sonnet) $0.67 · 약 2분 · 10/22(Sonnet) $0.49 · 약 1.5분 (get_session usage 기준) |
 | 구버전 | `trig_016XYcHaC8zkUPzByGAm4Eq7` 비활성. 이력 보존용, 삭제 금지 |
 | BTC·ENA | `trig_01HPT262n5YqbxF94hEcZ2N7` 2026-09-01부터 비활성 |
+| 주간 점검 | `trig_011hXXTLEZSpsDUtgUncyTng` 토 07:45 KST · 매번 새 세션 · 휴대폰 알림 · 커넥터 없음(2절) |
+| 월요일 회차 확인 | `trig_01966XhBzHkZbYHr2Pg3ecif` 월 08:15 KST · 매번 새 세션 · 휴대폰 알림 · 2026-10-31 생성. 커넥터·저장소 부착 없음 — 공개 저장소를 clone 하고 저장소·웹만 본다(보고만, 파일 수정 없음). 주말에 회차 파일이 안 바뀌었으면 한 줄로 끝난다. 11/2 는 관리 세션 예약(`trig_01BrMkVaa9PXcd4Tcdb9FocM`)이 보고 이 작업은 건너뛴다 |
 
 결과물은 `out/index.html` · `out/state.json` · `out/calibration.json`. `GATE PASS` 면 `publish.py --push`(main, 거부 시 `claude/publish-<날짜>`), HOLD 면 `claude/hold-<날짜>`. 하니스가 붙인 `claude/<이름>-<접미사>` 브랜치에도 같은 커밋이 올라간다(머지 뒤 삭제 가능).
 발행 주소: https://charismak89.github.io/jisikin-jogan/
@@ -89,7 +91,7 @@
 | 루틴 편집·Run now·저장소 부착·환경 | **웹 UI(claude.ai/code/routines)만.** `update_trigger`·`fire_trigger` 는 http_api 루틴에 안 먹힌다 |
 | 다른 세션에 묶인 예약(send_later 등)의 지시문 수정 | 그 세션에서만 된다. 여기서는 `update_trigger` 의 `enabled=false`(끄기)만 된다(2026-10-22 실측). 고칠 일이 있으면 끄고 이 세션에 다시 건다 |
 | 원격 브랜치 삭제 | 세션에서 `git push --delete` 는 auto mode 권한 판정에 막힘(09-28 실측). 사람이 월 1회 정리(UPDATE.md). PR 머지 브랜치는 자동 삭제 |
-| 주간 점검 세션의 예약 조회·`send_later` | 안 된다. 주간 점검 루틴(`trig_011hXXTLEZSpsDUtgUncyTng`)에 커넥터가 없어(`mcp_connections: []`) 세션의 `claude-code-remote` 도구가 PR 구독 2개뿐이다. 평일 루틴은 `Claude_Code_Remote` 커넥터가 붙어 `send_later`·`list_triggers`·`get_trigger` 등이 있다(10/29 회차 init 실측). 세션에서 `create_trigger` 의 `connectors` 는 이 조직에서 막혀 있어(2026-10-31) 커넥터는 웹 UI 에서만 붙인다. 붙이기 전까지 주간 점검이 RUNBOOK·render.py 를 바꾸면 08:15 결과 확인은 관리 세션이 건다 |
+| 주간 점검 세션의 예약 조회·`send_later` | 안 된다. 주간 점검 루틴(`trig_011hXXTLEZSpsDUtgUncyTng`)에 커넥터가 없어(`mcp_connections: []`) 세션의 `claude-code-remote` 도구가 PR 구독 2개뿐이다. 평일 루틴은 `Claude_Code_Remote` 커넥터가 붙어 `send_later`·`list_triggers`·`get_trigger` 등이 있다(10/29 회차 init 실측). 세션에서 `create_trigger` 의 `connectors` 는 이 조직에서 막혀 있고, 웹 UI 에서도 붙지 않았다(2026-10-31 사용자 시도). 주말 변경의 08:15 결과 확인은 월요일 확인 작업(1절)이 맡는다 |
 | 코워크 세션 대화 | 여기서 조회 불가(세션 목록에서 빠짐) |
 
 ## 3. 회차 판독법
@@ -135,7 +137,7 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
     - 하닉 반폭을 언급하는 다른 예약은 없다(`list_triggers` 5건). 코스피 롤백 판정 예약(`trig_01DUKEdCqsSk46dk5AVGpyqD`, 11/6 16:00)은 코스피만 본다
     - 11/2 08:15 KST 결과 확인 예약: `trig_01BrMkVaa9PXcd4Tcdb9FocM`(관리 세션 `session_01BmTkVg1xZY9Qu6YvzaS1JX`). 이슈 출처 경고·'금일'·하닉 반폭 1.5 를 본다. 확인 명령: `get_trigger trig_01BrMkVaa9PXcd4Tcdb9FocM` → `last_run` 이 SUCCEEDED
     - ~~H4 경계~~ 2026-10-31 사용자 결정: 6/10 미만이면 1.22 로 롤백, 6/10 이상이면 1.5 유지(`CALIBRATION.md` 42줄·H4 행). 주간 점검 보고의 "6번 이하 롤백"은 쓰지 않는다
-    - 주간 점검 루틴에 예약 도구 붙이기 — 2026-10-31 사용자 승인. 세션에서 새 루틴을 `connectors` 로 만들려 했으나 조직 설정으로 거부돼 새 루틴은 만들지 않았고 기존 루틴도 그대로 켜 두었다. **사용자 수행 대기**: 웹 UI(claude.ai/code/routines)에서 기존 주간 점검 루틴에 평일 루틴과 같은 `Claude_Code_Remote` 커넥터를 붙인다. 확인 명령: `get_trigger trig_011hXXTLEZSpsDUtgUncyTng` → `mcp_connections` 에 `Claude_Code_Remote`. 기존 루틴에 못 붙이면 웹 UI 에서 같은 프롬프트로 새로 만들고, 관리 세션이 옛 루틴을 끈다(삭제 안 함)
+    - ~~주간 점검 루틴에 예약 도구 붙이기~~ 2026-10-31: 세션(`connectors` 거부)·웹 UI(사용자 시도) 모두 안 됐다. 사용자 승인으로 월요일 08:15 확인 작업 `trig_01966XhBzHkZbYHr2Pg3ecif` 를 만들었다(1절). 주간 점검 루틴은 그대로 켜 두었다. 첫 실질 실행은 11/9. 확인 명령: `get_trigger trig_01966XhBzHkZbYHr2Pg3ecif` → `enabled: true`, 11/9 뒤 `last_run.status` SUCCEEDED. 커넥터를 붙일 방법이 생기면 이 작업을 끄고 `WEEKLY.md` 4절 9번·`routine-scripts.md` 예외 줄을 지운다
 
 ## 8. 작업지시 방법
 - 절차 → `RUNBOOK.md`. 사실·표기·금지 표현·이슈 범위 → `CONTEXT.md`. 휴장일 → `holidays.json`. 예측 규칙 → `calibration.json` 의 `rule`
