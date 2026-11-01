@@ -1232,6 +1232,50 @@
     "perp_asof": "10/29 07:46"
    },
    "source": "2026-10-30 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-10-30",
+   "low": 5730.0,
+   "high": 5890.0,
+   "band_width_pct": 2.69,
+   "prev_close": 5937.66,
+   "actual_open": 5760.35,
+   "gap_pct": -2.99,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -2.15,
+   "center_err_pct": -0.84,
+   "signals": {
+    "k200n_pct": -2.13,
+    "k200n_close": 915.1,
+    "k200n_asof": "10/30 06:05",
+    "k200f_close": 935.0,
+    "ewy_implied_pct": -1.32,
+    "adr_implied_pct": -4.19,
+    "news_flag": "삼성전자 3분기 순이익 75.1조원, 컨센서스 86.1조원 미달(10/29). 마이크론 −4.98%, 샌디스크 실적 상회에도 시간외 −3.2%. MS 캐펙스 목표 미달·알파벳 급락",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.69,
+    "nq_pct": -1.38,
+    "us_fut_asof": "10/30 07:36",
+    "perp": {
+     "KOSPI": {
+      "p0500": 0.18,
+      "snap": -2.86
+     },
+     "005930": {
+      "p0500": -0.7,
+      "snap": -5.68
+     },
+     "000660": {
+      "p0500": -0.77,
+      "snap": -5.17
+     }
+    },
+    "perp_asof": "10/30 07:46"
+   },
+   "source": "2026-11-02 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1594,6 +1638,42 @@
     "perp_pct": -0.53
    },
    "source": "2026-10-30 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-10-30",
+   "code": "000660",
+   "low": 1451000.0,
+   "high": 1489000.0,
+   "prev_close": 1526000.0,
+   "actual_open": 1444000.0,
+   "gap_pct": -5.37,
+   "in_range": false,
+   "center_pct": -3.65,
+   "center_err_pct": -1.72,
+   "band_width_pct": 2.49,
+   "inputs": {
+    "k200n_pct": -2.13,
+    "perp_pct": -5.17
+   },
+   "source": "2026-11-02 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-10-30",
+   "code": "005930",
+   "low": 219500.0,
+   "high": 226500.0,
+   "prev_close": 232000.0,
+   "actual_open": 223500.0,
+   "gap_pct": -3.66,
+   "in_range": true,
+   "center_pct": -3.9,
+   "center_err_pct": 0.24,
+   "band_width_pct": 3.02,
+   "inputs": {
+    "k200n_pct": -2.13,
+    "perp_pct": -5.68
+   },
+   "source": "2026-11-02 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
