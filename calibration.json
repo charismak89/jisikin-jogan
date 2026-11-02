@@ -1276,6 +1276,50 @@
     "perp_asof": "10/30 07:46"
    },
    "source": "2026-11-02 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-02",
+   "low": 5460.0,
+   "high": 5660.0,
+   "band_width_pct": 3.49,
+   "prev_close": 5730.74,
+   "actual_open": 5637.77,
+   "gap_pct": -1.62,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -2.98,
+   "center_err_pct": 1.36,
+   "signals": {
+    "k200n_pct": -2.93,
+    "k200n_close": 873.1,
+    "k200n_asof": "10/31 06:00",
+    "k200f_close": 899.45,
+    "ewy_implied_pct": -2.27,
+    "adr_implied_pct": -1.1,
+    "news_flag": "10/30 미국장 SOX −7.20%, SKHY −7.95%. 하락 원인과 주말 재료를 다룬 기사는 찾지 못했습니다",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -1.81,
+    "nq_pct": -3.48,
+    "us_fut_asof": "10/31 06:00",
+    "perp": {
+     "KOSPI": {
+      "p0500": -2.03,
+      "snap": -1.93
+     },
+     "005930": {
+      "p0500": -3.78,
+      "snap": -3.56
+     },
+     "000660": {
+      "p0500": -1.14,
+      "snap": -0.96
+     }
+    },
+    "perp_asof": "11/02 07:46"
+   },
+   "source": "2026-11-03 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1674,6 +1718,42 @@
     "perp_pct": -5.68
    },
    "source": "2026-11-02 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-02",
+   "code": "000660",
+   "low": 1369000.0,
+   "high": 1412000.0,
+   "prev_close": 1418000.0,
+   "actual_open": 1402000.0,
+   "gap_pct": -1.13,
+   "in_range": true,
+   "center_pct": -1.94,
+   "center_err_pct": 0.81,
+   "band_width_pct": 3.03,
+   "inputs": {
+    "k200n_pct": -2.93,
+    "perp_pct": -0.96
+   },
+   "source": "2026-11-03 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-02",
+   "code": "005930",
+   "low": 214500.0,
+   "high": 221000.0,
+   "prev_close": 225000.0,
+   "actual_open": 219000.0,
+   "gap_pct": -2.67,
+   "in_range": true,
+   "center_pct": -3.24,
+   "center_err_pct": 0.57,
+   "band_width_pct": 2.89,
+   "inputs": {
+    "k200n_pct": -2.93,
+    "perp_pct": -3.56
+   },
+   "source": "2026-11-03 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
