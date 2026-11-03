@@ -1320,6 +1320,50 @@
     "perp_asof": "11/02 07:46"
    },
    "source": "2026-11-03 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-03",
+   "low": 5510.0,
+   "high": 5760.0,
+   "band_width_pct": 4.27,
+   "prev_close": 5859.08,
+   "actual_open": 5715.19,
+   "gap_pct": -2.46,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -3.82,
+   "center_err_pct": 1.37,
+   "signals": {
+    "k200n_pct": -3.84,
+    "k200n_close": 883.4,
+    "k200n_asof": "11/3 06:00",
+    "k200f_close": 918.65,
+    "ewy_implied_pct": -2.31,
+    "adr_implied_pct": -3.95,
+    "news_flag": "11/2 미국장 로테이션 매도로 마이크론 −5.78%, SOX −3.37%. 야간선물 −3.84%로 전날 코스피 반등과 방향이 반대입니다",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.35,
+    "nq_pct": -1.09,
+    "us_fut_asof": "11/3 06:59",
+    "perp": {
+     "KOSPI": {
+      "p0500": -3.54,
+      "snap": -4.39
+     },
+     "005930": {
+      "p0500": -4.39,
+      "snap": -5.08
+     },
+     "000660": {
+      "p0500": -4.99,
+      "snap": -6.27
+     }
+    },
+    "perp_asof": "11/03 07:46"
+   },
+   "source": "2026-11-04 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1754,6 +1798,42 @@
     "perp_pct": -3.56
    },
    "source": "2026-11-03 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-03",
+   "code": "000660",
+   "low": 1375000.0,
+   "high": 1420000.0,
+   "prev_close": 1472000.0,
+   "actual_open": 1410000.0,
+   "gap_pct": -4.21,
+   "in_range": true,
+   "center_pct": -5.06,
+   "center_err_pct": 0.85,
+   "band_width_pct": 3.06,
+   "inputs": {
+    "k200n_pct": -3.84,
+    "perp_pct": -6.27
+   },
+   "source": "2026-11-04 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-03",
+   "code": "005930",
+   "low": 215500.0,
+   "high": 222000.0,
+   "prev_close": 229000.0,
+   "actual_open": 220500.0,
+   "gap_pct": -3.71,
+   "in_range": true,
+   "center_pct": -4.46,
+   "center_err_pct": 0.75,
+   "band_width_pct": 2.84,
+   "inputs": {
+    "k200n_pct": -3.84,
+    "perp_pct": -5.08
+   },
+   "source": "2026-11-04 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }

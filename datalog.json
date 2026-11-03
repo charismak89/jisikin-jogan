@@ -320,6 +320,16 @@
     "prices.NVDA.close 회차 202.06 / 중계기 202.2099 → 회차 값 유지",
     "prices.SKHY.close 회차 147.71 / 중계기 147.61 → 회차 값 유지"
    ]
+  },
+  {
+   "date": "2026-11-04",
+   "relay": "ok",
+   "missing": [],
+   "relay_filled": [],
+   "mismatch": [
+    "prices.NVDA.close 회차 206.69 / 중계기 206.55 → 회차 값 유지",
+    "prices.SKHY.close 회차 150.79 / 중계기 150.87 → 회차 값 유지"
+   ]
   }
  ],
  "note": "render.py 가 회차마다 한 줄 남긴다. 점검은 datacheck.py. 사람이 고치지 않는다."
