@@ -1364,6 +1364,50 @@
     "perp_asof": "11/03 07:46"
    },
    "source": "2026-11-04 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-04",
+   "low": 5680.0,
+   "high": 5810.0,
+   "band_width_pct": 2.3,
+   "prev_close": 5648.79,
+   "actual_open": 5786.13,
+   "gap_pct": 2.43,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": 1.7,
+   "center_err_pct": 0.73,
+   "signals": {
+    "k200n_pct": 1.7,
+    "k200n_close": 900.2,
+    "k200n_asof": "11/4 06:00",
+    "k200f_close": 885.15,
+    "ewy_implied_pct": 5.86,
+    "adr_implied_pct": 7.26,
+    "news_flag": "11/4 한국 장중에 미국 중간선거 개표 결과가 나옵니다. 간밤 미국 반도체는 반등해 야간선물 +1.70%입니다",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.46,
+    "nq_pct": 1.03,
+    "us_fut_asof": "11/4 06:59",
+    "perp": {
+     "KOSPI": {
+      "p0500": 1.27,
+      "snap": 2.71
+     },
+     "005930": {
+      "p0500": 0.97,
+      "snap": 3.16
+     },
+     "000660": {
+      "p0500": 1.49,
+      "snap": 4.12
+     }
+    },
+    "perp_asof": "11/04 07:46"
+   },
+   "source": "2026-11-05 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1834,6 +1878,42 @@
     "perp_pct": -5.08
    },
    "source": "2026-11-04 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-04",
+   "code": "000660",
+   "low": 1417000.0,
+   "high": 1460000.0,
+   "prev_close": 1398000.0,
+   "actual_open": 1458000.0,
+   "gap_pct": 4.29,
+   "in_range": true,
+   "center_pct": 2.91,
+   "center_err_pct": 1.38,
+   "band_width_pct": 3.08,
+   "inputs": {
+    "k200n_pct": 1.7,
+    "perp_pct": 4.12
+   },
+   "source": "2026-11-05 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-04",
+   "code": "005930",
+   "low": 221500.0,
+   "high": 228000.0,
+   "prev_close": 219500.0,
+   "actual_open": 226500.0,
+   "gap_pct": 3.19,
+   "in_range": true,
+   "center_pct": 2.43,
+   "center_err_pct": 0.76,
+   "band_width_pct": 2.96,
+   "inputs": {
+    "k200n_pct": 1.7,
+    "perp_pct": 3.16
+   },
+   "source": "2026-11-05 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
