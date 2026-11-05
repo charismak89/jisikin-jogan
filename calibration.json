@@ -1408,6 +1408,50 @@
     "perp_asof": "11/04 07:46"
    },
    "source": "2026-11-05 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-05",
+   "low": 5520.0,
+   "high": 5660.0,
+   "band_width_pct": 2.46,
+   "prev_close": 5683.8,
+   "actual_open": 5580.09,
+   "gap_pct": -1.82,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -1.65,
+   "center_err_pct": -0.17,
+   "signals": {
+    "k200n_pct": -1.66,
+    "k200n_close": 875.1,
+    "k200n_asof": "11/5 06:00",
+    "k200f_close": 889.85,
+    "ewy_implied_pct": -2.42,
+    "adr_implied_pct": -4.93,
+    "news_flag": "미국 중간선거 민주당 압승에 다우 +3%였지만 SOX −3.13%, 마이크론 −6.99%입니다. AI 데이터센터 규제 우려가 배경입니다",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 1.81,
+    "nq_pct": 1.2,
+    "us_fut_asof": "11/5 06:59",
+    "perp": {
+     "KOSPI": {
+      "p0500": -1.15,
+      "snap": -1.0
+     },
+     "005930": {
+      "p0500": -1.96,
+      "snap": -1.52
+     },
+     "000660": {
+      "p0500": -3.64,
+      "snap": -3.21
+     }
+    },
+    "perp_asof": "11/05 07:45"
+   },
+   "source": "2026-11-06 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -1914,6 +1958,42 @@
     "perp_pct": 3.16
    },
    "source": "2026-11-05 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-05",
+   "code": "000660",
+   "low": 1341000.0,
+   "high": 1383000.0,
+   "prev_close": 1396000.0,
+   "actual_open": 1320000.0,
+   "gap_pct": -5.44,
+   "in_range": false,
+   "center_pct": -2.44,
+   "center_err_pct": -3.0,
+   "band_width_pct": 3.01,
+   "inputs": {
+    "k200n_pct": -1.66,
+    "perp_pct": -3.21
+   },
+   "source": "2026-11-06 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-05",
+   "code": "005930",
+   "low": 211500.0,
+   "high": 217500.0,
+   "prev_close": 218000.0,
+   "actual_open": 213000.0,
+   "gap_pct": -2.29,
+   "in_range": true,
+   "center_pct": -1.59,
+   "center_err_pct": -0.7,
+   "band_width_pct": 2.75,
+   "inputs": {
+    "k200n_pct": -1.66,
+    "perp_pct": -1.52
+   },
+   "source": "2026-11-06 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
