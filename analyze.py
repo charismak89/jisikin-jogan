@@ -10,7 +10,8 @@
 import io, json, statistics as st
 
 recs = json.load(io.open('calibration.json', encoding='utf-8'))['records']
-S = [r for r in recs if r.get('signals')]
+X = [r for r in recs if r.get('exclude')]   # 개장 왜곡 등 채점 예외(2026-11-07, CALIBRATION.md) — 모든 통계·롤백 집계에서 뺀다
+S = [r for r in recs if r.get('signals') and not r.get('exclude')]
 N = [r for r in S if r['signals'].get('k200n_pct') is not None]
 SIG = [('사람', None), ('야간', 'k200n_pct'), ('EWY', 'ewy_implied_pct'), ('ADR', 'adr_implied_pct')]
 
@@ -21,6 +22,8 @@ def q80(v):
 def f(v): return '   -  ' if v is None else '%+6.2f' % v
 
 print('신호 기록 %d건 (야간선물 있는 날 %d건)\n' % (len(S), len(N)))
+for r in X: print('제외 %s — %s' % (r['date'], (r['exclude'] or {}).get('detail') or (r['exclude'] or {}).get('why')))
+if X: print()
 print('날짜   실제갭   사람   야간    EWY    ADR | 구간 안')
 for r in S:
     print(r['date'][5:], f(r['gap_pct']), *[f(val(r, k)) for _, k in SIG], '|', r['in_range'])

@@ -137,6 +137,8 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
     - 하닉 반폭을 언급하는 다른 예약은 없다(`list_triggers` 5건). 코스피 롤백 판정 예약(`trig_01DUKEdCqsSk46dk5AVGpyqD`, 11/6 16:00)은 코스피만 본다
     - 확인 완료(11/2 08:15 KST, `trig_01BrMkVaa9PXcd4Tcdb9FocM`): 11/2 회차(`0ad639e`, 07:46~07:50, GATE PASS) 접힘 3,236자 · 경고 0건 · 데이터 누락 0건 · 중계기 ok. 하닉 `half_width_pct` 1.5(야간·추종가 둘 다 있음) → 구간 1,369,000~1,412,000. `checks.issue.src` 1건(at 10/31 05:00, 조회 창 안, verify null) → `day.json.issue_src` 와 사이트 반영, 대시보드 '미확인' 대상. '금일'·'당일' 0회. 회차가 조회 창 밖 기사 3건을 재료에서 뺐다(D3 의도대로). MU 884.74·NVDA 204.64(10/30 종가) = stockanalysis 원값. 관찰: 주말 뉴스가 없어 `origin` 에 시세 출처를 적었고, 그래서 시세로 확인된 재료에도 '미확인' 이 붙었다 — 반복되면 RUNBOOK 3절에 '시세 자체가 재료면 verify 에 시세 출처' 를 넣는 안을 올린다
     - ~~H4 경계~~ 2026-10-31 사용자 결정: 6/10 미만이면 1.22 로 롤백, 6/10 이상이면 1.5 유지(`CALIBRATION.md` 42줄·H4 행). 주간 점검 보고의 "6번 이하 롤백"은 쓰지 않는다
+    - 2026-11-07 주간 점검: H1 채택 기록(`CALIBRATION.md` 등록부). 11/6 16:00 코스피 롤백 판정 예약(`trig_01DUKEdCqsSk46dk5AVGpyqD`)의 결과는 저장소에 남지 않았다 — 관리 세션이 `get_trigger` 로 `last_run` 을 확인하고 결론이 다르면 등록부를 고친다 [검증필요]
+    - 2026-11-07 주간 점검: 개장 왜곡 채점 예외(`CALIBRATION.md` 채점 예외, `score.py` `distorted_open`). 11/9 회차가 11/6 코스피를 채점할 때 `개장 왜곡 의심` 줄이 나오고 기록에 `exclude` 가 붙어야 한다. 확인 명령: `python3 analyze.py | head -4` → `제외 2026-11-06 — …` 줄
     - ~~주간 점검 루틴에 예약 도구 붙이기~~ 2026-10-31: 세션(`connectors` 거부)·웹 UI(사용자 시도) 모두 안 됐다. 사용자 승인으로 월요일 08:15 확인 작업 `trig_01966XhBzHkZbYHr2Pg3ecif` 를 만들었다(1절). 주간 점검 루틴은 그대로 켜 두었다. 첫 실질 실행은 11/9. 확인 명령: `get_trigger trig_01966XhBzHkZbYHr2Pg3ecif` → `enabled: true`, 11/9 뒤 `last_run.status` SUCCEEDED. 커넥터를 붙일 방법이 생기면 이 작업을 끄고 `WEEKLY.md` 4절 9번·`routine-scripts.md` 예외 줄을 지운다
 
 ## 8. 작업지시 방법

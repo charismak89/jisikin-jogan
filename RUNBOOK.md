@@ -134,6 +134,7 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 ```
 - `FAIL` 이 뜨면 fill.json 을 고쳐 `render.py` 만 다시 돌린다(입력을 안 고치므로 몇 번이든 안전).
 - `시초가 미확보` 경고는 채점이 빠진다는 뜻이다. 시가를 채운 뒤 `score.py` 부터 다시 돌린다(같은 날짜는 두 번 기록하지 않는다).
+- `개장 왜곡 의심` 경고(코스피 시가 갭이 삼전·하닉 시가 갭 평균과 5%p 넘게 다름 — VI·서킷브레이커 날)는 시가를 다른 값으로 고치지 않는다. 기록은 공식 시가 그대로이고 롤백 통계에서만 빠진다. 그 경고 줄을 세션 응답에 그대로 옮긴다(2026-11-07).
 - render.py 가 `데이터 누락 n건 — …` 줄을 낸다. 그대로 9단계 "못 구한 데이터" 에 옮긴다. 이 기록은 `out/datalog.json` 에 남고 주간 점검이 센다.
 - 경고를 읽고 고칠 수 있는 것은 고친다. 특히 **금지 표현·글자 초과·등락률 불일치**. 못 고치는 경고(미확보 등)는 8단계 응답에 적는다.
 - 레이아웃: 먼저 `python3 -m pip install -q playwright` 를 한 번 돌린다(루틴 컨테이너에 파이썬 패키지가 없다 — 10/23 회차가 설치 없이 두 번 실패). 브라우저는 `/opt/pw-browsers/chromium` 에 깔려 있으니 `playwright install` 은 하지 않고, 띄울 때 `pw.chromium.launch(executable_path='/opt/pw-browsers/chromium')` 로 경로를 준다. pip 최신판은 깔린 브라우저와 버전이 달라 경로 없이 띄우면 `Executable doesn't exist` 로 실패한다(10/26). Playwright(chromium) 360·390px 두 폭에서 `out/index.html` 을 열고 `page.evaluate` 로 아래만 받는다. `doc`·`tables` 가 0 이 아니면 종목명(`CONTEXT.md` 표기명)을 줄인다. `height` 는 브리핑 탭 기준이다 — `out/index.html#brief` 로 열어 잰다. 8,500 을 넘으면 `more` 로 더 옮긴다(2026-10-15 회차 기준 390px 에서 6,550 안팎). 대시보드(주소 그대로)는 `doc` 만 0 인지 본다. Playwright 가 없거나 실패해도 발행한다.
