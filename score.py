@@ -20,6 +20,10 @@
   python3 score.py            채점하고 calibration.json 에 기록
   python3 score.py --dry-run  기록하지 않고 결과만 출력
 같은 날짜가 이미 기록돼 있으면 다시 기록하지 않는다(멱등).
+
+개장 왜곡 예외 (2026-11-07)
+  코스피 시가 갭이 삼전·하닉 시초가 갭 평균과 5%p 넘게 다르면 기록에 exclude(open_distorted)를 붙인다.
+  기록·판정은 공식 시가 그대로 두고, analyze.py 의 롤백·규칙 통계에서만 뺀다.
 """
 import io, json, sys, math
 
@@ -104,6 +108,10 @@ def main():
         'signals': state.get('signals'),
         'source': '%s 회차 채점 (score.py, %s)' % (str(fill.get('issue_date') or ''), src),
     }
+    ex = distorted_open(gap, state, fill, fdate)
+    if ex:
+        rec['exclude'] = ex
+        print('경고 개장 왜곡 의심 — %s. 기록은 공식 시가 그대로 남기고 롤백·규칙 통계(analyze.py)에서 뺀다(CALIBRATION.md 채점 예외). 사람이 확인할 것' % ex['detail'])
     if abs(gap) > 15:
         print('경고 갭 %+.1f%% — 시초가나 기준 종가가 잘못됐을 가능성. 기록은 남기되 사람이 확인할 것' % gap)
     recs.append(rec)
@@ -118,6 +126,26 @@ def main():
         print('(dry-run) calibration.json 은 쓰지 않음')
     print_summary(cal); print_rule(cal, fill)
     return 0
+
+DISTORT_PP = 5.0   # 2026-11-07 도입. 10/15~11/5 15회 최대 차이 2.04%p, 11/6 10.36%p
+
+def distorted_open(gap, state, fill, fdate):
+    """코스피 시가 왜곡 판정(2026-11-07, CALIBRATION.md 채점 예외).
+    VI·서킷브레이커 날은 09:00 지수 첫 값에 시가가 안 정해진 종목이 전일가로 들어가 실제 출발과 크게 어긋난다(11/6: 지수 −2.24%, 삼전 −11.12%, 하닉 −14.08%).
+    삼전·하닉 시초가 갭 평균과 코스피 갭이 DISTORT_PP 넘게 벌어지면 왜곡으로 본다. 두 종목 시가가 다 있어야 판정한다."""
+    items = ((state.get('stock_forecast') or {}).get('items') or {})
+    if (state.get('stock_forecast') or {}).get('date') != fdate: return None
+    gs = {}
+    for code in ('005930', '000660'):
+        p = (fill.get('prices') or {}).get(code) or {}
+        op, pc = num(p.get('open')), num((items.get(code) or {}).get('prev_close'))
+        if op is None or not pc or p.get('open_date') != fdate: return None
+        gs[code] = (op / pc - 1) * 100
+    m = sum(gs.values()) / len(gs)
+    if abs(gap - m) <= DISTORT_PP: return None
+    return {'why': 'open_distorted', 'stock_gap_mean': round(m, 2),
+            'detail': '코스피 시가 갭 %+.2f%% vs 삼전 %+.2f%%·하닉 %+.2f%% 평균 %+.2f%% (차이 %.2f%%p > %.0f%%p)' % (
+                gap, gs['005930'], gs['000660'], m, abs(gap - m), DISTORT_PP)}
 
 def print_summary(cal):
     recs = cal.get('records') or []
