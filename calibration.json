@@ -1452,6 +1452,55 @@
     "perp_asof": "11/05 07:45"
    },
    "source": "2026-11-06 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-06",
+   "low": 4750.0,
+   "high": 5170.0,
+   "band_width_pct": 7.8,
+   "prev_close": 5383.8,
+   "actual_open": 5263.26,
+   "gap_pct": -2.24,
+   "in_range": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": -7.87,
+   "center_err_pct": 5.63,
+   "signals": {
+    "k200n_pct": -7.87,
+    "k200n_close": 771.4,
+    "k200n_asof": "11/6 06:00",
+    "k200f_close": 837.25,
+    "ewy_implied_pct": -7.69,
+    "adr_implied_pct": -4.68,
+    "news_flag": "민주당 의원들이 AI 데이터센터 건설 중단을 요구하면서 SOX −12.25%, 마이크론 −17.16%가 됐습니다. 연방 규제는 확정되지 않았습니다",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -4.76,
+    "nq_pct": -6.87,
+    "us_fut_asof": "11/6 06:59",
+    "perp": {
+     "KOSPI": {
+      "p0500": -5.87,
+      "snap": -9.24
+     },
+     "005930": {
+      "p0500": -7.84,
+      "snap": -11.14
+     },
+     "000660": {
+      "p0500": -7.06,
+      "snap": -10.97
+     }
+    },
+    "perp_asof": "11/06 07:46"
+   },
+   "source": "2026-11-09 회차 채점 (score.py, prices.KOSPI.open)",
+   "exclude": {
+    "why": "open_distorted",
+    "stock_gap_mean": -12.6,
+    "detail": "코스피 시가 갭 -2.24% vs 삼전 -11.12%·하닉 -14.08% 평균 -12.60% (차이 10.36%p > 5%p)"
+   }
   }
  ],
  "stock_records": [
@@ -1994,6 +2043,42 @@
     "perp_pct": -1.52
    },
    "source": "2026-11-06 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-06",
+   "code": "000660",
+   "low": 1125000.0,
+   "high": 1164000.0,
+   "prev_close": 1264000.0,
+   "actual_open": 1086000.0,
+   "gap_pct": -14.08,
+   "in_range": false,
+   "center_pct": -9.42,
+   "center_err_pct": -4.66,
+   "band_width_pct": 3.09,
+   "inputs": {
+    "k200n_pct": -7.87,
+    "perp_pct": -10.97
+   },
+   "source": "2026-11-09 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-06",
+   "code": "005930",
+   "low": 179500.0,
+   "high": 185500.0,
+   "prev_close": 201500.0,
+   "actual_open": 179100.0,
+   "gap_pct": -11.12,
+   "in_range": false,
+   "center_pct": -9.5,
+   "center_err_pct": -1.62,
+   "band_width_pct": 2.98,
+   "inputs": {
+    "k200n_pct": -7.87,
+    "perp_pct": -11.14
+   },
+   "source": "2026-11-09 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }

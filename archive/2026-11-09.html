@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="generated" content="2026-11-09T07:45+09:00">
+<title>지식인 조간 · 반도체 모닝 대시보드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../style.css">
+<script>
+(function(){try{
+  var m=localStorage.getItem('jj-theme')||'system';
+  var d=(m==='dark')||(m==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-jj',d?'dark':'light');
+  document.documentElement.setAttribute('data-jj-mode',m);
+}catch(e){}})();
+</script>
+<style>
+/* 지식인 조간 v4 — 2026-09-15 · 전망 신뢰도 + 채점 차트 + 3단 테마 */
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  color-scheme:light;
+  --bg:#F6F8FB; --panel:#FFFFFF; --panel2:#EEF2F7; --line:#DFE5EE; --line2:#BFCADA;
+  --tx:#0E1622; --tx2:#3B4759; --tx3:#5A6879;
+  --up:#C62D22; --down:#1257B8; --accent:#C0322A; --ok:#0F7A4C;
+  --warnbg:#FFF7E4; --warnline:#E7CF97; --warntx:#6B4E06; --warnstrong:#8A6100;
+  --shadow:0 1px 2px rgba(16,26,40,.05),0 1px 8px rgba(16,26,40,.04);
+  --sticky:rgba(246,248,251,.93);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-jj]){
+    color-scheme:dark;
+    --bg:#0A0F18; --panel:#141C29; --panel2:#1A2432; --line:#26314A; --line2:#3D4A63;
+    --tx:#E6E9EF; --tx2:#C2CEDF; --tx3:#8B9AB2;
+    --up:#FF7A6B; --down:#6FA8FF; --accent:#F0665C; --ok:#4FD494;
+    --warnbg:#241D0E; --warnline:#5D4818; --warntx:#EBD9AF; --warnstrong:#FFC95C;
+    --shadow:none; --sticky:rgba(10,15,24,.93);
+  }
+}
+:root[data-jj="dark"]{
+  color-scheme:dark;
+  --bg:#0A0F18; --panel:#141C29; --panel2:#1A2432; --line:#26314A; --line2:#3D4A63;
+  --tx:#E6E9EF; --tx2:#C2CEDF; --tx3:#8B9AB2;
+  --up:#FF7A6B; --down:#6FA8FF; --accent:#F0665C; --ok:#4FD494;
+  --warnbg:#241D0E; --warnline:#5D4818; --warntx:#EBD9AF; --warnstrong:#FFC95C;
+  --shadow:none; --sticky:rgba(10,15,24,.93);
+}
+
+
+/* 기호는 Pretendard 서브셋에 없을 수 있어 시스템 기호 폰트를 먼저 태운다 */
+@font-face{font-family:'JJSym';
+  src:local('Segoe UI Symbol'),local('Apple Symbols'),local('Apple SD Gothic Neo'),
+      local('Noto Sans Symbols 2'),local('Malgun Gothic'),local('Arial Unicode MS');
+  unicode-range:U+00B7,U+2014,U+2192,U+2212,U+25B2,U+25BC,U+25BE,U+2605;}
+body{background:var(--bg);color:var(--tx);
+  font-family:'JJSym',Pretendard,"Pretendard Variable","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  font-size:17px;line-height:1.65;letter-spacing:-.02em;text-align:left;
+  word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased;padding-bottom:64px}
+.wrap{max-width:640px;margin:0 auto;padding:0 18px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--tx3)}
+
+.brand{padding:20px 0 12px;border-bottom:2px solid var(--accent);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.bn{font-size:24px;font-weight:900;letter-spacing:-.05em;line-height:1}
+.bd{font-size:12px;color:var(--tx3);margin-top:6px;letter-spacing:-.01em}
+
+.theme{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex:none}
+.theme button{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:-.01em;
+  padding:5px 9px;border:0;background:var(--panel);color:var(--tx3);cursor:pointer;white-space:nowrap}
+.theme button+button{border-left:1px solid var(--line)}
+.theme button[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+header{padding:16px 0 0}
+.kick{font-size:12px;color:var(--tx3);letter-spacing:.1em;font-weight:700}
+header h1{font-size:28px;font-weight:900;margin-top:5px;letter-spacing:-.04em;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:7px;font-size:12.5px;color:var(--tx3)}
+
+.fbanner{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+  margin-top:16px;padding:15px 17px;border-radius:14px;
+  background:var(--warnbg);border:1px solid var(--warnline);border-left:5px solid var(--warnstrong)}
+.fbanner .fl{font-size:11.5px;font-weight:700;color:var(--warnstrong);letter-spacing:.06em;display:block;margin-bottom:3px}
+.fbanner .fv{font-size:24px;font-weight:900;color:var(--warnstrong);letter-spacing:-.04em;line-height:1.1}
+.fbanner .fr{font-size:14px;font-weight:700;color:var(--warntx);text-align:right;line-height:1.45}
+@media(max-width:520px){.fbanner{grid-template-columns:1fr}.fbanner .fr{text-align:left}}
+
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
+@media(min-width:560px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:var(--shadow)}
+.k .n{font-size:12px;color:var(--tx3);font-weight:700}
+.k .v{font-size:21px;font-weight:900;margin-top:3px;letter-spacing:-.045em}
+.k .v.up{color:var(--up)} .k .v.down{color:var(--down)}
+.k .c{font-size:14px;font-weight:800;margin-top:1px}
+.legend{font-size:11.5px;color:var(--tx3);margin-top:9px;font-weight:600}
+
+.bar{position:sticky;top:0;z-index:20;background:var(--sticky);
+  border-bottom:1px solid var(--line);margin:20px 0 0;padding:8px 18px}
+.bar-in{max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.jumps{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.jumps::-webkit-scrollbar{display:none}
+.jump{flex:none;font-size:12.5px;font-weight:700;color:var(--tx2);text-decoration:none;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;white-space:nowrap}
+.jump:hover{color:var(--accent);border-color:var(--line2)}
+#expandAll{flex:none;font:inherit;font-size:12.5px;font-weight:700;
+  color:var(--accent);background:var(--panel);border:1px solid var(--line2);border-radius:8px;
+  padding:5px 10px;cursor:pointer;white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.tldr{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px 18px;box-shadow:var(--shadow)}
+.tt{font-size:11.5px;font-weight:900;color:var(--accent);letter-spacing:.12em;margin-bottom:14px}
+.tl{display:grid;grid-template-columns:19px 1fr;gap:10px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.tl:last-child{padding-bottom:0;margin-bottom:0;border-bottom:none}
+.tn{width:19px;height:19px;border-radius:6px;background:var(--line2);color:var(--panel);
+  font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:5px}
+:root[data-jj="dark"] .tn{color:#0A0F18}
+.th{font-size:19px;font-weight:800;letter-spacing:-.035em;line-height:1.42}
+.tb{font-size:15px;color:var(--tx2);margin-top:4px}
+
+section{margin-top:38px;scroll-margin-top:56px}
+.sh{display:flex;align-items:center;gap:9px}
+h2{font-size:22px;font-weight:900;letter-spacing:-.04em;display:flex;align-items:center;gap:9px}
+h2:before{content:"";width:4px;height:18px;background:var(--accent);border-radius:2px;flex:none}
+.stag{font-size:11.5px;font-weight:700;color:var(--tx3);margin-left:auto;white-space:nowrap}
+.sum{font-size:15px;color:var(--tx2);font-weight:600;margin:8px 0 12px;padding-left:12px;border-left:2px solid var(--line2)}
+
+.tblwrap{overflow-x:auto}
+table.q{width:100%;border-collapse:collapse}
+table.q th{font-size:11.5px;font-weight:700;color:var(--tx3);text-align:left;
+  padding:0 0 7px;border-bottom:1px solid var(--line2);letter-spacing:.02em}
+table.q th.r{text-align:right}
+table.q td{padding:11px 0 0;vertical-align:baseline}
+tbody.st{border-top:1px solid var(--line)}
+tbody.st:first-of-type{border-top:none}
+td.nm{font-size:15.5px;font-weight:800;padding-right:10px;word-break:keep-all;overflow-wrap:anywhere}
+td.nm .cd{display:block;font-size:10.5px;color:var(--tx3);font-weight:600;margin-top:1px;white-space:nowrap}
+td.pr{text-align:right;font-size:16.5px;font-weight:800;white-space:nowrap;padding-left:10px;padding-right:14px}
+td.pr.up{color:var(--up)} td.pr.down{color:var(--down)}
+td.ch{text-align:right;font-size:15px;font-weight:800;white-space:nowrap;padding-left:10px;min-width:80px}
+td.ch.na{color:var(--tx3);font-weight:700}
+td.cm{font-size:14.5px;color:var(--tx2);padding:4px 0 12px}
+
+details{margin-top:6px}
+summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  font-size:12.5px;font-weight:700;color:var(--tx3);padding:2px 0}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"\25BE";font-size:10px;transition:transform .15s}
+details[open] summary:after{transform:rotate(180deg)}
+summary:hover{color:var(--accent)}
+.dbody{font-size:14.5px;color:var(--tx2);margin-top:6px;padding-left:11px;border-left:2px solid var(--line)}
+.dbody p+p{margin-top:9px}
+@media(prefers-reduced-motion:reduce){summary:after{transition:none}}
+
+.flow{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;margin-top:14px;box-shadow:var(--shadow)}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px 14px}
+@media(min-width:560px){.fgrid{grid-template-columns:repeat(4,1fr)}}
+.fk{font-size:11.5px;color:var(--tx3);font-weight:700;display:block}
+.fv{font-size:15.5px;font-weight:800;display:block}
+.fn{font-size:14.5px;color:var(--tx2);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+
+.split{display:grid;grid-template-columns:1fr;gap:11px}
+@media(min-width:560px){.split{grid-template-columns:1fr 1fr}}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+  border-top:3px solid var(--line2);box-shadow:var(--shadow)}
+.col.bull{border-top-color:var(--up)} .col.bear{border-top-color:var(--down)}
+.col h3{font-size:14px;font-weight:900;margin-bottom:12px;letter-spacing:-.02em}
+.col.bull h3{color:var(--up)} .col.bear h3{color:var(--down)}
+.col li{list-style:none;margin-bottom:12px;padding-left:13px;position:relative}
+.col li:last-child{margin-bottom:0}
+.col li:before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--line2)}
+.col li b{display:block;font-weight:800;font-size:15px;line-height:1.42}
+.col li span{display:block;font-size:14px;color:var(--tx2);margin-top:2px}
+
+.ladder{display:flex;flex-direction:column;gap:6px}
+.lv{display:grid;grid-template-columns:98px 1fr;align-items:baseline;gap:12px;
+  padding:10px 13px;border-radius:10px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--line2)}
+.lvl{font-size:17px;font-weight:900}
+.lvd{font-size:13.5px;color:var(--tx2)}
+.lv.res{border-left-color:var(--up)} .lv.res .lvl{color:var(--up)}
+.lv.now{border-left-color:var(--warnstrong);background:var(--warnbg);border-color:var(--warnline)}
+.lv.now .lvl{color:var(--warnstrong)} .lv.now .lvd{color:var(--warntx);font-weight:700}
+.lv.sup{border-left-color:var(--down)} .lv.sup .lvl{color:var(--down)}
+.lv.sup2{border-left-color:var(--line2)} .lv.sup2 .lvl{color:var(--tx3)}
+@media(max-width:460px){.lv{grid-template-columns:1fr;gap:1px}}
+
+.scen{display:grid;grid-template-columns:1fr;gap:11px;margin-top:14px}
+@media(min-width:560px){.scen{grid-template-columns:1fr 1fr}}
+.sc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 17px;
+  border-top:3px solid var(--line2);box-shadow:var(--shadow)}
+.sc.base{border-top-color:var(--ok)} .sc.alt{border-top-color:var(--warnstrong)}
+.st{font-size:11px;font-weight:900;letter-spacing:.07em;color:var(--tx3)}
+.sc.base .st{color:var(--ok)} .sc.alt .st{color:var(--warnstrong)}
+.sch{font-size:16px;font-weight:900;margin-top:5px;letter-spacing:-.03em;line-height:1.38}
+.scb{font-size:14.5px;color:var(--tx2);margin-top:8px}
+.sif{font-size:13px;color:var(--tx3);margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-weight:700}
+
+.pts{background:var(--panel2);border-radius:14px;padding:16px 17px;margin-top:14px}
+.pth{font-size:12.5px;font-weight:900;margin-bottom:13px;color:var(--tx3);letter-spacing:.06em}
+.pt{display:grid;grid-template-columns:21px 1fr;gap:10px;margin-bottom:12px}
+.pt:last-child{margin-bottom:0}
+.pn{width:21px;height:21px;border-radius:7px;background:var(--accent);color:#fff;
+  font-size:11.5px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:3px}
+.pt b{display:block;font-size:15px;font-weight:800;line-height:1.42}
+.pt span{display:block;font-size:14px;color:var(--tx2);margin-top:2px}
+
+.chk{background:var(--warnbg);border:1px solid var(--warnline);border-left:4px solid var(--warnstrong);
+  border-radius:12px;padding:13px 15px;margin-top:14px}
+.ct{font-size:11px;font-weight:900;color:var(--warnstrong);letter-spacing:.1em}
+.cl{font-size:15px;font-weight:700;color:var(--warntx);margin-top:5px;line-height:1.58}
+.chk summary{color:var(--warnstrong)}
+.chk .dbody{color:var(--warntx);border-left-color:var(--warnline)}
+
+.score{display:flex;gap:6px;flex-wrap:wrap}
+.s{width:44px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:800;background:var(--panel);color:var(--tx3);border:1px solid var(--line)}
+.s.hit{border-color:var(--ok);color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,var(--panel))}
+.s.miss{border-color:var(--line2);color:var(--tx3)}
+.s.wait{border-style:dashed;border-color:var(--line2);color:var(--tx2)}
+.verdict{display:inline-block;font-size:12.5px;font-weight:900;padding:3px 9px;border-radius:7px;
+  border:1px solid var(--line2);color:var(--tx2);margin-top:13px}
+.verdict.hit{border-color:var(--ok);color:var(--ok)}
+.verdict.miss{border-color:var(--line2);color:var(--tx3)}
+.note{font-size:15px;color:var(--tx2);margin-top:7px}
+.note b{color:var(--tx)}
+.cov{font-size:13px;color:var(--tx3);margin-top:10px;font-weight:700}
+
+.arch{display:flex;gap:7px;flex-wrap:wrap}
+.arch a{font-size:12.5px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:7px 12px;text-decoration:none;font-weight:700}
+.arch a:hover{color:var(--accent);border-color:var(--line2)}
+footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-size:12px;color:var(--tx3);line-height:1.75}
+
+/* v4 추가 — 전망 배너 보강 */
+.fsig{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.fsig span{font-size:12px;font-weight:700;padding:3px 8px;border-radius:7px;background:var(--panel);border:1px solid var(--line);color:var(--tx2)}
+.fsig span.up{color:var(--up)} .fsig span.down{color:var(--down)} .fsig span.na{color:var(--tx3)}
+.fsig span small{font-weight:600;color:var(--tx3);margin-left:3px}
+.fband{margin-top:10px}
+.fband svg{display:block;width:100%;height:auto;overflow:visible}
+.fconf{font-size:12px;font-weight:700;color:var(--warntx);margin-top:8px}
+.fbanner .fl,.fbanner .fv,.fbanner .fr{grid-column:auto}
+.fbanner .fwide{grid-column:1/-1}
+/* v4 — 하방 체크: 가장 약한 고리만 노란색, 나머지는 회색 패널 */
+.chk.soft{background:var(--panel2);border-color:var(--line);border-left-color:var(--line2)}
+.chk.soft .ct{color:var(--tx3)} .chk.soft .cl{color:var(--tx2)}
+.chk.soft summary{color:var(--tx3)} .chk.soft .dbody{color:var(--tx2);border-left-color:var(--line)}
+/* v4 — 채점 차트 */
+.schart{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 12px 6px}
+.schart svg{display:block;width:100%;height:auto;overflow:visible}
+.schart .sl{font-size:11.5px;color:var(--tx3);font-weight:600;margin-top:4px}
+.fv.na{color:var(--tx3)}
+/* v5 — 2026-10-15 · 첫 화면 대시보드(예측 → 실시간) + 브리핑 탭 */
+.tabs5{position:sticky;top:0;z-index:30;background:var(--sticky);border-bottom:1px solid var(--line);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.tabs5 .in{max-width:640px;margin:0 auto;padding:0 18px;display:flex;gap:4px}
+.tabs5 button{font:inherit;font-size:15px;font-weight:800;color:var(--tx3);background:none;border:0;padding:11px 12px 9px;
+  border-bottom:3px solid transparent;cursor:pointer}
+.tabs5 button[aria-selected="true"]{color:var(--tx);border-bottom-color:var(--accent)}
+html.js5 [data-panel][hidden]{display:none!important}
+[data-panel="brief"] .bar{top:48px}
+.h5{padding-top:14px}.h5 h1{font-size:24px}
+.hero5{margin-top:12px;padding:15px 16px;border-radius:14px;background:var(--warnbg);border:1px solid var(--warnline);border-left:5px solid var(--warnstrong)}
+.hero5 .hl{font-size:11.5px;font-weight:800;color:var(--warnstrong);letter-spacing:.06em}
+.hrow{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin-top:2px}
+.hv5{font-size:26px;font-weight:900;color:var(--warnstrong);letter-spacing:-.04em}
+.hr5{font-size:19px;font-weight:900;color:var(--warntx);letter-spacing:-.03em}
+.hr5 small{display:block;font-size:12.5px;font-weight:700;text-align:right}
+.concl{margin:10px 0 0;padding:0;list-style:none;counter-reset:c}
+.concl li{position:relative;padding-left:20px;font-size:15px;font-weight:700;color:var(--warntx);line-height:1.5;margin-top:5px}
+.concl li::before{counter-increment:c;content:counter(c);position:absolute;left:0;top:2px;font-size:11px;font-weight:900;
+  width:15px;height:15px;border-radius:50%;background:var(--warnstrong);color:var(--warnbg);text-align:center;line-height:15px}
+.more5{margin-top:10px;font:inherit;font-size:13px;font-weight:800;color:var(--warnstrong);background:none;border:0;padding:0;cursor:pointer}
+.card5{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 13px 10px;box-shadow:var(--shadow)}
+.ch5{display:flex;justify-content:space-between;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
+.ch5 h2{font-size:15.5px;font-weight:900;letter-spacing:-.03em}
+.ch5>span{font-size:12px;color:var(--tx3);font-weight:700}
+.cap{font-size:11.5px;color:var(--tx3);font-weight:600;line-height:1.5;margin-top:4px}
+.lv5{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--tx3);font-weight:800}
+.lv5 i{width:7px;height:7px;border-radius:50%;background:var(--line2);display:inline-block}
+.lv5.ok i{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.lv5.err i{background:var(--warnstrong)}
+.sel5{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.sel5 button{font:inherit;text-align:left;background:var(--panel2);border:1.5px solid transparent;border-radius:11px;padding:7px 8px 6px;cursor:pointer;color:var(--tx);min-width:0}
+.sel5 button[aria-selected="true"]{border-color:var(--tx2);background:var(--panel)}
+.sel5 .n{font-size:11.5px;font-weight:800;color:var(--tx3);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel5 .v{font-size:15px;font-weight:900;letter-spacing:-.03em;display:block;margin-top:1px;white-space:nowrap}
+@media(max-width:374px){.sel5 .v{font-size:14px}.sel5 button{padding:7px 6px 6px}}
+.sel5 .c{font-size:12px;font-weight:800;display:block;white-space:nowrap}
+.sel5 .b{font-size:10.5px;font-weight:800;display:inline-block;margin-top:3px;padding:1px 5px;border-radius:5px;background:var(--panel2);color:var(--tx3);white-space:nowrap}
+.sel5 .b.in{background:color-mix(in srgb,var(--ok) 14%,var(--panel));color:var(--ok)}
+.sel5 .b.lo{background:color-mix(in srgb,var(--down) 14%,var(--panel));color:var(--down)}
+.sel5 .b.hi{background:color-mix(in srgb,var(--up) 14%,var(--panel));color:var(--up)}
+.verd5{font-size:13px;font-weight:700;color:var(--tx2);margin-top:6px;line-height:1.55}
+.verd5 b{font-weight:900}
+.tiles5{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}
+.t5{background:var(--panel2);border-radius:10px;padding:8px 9px;min-width:0}
+.t5n{font-size:11.5px;color:var(--tx3);font-weight:800;line-height:1.35}.t5n small{display:block;font-weight:600;font-size:10.5px}
+.t5v{font-size:15px;font-weight:900;letter-spacing:-.03em;margin-top:2px}
+.t5c{font-size:12.5px;font-weight:800}
+.note5{font-size:12px;color:var(--tx3);margin-top:12px;line-height:1.6}
+.vizbox{position:relative;margin-top:6px;touch-action:pan-y}
+.viz{display:block;width:100%;height:auto;overflow:visible}
+.viz .grid{stroke:var(--line);stroke-width:1}
+.viz .base{stroke:var(--line2);stroke-width:1.2;stroke-dasharray:3 3}
+.viz .vmark{stroke:var(--line2);stroke-width:1;stroke-dasharray:2 3}
+.viz .tick{font-size:9.5px;fill:var(--tx3);font-variant-numeric:tabular-nums}
+.viz .lab{font-size:10px;fill:var(--tx2);font-weight:700;font-variant-numeric:tabular-nums}
+.viz .lab.strong{fill:var(--warnstrong);font-weight:900}
+.viz .ph{font-size:11px;fill:var(--tx3);font-weight:700}
+.viz .ln{fill:none;stroke:var(--tx2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.viz .pre{fill:none;stroke:var(--tx3);stroke-width:1.6;stroke-linejoin:round}
+.viz .tail{fill:none;stroke:var(--tx2);stroke-width:1.6;stroke-dasharray:3 2}
+.viz .ses{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.viz .ses.dn{stroke:var(--down)} .viz .ses.upl{stroke:var(--up)}
+.viz .end{stroke:var(--panel);stroke-width:2} .viz .end.dn{fill:var(--down)} .viz .end.upl{fill:var(--up)}
+.viz .open{fill:var(--panel);stroke-width:2.2} .viz .open.dn{stroke:var(--down)} .viz .open.upl{stroke:var(--up)}
+.viz .sess{fill:var(--panel2)}
+.viz .div9{stroke:var(--tx3);stroke-width:1.2}
+.viz .night{fill:var(--warnstrong)}
+.viz .band{fill:var(--line2)}
+.viz .bandnow{fill:var(--warnstrong);opacity:.6}
+.viz .din{fill:var(--ok);stroke:var(--panel);stroke-width:2}
+.viz .dout{fill:var(--panel);stroke:var(--tx2);stroke-width:1.8}
+.viz .xh{stroke:var(--tx3);stroke-width:1;opacity:0}
+.vizbox.on .xh{opacity:.6}
+.tip{position:absolute;top:0;pointer-events:none;background:var(--tx);color:var(--bg);font-size:12px;font-weight:700;line-height:1.45;
+  padding:6px 8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:5}
+.tip b{font-weight:900}
+@media(min-width:600px){
+  .live5 .lgrid{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start}
+  .live5 .sel5{grid-template-columns:1fr}
+}
+/* v5.1 — 2026-10-16 · 의견 버튼(지인 링크로 연 브라우저만) + 아래에서 올라오는 입력 창 */
+.tabs5 .fb5{margin-left:auto;align-self:center;font-size:13px;font-weight:800;color:var(--tx2);background:var(--panel2);
+  border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.tabs5 .fb5:hover{color:var(--tx);border-color:var(--line2)}
+.fbs5{position:fixed;inset:0;z-index:60}
+.fbs5[hidden]{display:none}
+.fbk{position:absolute;inset:0;background:rgba(8,12,20,.45)}
+.fbp{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-bottom:0;
+  border-radius:16px 16px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,0,0,.18)}
+.fbh{display:flex;justify-content:space-between;align-items:center}
+.fbh b{font-size:16px}
+.fbc{font:inherit;font-size:13px;font-weight:700;color:var(--tx3);background:none;border:0;padding:6px;cursor:pointer}
+.fbn{margin:6px 0 10px;font-size:12.5px;color:var(--tx3);line-height:1.5}
+.fbg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.fbg label{position:relative;cursor:pointer}
+.fbg input{position:absolute;opacity:0;pointer-events:none}
+.fbg span{display:inline-block;font-size:13px;font-weight:800;color:var(--tx2);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.fbg input:checked+span{color:var(--accent);border-color:var(--accent);background:var(--panel2)}
+.fbg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.fbp textarea,.fbf input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:var(--tx);background:var(--bg);
+  border:1px solid var(--line2);border-radius:10px;padding:9px 10px}
+.fbp textarea{display:block;resize:vertical;min-height:96px}
+.fbf{display:flex;gap:8px;margin-top:8px}
+.fbf input{flex:1;min-width:0}
+.fbf button{font:inherit;font-size:15px;font-weight:800;color:var(--panel);background:var(--accent);border:0;border-radius:10px;padding:0 18px;cursor:pointer}
+.fbf button:disabled{opacity:.6;cursor:default}
+.fbm{min-height:18px;margin:8px 0 0;font-size:13px;font-weight:700;color:var(--tx2)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <div>
+      <div class="bn">지식인 조간</div>
+      <div class="bd">반도체 · 메모리 개장 전 브리핑</div>
+    </div>
+    <div class="theme" role="group" aria-label="화면 테마">
+      <button type="button" data-set="system">시스템</button>
+      <button type="button" data-set="light">라이트</button>
+      <button type="button" data-set="dark">다크</button>
+    </div>
+  </div>
+
+</div>
+
+<nav class="tabs5" aria-label="보기 전환"><div class="in">
+  <button type="button" data-go="dash" aria-selected="true">대시보드</button>
+  <button type="button" data-go="brief" aria-selected="false">브리핑 전문</button>
+</div></nav>
+
+<div data-panel="dash">
+<div class="wrap">
+  <header class="h5">
+    <div class="kick">제 57 호 · 07:45 발행</div>
+    <h1>2026년 11월 9일 (월)</h1>
+  </header>
+
+  <section class="hero5" aria-label="시초가 전망">
+    <div class="hl">09:00 코스피 시초가 전망</div>
+    <div class="hrow"><span class="hv5">+1.59% 안팎 출발</span><span class="hr5 num">5,080 ~ 5,200<small>+0.40% ~ +2.77%</small></span></div>
+    <div class="fband" aria-label="예상 구간과 전일 종가"><svg viewBox="0 0 360 46" role="img" aria-label="예상 구간 5,080 ~ 5,200, 전일 종가 5,059.69"><line x1="22" x2="338" y1="26" y2="26" style="stroke:var(--line2)" stroke-width="2"/><rect x="195.9" y="12" width="93.7" height="16" rx="4" style="fill:var(--warnstrong);opacity:.55"/><line x1="180.0" x2="180.0" y1="4" y2="34" style="stroke:var(--tx)" stroke-width="2"/><text x="180.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx2)" font-weight="700">전일 종가</text><text x="22.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-4%</text><text x="101.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">-2%</text><text x="259.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+2%</text><text x="338.0" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">+4%</text><line x1="243.2" x2="243.2" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/><text x="243.2" y="7" font-size="9" text-anchor="middle" style="fill:var(--tx3)">야간</text></svg></div>
+    <div class="fsig num"><span class="up">야간선물 ▲ +1.60%<small>11/7 06:00</small></span><span class="up">EWY 시사 ▲ +10.79%</span><span class="up">ADR 시사 ▲ +16.42%</span><span class="up">미국선물 ES ▲ +0.26%<small>11/7 07:00 닫음(주말 휴장)</small></span></div>
+    <ol class="concl"><li>주말 규제 뉴스가 반등 폭을 줄일 수 있습니다</li><li>미국 반도체는 11/5 낙폭의 일부만 회복했습니다</li><li>외국인 매도 속도가 오늘의 관건입니다</li></ol>
+    <button type="button" class="more5" data-go="brief">근거와 시나리오는 브리핑에서 →</button>
+  </section>
+
+  <section class="card5 live5" aria-label="예측과 실시간">
+    <div class="ch5"><h2>예측 → 실시간</h2><span class="lv5" id="lvStat"><i></i>07:45 값</span></div>
+    <div class="lgrid">
+      <div class="sel5" role="tablist" id="sel5"><button type="button" role="tab" aria-selected="true"><span class="n">코스피</span><span class="v num">≈5,117</span><span class="c num up">▲ +1.13%</span><span class="b in">예측 안</span></button><button type="button" role="tab" aria-selected="false"><span class="n">삼성전자</span><span class="v num">190,200</span><span class="c num up">▲ +0.81%</span><span class="b in">예측 안</span></button><button type="button" role="tab" aria-selected="false"><span class="n">SK하이닉스</span><span class="v num">1,143,000</span><span class="c num up">▲ +0.99%</span><span class="b in">예측 안</span></button></div>
+      <div>
+        <div class="vizbox" id="dayBox"><svg viewBox="0 0 360 236" class="viz" id="daySvg" role="img" aria-label="예측과 실시간"></svg><div class="tip" hidden></div></div>
+        <div class="verd5" id="verd5"></div>
+      </div>
+    </div>
+    <div class="cap">왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가(밤사이 압축) · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중 · 오른쪽 위 표시가 KRX 면 실제 시세, 아니면 해외 추종가(실제가와 ±0.5% 안팎 차이) · 15초마다 갱신</div>
+  </section>
+
+  <section class="card5" aria-label="코스피 최근 20거래일과 예측 기록">
+    <div class="ch5"><h2>코스피 20거래일 · 예측 기록</h2><span class="num">5,059.69 <b class="down">▼ −6.02%</b></span></div>
+    <div class="vizbox" data-tips='[{"x": 40.0, "t": "10/12", "c": "6,384.24", "b": "6,500~6,740", "o": "6,578.17", "v": "적중"}, {"x": 53.7, "t": "10/13", "c": "6,035.35", "b": "6,200~6,300", "o": "6,186.08", "v": "구간 밖"}, {"x": 67.4, "t": "10/14", "c": "6,008.81", "b": "6,090~6,190", "o": "6,062.08", "v": "구간 밖"}, {"x": 81.1, "t": "10/15", "c": "5,554.22", "b": "5,790~5,880", "o": "5,673.01", "v": "구간 밖"}, {"x": 94.8, "t": "10/16", "c": "5,668.05", "b": "5,730~5,820", "o": "5,653.99", "v": "구간 밖"}, {"x": 108.5, "t": "10/19", "c": "5,768.01", "b": "5,360~5,580", "o": "5,488.41", "v": "적중"}, {"x": 122.2, "t": "10/20", "c": "5,552.74", "b": "5,730~5,790", "o": "5,733.57", "v": "적중"}, {"x": 135.9, "t": "10/21", "c": "5,735.66", "b": "5,590~5,720", "o": "5,666.34", "v": "적중"}, {"x": 149.6, "t": "10/22", "c": "5,533.77", "b": "5,670~5,740", "o": "5,670.11", "v": "적중"}, {"x": 163.3, "t": "10/23", "c": "5,550.30", "b": "5,300~5,480", "o": "5,403.17", "v": "적중"}, {"x": 177.0, "t": "10/26", "c": "5,469.47", "b": "5,510~5,570", "o": "5,499.05", "v": "구간 밖"}, {"x": 190.7, "t": "10/27", "c": "5,638.34", "b": "5,530~5,700", "o": "5,658.65", "v": "적중"}, {"x": 204.4, "t": "10/28", "c": "6,012.44", "b": "5,680~5,820", "o": "5,763.85", "v": "적중"}, {"x": 218.1, "t": "10/29", "c": "5,937.66", "b": "6,000~6,090", "o": "6,017.22", "v": "적중"}, {"x": 231.8, "t": "10/30", "c": "5,730.74", "b": "5,730~5,890", "o": "5,760.35", "v": "적중"}, {"x": 245.5, "t": "11/2", "c": "5,859.08", "b": "5,460~5,660", "o": "5,637.77", "v": "적중"}, {"x": 259.2, "t": "11/3", "c": "5,648.79", "b": "5,510~5,760", "o": "5,715.19", "v": "적중"}, {"x": 272.9, "t": "11/4", "c": "5,683.80", "b": "5,680~5,810", "o": "5,786.13", "v": "적중"}, {"x": 286.6, "t": "11/5", "c": "5,383.80", "b": "5,520~5,660", "o": "5,580.09", "v": "적중"}, {"x": 300.3, "t": "11/6", "c": "5,059.69", "b": "4,750~5,170", "o": "5,263.26", "v": "구간 밖"}, {"x": 314.0, "t": "11/9", "b": "5,080~5,200", "v": "오늘 전망"}]'><svg viewBox="0 0 360 210" class="viz" role="img" aria-label="코스피 최근 20거래일 종가와 회차별 예상 구간, 실제 시초가"><line x1="40" x2="322" y1="186.0" y2="186.0" class="grid"/><text x="34" y="189.5" class="tick" text-anchor="end">4,500</text><line x1="40" x2="322" y1="151.6" y2="151.6" class="grid"/><text x="34" y="155.1" class="tick" text-anchor="end">5,000</text><line x1="40" x2="322" y1="117.2" y2="117.2" class="grid"/><text x="34" y="120.7" class="tick" text-anchor="end">5,500</text><line x1="40" x2="322" y1="82.8" y2="82.8" class="grid"/><text x="34" y="86.3" class="tick" text-anchor="end">6,000</text><line x1="40" x2="322" y1="48.4" y2="48.4" class="grid"/><text x="34" y="51.9" class="tick" text-anchor="end">6,500</text><line x1="40" x2="322" y1="14.0" y2="14.0" class="grid"/><text x="34" y="17.5" class="tick" text-anchor="end">7,000</text><rect x="36.5" y="31.9" width="7" height="16.5" rx="2" class="band"/><rect x="50.2" y="62.2" width="7" height="6.9" rx="2" class="band"/><rect x="63.9" y="69.7" width="7" height="6.9" rx="2" class="band"/><rect x="77.6" y="91.1" width="7" height="6.2" rx="2" class="band"/><rect x="91.3" y="95.2" width="7" height="6.2" rx="2" class="band"/><rect x="105.0" y="111.7" width="7" height="15.1" rx="2" class="band"/><rect x="118.7" y="97.2" width="7" height="4.1" rx="2" class="band"/><rect x="132.4" y="102.1" width="7" height="8.9" rx="2" class="band"/><rect x="146.1" y="100.7" width="7" height="4.8" rx="2" class="band"/><rect x="159.8" y="118.6" width="7" height="12.4" rx="2" class="band"/><rect x="173.5" y="112.4" width="7" height="4.1" rx="2" class="band"/><rect x="187.2" y="103.4" width="7" height="11.7" rx="2" class="band"/><rect x="200.9" y="95.2" width="7" height="9.6" rx="2" class="band"/><rect x="214.6" y="76.6" width="7" height="6.2" rx="2" class="band"/><rect x="228.3" y="90.4" width="7" height="11.0" rx="2" class="band"/><rect x="242.0" y="106.2" width="7" height="13.8" rx="2" class="band"/><rect x="255.7" y="99.3" width="7" height="17.2" rx="2" class="band"/><rect x="269.4" y="95.9" width="7" height="8.9" rx="2" class="band"/><rect x="283.1" y="106.2" width="7" height="9.6" rx="2" class="band"/><rect x="296.8" y="139.9" width="7" height="28.9" rx="2" class="band"/><rect x="310.5" y="137.8" width="7" height="8.3" rx="2" class="bandnow"/><polyline points="40.0,56.4 53.7,80.4 67.4,82.2 81.1,113.5 94.8,105.6 108.5,98.8 122.2,113.6 135.9,101.0 149.6,114.9 163.3,113.7 177.0,119.3 190.7,107.7 204.4,81.9 218.1,87.1 231.8,101.3 245.5,92.5 259.2,107.0 272.9,104.6 286.6,125.2 300.3,147.5" class="ln"/><circle cx="40.0" cy="43.0" r="4" class="din"/><circle cx="53.7" cy="70.0" r="4" class="dout"/><circle cx="67.4" cy="78.5" r="4" class="dout"/><circle cx="81.1" cy="105.3" r="4" class="dout"/><circle cx="94.8" cy="106.6" r="4" class="dout"/><circle cx="108.5" cy="118.0" r="4" class="din"/><circle cx="122.2" cy="101.1" r="4" class="din"/><circle cx="135.9" cy="105.8" r="4" class="din"/><circle cx="149.6" cy="105.5" r="4" class="din"/><circle cx="163.3" cy="123.9" r="4" class="din"/><circle cx="177.0" cy="117.3" r="4" class="dout"/><circle cx="190.7" cy="106.3" r="4" class="din"/><circle cx="204.4" cy="99.0" r="4" class="din"/><circle cx="218.1" cy="81.6" r="4" class="din"/><circle cx="231.8" cy="99.3" r="4" class="din"/><circle cx="245.5" cy="107.7" r="4" class="din"/><circle cx="259.2" cy="102.4" r="4" class="din"/><circle cx="272.9" cy="97.5" r="4" class="din"/><circle cx="286.6" cy="111.7" r="4" class="din"/><circle cx="300.3" cy="133.5" r="4" class="dout"/><text x="321.0" y="146.0" class="lab strong">오늘</text><text x="40.0" y="204" class="tick" text-anchor="middle">10/12</text><text x="177.0" y="204" class="tick" text-anchor="middle">10/26</text><text x="300.3" y="204" class="tick" text-anchor="middle">11/6</text><line class="xh" x1="0" x2="0" y1="14" y2="186"/></svg><div class="tip" hidden></div></div>
+    <div class="cap">선 — 종가 · 막대 — 그날 아침 예상 구간(노란색이 오늘) · 점 — 실제 시초가(채움: 구간 안, 테두리: 구간 밖) · 최근 10회 구간 안 8</div>
+  </section>
+
+  <section class="card5" aria-label="간밤 시장">
+    <div class="ch5"><h2>간밤 시장</h2><span>11/6(금) 미국장 마감</span></div>
+    <div class="tiles5"><div class="t5"><div class="t5n">K200 야간<small>11/7 06:00</small></div><div class="t5v num">795.50</div><div class="t5c num up">▲ +1.60%</div></div><div class="t5"><div class="t5n">SOX</div><div class="t5v num">9,390.30</div><div class="t5c num up">▲ +4.21%</div></div><div class="t5"><div class="t5n">엔비디아</div><div class="t5v num">186.64</div><div class="t5c num up">▲ +2.64%</div></div><div class="t5"><div class="t5n">마이크론</div><div class="t5v num">690.00</div><div class="t5c num up">▲ +4.75%</div></div><div class="t5"><div class="t5n">EWY</div><div class="t5v num">137.01</div><div class="t5c num up">▲ +3.01%</div></div><div class="t5"><div class="t5n">원달러</div><div class="t5v num">1,356.60</div><div class="t5c num up">▲ +1.08%</div></div></div>
+  </section>
+
+  <p class="note5">종목 예측 구간 = 야간선물과 해외 24시간 추종가(11/09 07:45)의 평균 ± 최근 오차 80% 범위(삼성전자 ±1.36% · SK하이닉스 ±1.50%). 해외 추종가는 해외 코인거래소의 한국 종목 무기한선물 가격이라 실제 체결가와 다릅니다.</p>
+</div>
+</div><!--/dash-->
+<script id="day-data" type="application/json">{"issue":"2026-11-09","api":"https://api.hyperliquid.xyz/info","relay":"https://129-225-146-153.sslip.io","t_prev":1793946600000,"t_snap":1794177955937,"t_open":1794182400000,"t_close":1794205800000,"t_night":1794168000000,"ent":[{"key":"KOSPI","name":"코스피","coin":"xyz:KR200","unit":"","approx":true,"tick":0,"dec":2,"prev":5059.69,"prev_label":"11/6","base":783.03,"path":[[1793946600000,0.0],[1793947500000,0.329],[1793948400000,0.72],[1793949300000,0.192],[1793950200000,-0.277],[1793951100000,0.079],[1793952000000,0.451],[1793952900000,0.438],[1793953800000,0.662],[1793954700000,0.787],[1793955600000,0.917],[1793956500000,2.133],[1793957400000,2.386],[1793958300000,2.552],[1793959200000,2.108],[1793960100000,2.25],[1793961000000,2.018],[1793961900000,2.481],[1793962800000,1.93],[1793963700000,2.249],[1793964600000,2.525],[1793965500000,2.67],[1793966400000,2.308],[1793967300000,2.561],[1793968200000,2.936],[1793969100000,2.512],[1793970000000,2.374],[1793970900000,2.465],[1793971800000,2.927],[1793972700000,2.615],[1793973600000,3.319],[1793974500000,2.605],[1793975400000,2.658],[1793976300000,2.687],[1793977200000,2.7],[1793978100000,1.677],[1793979000000,1.466],[1793979900000,1.478],[1793980800000,2.08],[1793981700000,1.438],[1793982600000,2.047],[1793983500000,2.2],[1793984400000,2.499],[1793985300000,2.152],[1793986200000,2.277],[1793987100000,0.898],[1793988000000,0.868],[1793988900000,1.253],[1793989800000,1.226],[1793990700000,1.704],[1793991600000,2.243],[1793992500000,2.108],[1793993400000,1.734],[1793994300000,1.755],[1793995200000,1.872],[1793996100000,1.971],[1793997000000,1.724],[1793997900000,1.702],[1793998800000,2.227],[1793999700000,2.013],[1794000600000,2.013],[1794001500000,1.624],[1794002400000,1.669],[1794003300000,1.627],[1794004200000,1.627],[1794005100000,1.75],[1794006000000,1.757],[1794006900000,1.544],[1794007800000,1.544],[1794008700000,1.435],[1794009600000,1.437],[1794010500000,1.437],[1794011400000,1.513],[1794012300000,2.055],[1794013200000,2.055],[1794014100000,2.055],[1794015000000,1.759],[1794015900000,1.759],[1794016800000,1.973],[1794017700000,1.646],[1794018600000,1.646],[1794019500000,1.646],[1794020400000,1.531],[1794021300000,1.531],[1794022200000,1.621],[1794023100000,1.607],[1794024000000,1.849],[1794024900000,1.849],[1794025800000,1.742],[1794026700000,2.024],[1794027600000,1.977],[1794028500000,1.977],[1794029400000,2.001],[1794030300000,1.771],[1794031200000,1.771],[1794032100000,1.771],[1794033000000,1.771],[1794033900000,1.771],[1794034800000,1.771],[1794035700000,1.771],[1794036600000,1.787],[1794037500000,1.787],[1794038400000,1.911],[1794039300000,2.163],[1794040200000,2.268],[1794041100000,2.063],[1794042000000,2.452],[1794042900000,2.32],[1794043800000,2.08],[1794044700000,1.756],[1794045600000,1.684],[1794046500000,1.618],[1794047400000,1.618],[1794048300000,1.753],[1794049200000,1.935],[1794050100000,1.911],[1794051000000,1.911],[1794051900000,1.902],[1794052800000,1.848],[1794053700000,1.849],[1794054600000,1.849],[1794055500000,1.849],[1794056400000,1.932],[1794057300000,1.979],[1794058200000,2.083],[1794059100000,2.097],[1794060000000,2.097],[1794060900000,2.018],[1794061800000,1.983],[1794062700000,2.11],[1794063600000,2.11],[1794064500000,1.983],[1794065400000,1.983],[1794066300000,1.849],[1794067200000,1.691],[1794068100000,1.691],[1794069000000,1.72],[1794069900000,1.719],[1794070800000,1.719],[1794071700000,1.614],[1794072600000,1.614],[1794073500000,1.972],[1794074400000,1.972],[1794075300000,1.972],[1794076200000,2.165],[1794077100000,2.24],[1794078000000,2.24],[1794078900000,2.04],[1794079800000,1.871],[1794080700000,2.143],[1794081600000,2.143],[1794082500000,1.713],[1794083400000,1.706],[1794084300000,1.706],[1794085200000,1.706],[1794086100000,1.572],[1794087000000,1.82],[1794087900000,1.833],[1794088800000,1.902],[1794089700000,1.902],[1794090600000,1.902],[1794091500000,1.783],[1794092400000,1.783],[1794093300000,1.986],[1794094200000,1.986],[1794095100000,1.934],[1794096000000,2.045],[1794096900000,2.045],[1794097800000,2.045],[1794098700000,2.045],[1794099600000,2.045],[1794100500000,2.082],[1794101400000,2.082],[1794102300000,2.082],[1794103200000,2.082],[1794104100000,2.091],[1794105000000,2.051],[1794105900000,1.895],[1794106800000,1.867],[1794107700000,2.093],[1794108600000,1.946],[1794109500000,1.946],[1794110400000,2.029],[1794111300000,2.029],[1794112200000,1.73],[1794113100000,1.9],[1794114000000,1.658],[1794114900000,1.747],[1794115800000,1.747],[1794116700000,1.747],[1794117600000,1.953],[1794118500000,1.953],[1794119400000,1.953],[1794120300000,1.953],[1794121200000,1.953],[1794122100000,1.953],[1794123000000,1.953],[1794123900000,1.953],[1794124800000,2.059],[1794125700000,2.059],[1794126600000,2.059],[1794127500000,2.059],[1794128400000,1.996],[1794129300000,1.886],[1794130200000,1.886],[1794131100000,2.175],[1794132000000,2.171],[1794132900000,2.171],[1794133800000,2.289],[1794134700000,1.917],[1794135600000,2.179],[1794136500000,2.106],[1794137400000,2.106],[1794138300000,2.106],[1794139200000,2.106],[1794140100000,2.106],[1794141000000,2.103],[1794141900000,1.843],[1794142800000,1.843],[1794143700000,2.059],[1794144600000,2.107],[1794145500000,2.107],[1794146400000,2.107],[1794147300000,2.133],[1794148200000,1.958],[1794149100000,2.179],[1794150000000,2.179],[1794150900000,1.939],[1794151800000,1.939],[1794152700000,1.939],[1794153600000,1.939],[1794154500000,1.939],[1794155400000,2.042],[1794156300000,2.042],[1794157200000,2.042],[1794158100000,1.896],[1794159000000,1.978],[1794159900000,1.978],[1794160800000,1.978],[1794161700000,2.401],[1794162600000,2.529],[1794163500000,2.71],[1794164400000,2.709],[1794165300000,2.916],[1794166200000,2.85],[1794167100000,2.972],[1794168000000,2.847],[1794168900000,2.426],[1794169800000,2.397],[1794170700000,1.545],[1794171600000,1.842],[1794172500000,1.842],[1794173400000,1.842],[1794174300000,1.842],[1794175200000,1.467],[1794176100000,1.406],[1794177000000,1.089],[1794177900000,1.134]],"lo":0.401,"hi":2.773,"lo_v":5080.0,"hi_v":5200.0,"night":1.6},{"key":"005930","name":"삼성전자","coin":"xyz:SMSN","unit":"원","approx":false,"tick":100,"dec":0,"prev":188700.0,"prev_label":"11/6","base":139.18,"path":[[1793946600000,0.0],[1793947500000,-0.072],[1793948400000,0.374],[1793949300000,0.445],[1793950200000,0.036],[1793951100000,0.331],[1793952000000,0.596],[1793952900000,0.769],[1793953800000,0.869],[1793954700000,1.171],[1793955600000,1.243],[1793956500000,2.946],[1793957400000,3.183],[1793958300000,3.557],[1793959200000,3.212],[1793960100000,3.176],[1793961000000,2.802],[1793961900000,3.269],[1793962800000,2.651],[1793963700000,2.989],[1793964600000,3.291],[1793965500000,3.851],[1793966400000,3.449],[1793967300000,3.485],[1793968200000,3.923],[1793969100000,3.578],[1793970000000,3.046],[1793970900000,3.147],[1793971800000,3.751],[1793972700000,3.47],[1793973600000,4.261],[1793974500000,3.09],[1793975400000,3.01],[1793976300000,3.068],[1793977200000,3.37],[1793978100000,2.874],[1793979000000,1.631],[1793979900000,1.545],[1793980800000,2.364],[1793981700000,1.854],[1793982600000,2.795],[1793983500000,2.543],[1793984400000,2.845],[1793985300000,2.709],[1793986200000,2.881],[1793987100000,1.006],[1793988000000,1.415],[1793988900000,1.437],[1793989800000,1.444],[1793990700000,1.976],[1793991600000,2.22],[1793992500000,2.378],[1793993400000,1.875],[1793994300000,1.918],[1793995200000,2.148],[1793996100000,2.256],[1793997000000,2.256],[1793997900000,2.069],[1793998800000,2.098],[1793999700000,2.522],[1794000600000,2.127],[1794001500000,2.249],[1794002400000,2.436],[1794003300000,2.5],[1794004200000,2.594],[1794005100000,2.601],[1794006000000,2.385],[1794006900000,2.292],[1794007800000,2.084],[1794008700000,2.177],[1794009600000,2.213],[1794010500000,2.184],[1794011400000,2.098],[1794012300000,2.055],[1794013200000,2.27],[1794014100000,2.292],[1794015000000,1.818],[1794015900000,2.199],[1794016800000,2.349],[1794017700000,2.155],[1794018600000,2.005],[1794019500000,2.105],[1794020400000,1.732],[1794021300000,1.947],[1794022200000,2.12],[1794023100000,2.163],[1794024000000,2.342],[1794024900000,2.299],[1794025800000,2.328],[1794026700000,2.579],[1794027600000,2.385],[1794028500000,2.292],[1794029400000,2.285],[1794030300000,2.227],[1794031200000,2.148],[1794032100000,2.22],[1794033000000,2.17],[1794033900000,2.134],[1794034800000,2.062],[1794035700000,2.005],[1794036600000,2.005],[1794037500000,2.026],[1794038400000,2.134],[1794039300000,2.515],[1794040200000,2.529],[1794041100000,2.508],[1794042000000,3.075],[1794042900000,2.723],[1794043800000,2.479],[1794044700000,2.227],[1794045600000,2.249],[1794046500000,2.069],[1794047400000,2.12],[1794048300000,2.213],[1794049200000,2.306],[1794050100000,2.184],[1794051000000,2.249],[1794051900000,2.292],[1794052800000,2.22],[1794053700000,2.141],[1794054600000,2.292],[1794055500000,2.256],[1794056400000,2.414],[1794057300000,2.378],[1794058200000,2.651],[1794059100000,2.63],[1794060000000,2.68],[1794060900000,2.572],[1794061800000,2.5],[1794062700000,2.493],[1794063600000,2.393],[1794064500000,2.242],[1794065400000,2.292],[1794066300000,1.933],[1794067200000,1.918],[1794068100000,1.911],[1794069000000,1.947],[1794069900000,1.997],[1794070800000,2.041],[1794071700000,2.091],[1794072600000,2.191],[1794073500000,2.335],[1794074400000,2.407],[1794075300000,2.429],[1794076200000,2.673],[1794077100000,2.615],[1794078000000,2.558],[1794078900000,2.421],[1794079800000,2.457],[1794080700000,2.314],[1794081600000,2.335],[1794082500000,2.206],[1794083400000,2.163],[1794084300000,2.199],[1794085200000,2.134],[1794086100000,1.94],[1794087000000,2.012],[1794087900000,1.997],[1794088800000,2.069],[1794089700000,2.076],[1794090600000,1.99],[1794091500000,2.285],[1794092400000,2.242],[1794093300000,2.328],[1794094200000,2.321],[1794095100000,2.472],[1794096000000,2.579],[1794096900000,2.464],[1794097800000,2.457],[1794098700000,2.565],[1794099600000,2.472],[1794100500000,2.378],[1794101400000,2.321],[1794102300000,2.299],[1794103200000,2.27],[1794104100000,2.249],[1794105000000,2.314],[1794105900000,2.17],[1794106800000,2.335],[1794107700000,2.73],[1794108600000,2.436],[1794109500000,2.457],[1794110400000,2.393],[1794111300000,2.306],[1794112200000,2.278],[1794113100000,2.306],[1794114000000,2.292],[1794114900000,2.4],[1794115800000,2.421],[1794116700000,2.45],[1794117600000,2.572],[1794118500000,2.508],[1794119400000,2.464],[1794120300000,2.457],[1794121200000,2.615],[1794122100000,2.601],[1794123000000,2.615],[1794123900000,2.608],[1794124800000,2.687],[1794125700000,2.637],[1794126600000,2.63],[1794127500000,2.615],[1794128400000,2.551],[1794129300000,2.529],[1794130200000,2.63],[1794131100000,2.788],[1794132000000,2.773],[1794132900000,2.745],[1794133800000,2.637],[1794134700000,2.673],[1794135600000,2.558],[1794136500000,2.709],[1794137400000,2.795],[1794138300000,2.759],[1794139200000,2.644],[1794140100000,2.572],[1794141000000,2.63],[1794141900000,2.565],[1794142800000,2.637],[1794143700000,2.816],[1794144600000,2.68],[1794145500000,2.68],[1794146400000,2.486],[1794147300000,2.486],[1794148200000,2.457],[1794149100000,2.508],[1794150000000,2.378],[1794150900000,2.321],[1794151800000,2.127],[1794152700000,2.17],[1794153600000,2.22],[1794154500000,2.292],[1794155400000,2.385],[1794156300000,2.357],[1794157200000,2.393],[1794158100000,2.278],[1794159000000,2.235],[1794159900000,2.285],[1794160800000,2.321],[1794161700000,2.737],[1794162600000,3.564],[1794163500000,3.528],[1794164400000,3.693],[1794165300000,3.65],[1794166200000,3.715],[1794167100000,3.736],[1794168000000,3.621],[1794168900000,2.917],[1794169800000,2.867],[1794170700000,2.378],[1794171600000,2.127],[1794172500000,1.926],[1794173400000,1.861],[1794174300000,1.724],[1794175200000,1.437],[1794176100000,1.315],[1794177000000,1.114],[1794177900000,0.812]],"lo":-0.159,"hi":2.597,"lo_v":188400,"hi_v":193600,"night":null},{"key":"000660","name":"SK하이닉스","coin":"xyz:SKHX","unit":"원","approx":false,"tick":1000,"dec":0,"prev":1132000.0,"prev_label":"11/6","base":840.24,"path":[[1793946600000,0.0],[1793947500000,0.202],[1793948400000,0.864],[1793949300000,0.783],[1793950200000,0.081],[1793951100000,0.595],[1793952000000,0.972],[1793952900000,1.162],[1793953800000,1.122],[1793954700000,1.661],[1793955600000,1.59],[1793956500000,3.925],[1793957400000,4.237],[1793958300000,4.665],[1793959200000,3.902],[1793960100000,4.038],[1793961000000,3.776],[1793961900000,4.149],[1793962800000,3.434],[1793963700000,3.97],[1793964600000,4.237],[1793965500000,4.799],[1793966400000,4.125],[1793967300000,4.164],[1793968200000,4.413],[1793969100000,4.13],[1793970000000,3.554],[1793970900000,3.619],[1793971800000,4.226],[1793972700000,3.616],[1793973600000,4.502],[1793974500000,3.291],[1793975400000,3.304],[1793976300000,3.758],[1793977200000,4.324],[1793978100000,3.056],[1793979000000,1.723],[1793979900000,1.452],[1793980800000,2.196],[1793981700000,1.295],[1793982600000,2.309],[1793983500000,2.327],[1793984400000,2.667],[1793985300000,2.393],[1793986200000,2.536],[1793987100000,0.76],[1793988000000,1.006],[1793988900000,1.144],[1793989800000,1.071],[1793990700000,2.159],[1793991600000,2.705],[1793992500000,2.708],[1793993400000,2.12],[1793994300000,2.211],[1793995200000,2.536],[1793996100000,2.284],[1793997000000,2.459],[1793997900000,2.305],[1793998800000,2.303],[1793999700000,2.806],[1794000600000,2.315],[1794001500000,2.578],[1794002400000,3.046],[1794003300000,3.092],[1794004200000,3.101],[1794005100000,3.092],[1794006000000,2.9],[1794006900000,2.752],[1794007800000,2.555],[1794008700000,2.635],[1794009600000,2.767],[1794010500000,2.747],[1794011400000,2.59],[1794012300000,2.483],[1794013200000,3.032],[1794014100000,3.33],[1794015000000,2.673],[1794015900000,3.378],[1794016800000,3.648],[1794017700000,3.366],[1794018600000,3.399],[1794019500000,3.403],[1794020400000,2.925],[1794021300000,3.113],[1794022200000,3.349],[1794023100000,3.26],[1794024000000,3.586],[1794024900000,3.642],[1794025800000,3.75],[1794026700000,4.14],[1794027600000,3.935],[1794028500000,3.971],[1794029400000,3.783],[1794030300000,3.717],[1794031200000,3.625],[1794032100000,3.742],[1794033000000,3.773],[1794033900000,3.597],[1794034800000,3.498],[1794035700000,3.453],[1794036600000,3.431],[1794037500000,3.485],[1794038400000,3.529],[1794039300000,4.155],[1794040200000,4.05],[1794041100000,4.029],[1794042000000,4.64],[1794042900000,4.219],[1794043800000,4.006],[1794044700000,3.758],[1794045600000,3.756],[1794046500000,3.563],[1794047400000,3.547],[1794048300000,3.576],[1794049200000,3.62],[1794050100000,3.504],[1794051000000,3.607],[1794051900000,3.675],[1794052800000,3.554],[1794053700000,3.476],[1794054600000,3.639],[1794055500000,3.604],[1794056400000,3.782],[1794057300000,3.71],[1794058200000,4.227],[1794059100000,4.073],[1794060000000,4.107],[1794060900000,3.946],[1794061800000,3.798],[1794062700000,3.775],[1794063600000,3.8],[1794064500000,3.697],[1794065400000,3.733],[1794066300000,3.218],[1794067200000,3.324],[1794068100000,3.193],[1794069000000,3.267],[1794069900000,3.345],[1794070800000,3.395],[1794071700000,3.405],[1794072600000,3.623],[1794073500000,3.664],[1794074400000,3.743],[1794075300000,3.762],[1794076200000,4.207],[1794077100000,4.14],[1794078000000,4.118],[1794078900000,3.938],[1794079800000,4.058],[1794080700000,3.932],[1794081600000,3.851],[1794082500000,3.724],[1794083400000,3.692],[1794084300000,3.742],[1794085200000,3.63],[1794086100000,3.374],[1794087000000,3.388],[1794087900000,3.373],[1794088800000,3.469],[1794089700000,3.391],[1794090600000,3.301],[1794091500000,3.575],[1794092400000,3.516],[1794093300000,3.668],[1794094200000,3.697],[1794095100000,3.932],[1794096000000,4.082],[1794096900000,3.98],[1794097800000,3.891],[1794098700000,4.023],[1794099600000,3.848],[1794100500000,3.731],[1794101400000,3.6],[1794102300000,3.674],[1794103200000,3.768],[1794104100000,3.757],[1794105000000,3.864],[1794105900000,3.672],[1794106800000,3.839],[1794107700000,4.113],[1794108600000,3.875],[1794109500000,3.763],[1794110400000,3.7],[1794111300000,3.613],[1794112200000,3.562],[1794113100000,3.61],[1794114000000,3.497],[1794114900000,3.66],[1794115800000,3.694],[1794116700000,3.764],[1794117600000,3.868],[1794118500000,3.745],[1794119400000,3.699],[1794120300000,3.658],[1794121200000,3.818],[1794122100000,3.856],[1794123000000,3.816],[1794123900000,3.804],[1794124800000,3.892],[1794125700000,3.879],[1794126600000,3.825],[1794127500000,3.848],[1794128400000,3.78],[1794129300000,3.758],[1794130200000,3.839],[1794131100000,4.041],[1794132000000,3.976],[1794132900000,3.864],[1794133800000,3.81],[1794134700000,3.747],[1794135600000,3.689],[1794136500000,3.852],[1794137400000,3.887],[1794138300000,3.875],[1794139200000,3.818],[1794140100000,3.755],[1794141000000,3.682],[1794141900000,3.714],[1794142800000,3.8],[1794143700000,3.939],[1794144600000,3.917],[1794145500000,3.983],[1794146400000,3.77],[1794147300000,3.764],[1794148200000,3.791],[1794149100000,3.858],[1794150000000,3.767],[1794150900000,3.673],[1794151800000,3.391],[1794152700000,3.416],[1794153600000,3.489],[1794154500000,3.625],[1794155400000,3.827],[1794156300000,3.78],[1794157200000,3.769],[1794158100000,3.78],[1794159000000,3.851],[1794159900000,3.923],[1794160800000,3.973],[1794161700000,4.453],[1794162600000,5.089],[1794163500000,4.97],[1794164400000,5.163],[1794165300000,5.138],[1794166200000,5.124],[1794167100000,5.233],[1794168000000,5.049],[1794168900000,4.175],[1794169800000,4.111],[1794170700000,2.835],[1794171600000,2.862],[1794172500000,2.66],[1794173400000,2.625],[1794174300000,2.23],[1794175200000,1.784],[1794176100000,1.676],[1794177000000,1.41],[1794177900000,0.989]],"lo":-0.265,"hi":2.827,"lo_v":1129000,"hi_v":1164000,"night":null}]}</script>
+
+<div data-panel="brief">
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="jumps">
+      <a class="jump" href="#s-global">간밤</a>
+      <a class="jump" href="#s-dom">국내</a>
+      <a class="jump" href="#s-issue">이슈</a>
+      <a class="jump" href="#s-scen">시나리오</a>
+      <a class="jump" href="#s-score">채점</a>
+    </div>
+    <button id="expandAll" type="button">전부 펼치기</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tldr">
+    <div class="tt">오늘 한눈에</div>
+<div class="tl"><div class="tn">1</div><div><div class="th">주말 규제 뉴스가 반등 폭을 줄일 수 있습니다</div><div class="tb">야간선물 +1.60%는 금요일 밤 값이고 주말 추종가는 +1.13%입니다.</div><details><summary>더 보기</summary><div class="dbody"><p>11/8 AP 집계로 주지사 당선인 36명 중 34명이 데이터센터 규제를 지지했습니다. 12명은 개발 중단을 공약했습니다.</p><p>텍사스 주지사 당선인은 주민 보호법이 생길 때까지 신규 승인을 보류하겠다고 했습니다. 텍사스는 미국 계획 용량의 25%가량입니다.</p></div></details></div></div><div class="tl"><div class="tn">2</div><div><div class="th">미국 반도체는 11/5 낙폭의 일부만 회복했습니다</div><div class="tb">SOX +4.21%, 마이크론 +5.12%로 하루 만에 반등했습니다.</div><details><summary>더 보기</summary><div class="dbody"><p>엔비디아는 11/5 −9.26% 뒤 11/6 +2.78%였습니다. 낙폭의 3분의 1에 못 미칩니다.</p></div></details></div></div><div class="tl"><div class="tn">3</div><div><div class="th">외국인 매도 속도가 오늘의 관건입니다</div><div class="tb">11/6 외국인은 코스피에서 2조 6,320억원을 순매도했습니다.</div><details><summary>더 보기</summary><div class="dbody"><p>11/4~6 사흘 합계는 코스피·코스닥 8조 6,900억원입니다(이데일리 11/9).</p><p>같은 날 기관은 1조 8,565억원을 순매수했습니다.</p></div></details></div></div>
+  </div>
+
+  <section id="s-global">
+    <div class="sh"><h2>간밤 글로벌</h2><span class="stag">11/6(금) 미국장 마감</span></div>
+    <div class="sum">SOX +4.21%, 마이크론 +5.12%로 11/5 급락 일부를 회복했습니다.</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+<tbody class="st"><tr><td class="nm">K200 야간선물<span class="cd">야간 · 11/7 06:00</span></td><td class="pr num up">795.50</td><td class="ch up num">▲ +1.60%</td></tr><tr><td class="cm" colspan="3">금요일 밤 세션 값이라 주말 뉴스는 들어 있지 않습니다.<details><summary>근거</summary><div class="dbody"><p>야간 시가 789.55, 고가 810.70, 저가 786.25였습니다. 주간 종가 782.95보다 12.55p 높습니다.</p><p>일요일 밤 세션은 없습니다. 11/7~8 주말 재료는 해외 24시간 추종가(+1.13%)에만 들어 있습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">SOX<span class="cd">PHLX</span></td><td class="pr num up">9,390.30</td><td class="ch up num">▲ +4.21%</td></tr><tr><td class="cm" colspan="3">11/5 −12.25% 급락 뒤 하루 만에 +4.21% 반등했습니다.<details><summary>근거</summary><div class="dbody"><p>11/5 낙폭의 3분의 1가량을 회복한 수준입니다.</p><p>AMD가 11% 안팎 올라 반등을 이끌었습니다.</p></div></details></td></tr></tbody><tbody class="st"><tr><td class="nm">엔비디아<span class="cd">NVDA</span></td><td class="pr num up">186.64</td><td class="ch up num">▲ +2.64%</td></tr><tr><td class="cm" colspan="3">+2.78% 반등했지만 11/5 낙폭(−9.26%)의 일부만 회복했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">마이크론<span class="cd">MU</span></td><td class="pr num up">690.00</td><td class="ch up num">▲ +4.75%</td></tr><tr><td class="cm" colspan="3">+5.12%로 690달러에 마감하며 메모리주 반등을 이끌었습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">MSCI 한국 ETF<span class="cd">EWY</span></td><td class="pr num up">137.01</td><td class="ch up num">▲ +3.01%</td></tr><tr><td class="cm" colspan="3">+4.07% 올라 국내 11/6 낙폭 일부를 뉴욕에서 회복했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스 ADR<span class="cd">SKHY</span></td><td class="pr num up">127.34</td><td class="ch up num">▲ +3.15%</td></tr><tr><td class="cm" colspan="3">+2.78%로 127.34달러에 마감해 EWY보다 반등 폭이 작았습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">코스피200 선물<span class="cd">K200F · 주간</span></td><td class="pr num down">782.95</td><td class="ch down num">▼ −6.49%</td></tr><tr><td class="cm" colspan="3">주간선물은 −6.49%로 마감했고 야간에 일부 반등했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">원달러<span class="cd">USD/KRW</span></td><td class="pr num up">1,356.60</td><td class="ch up num">▲ +1.08%</td></tr><tr><td class="cm" colspan="3">1,356.6원으로 올랐습니다. 원화가 약해졌다는 뜻입니다.</td></tr></tbody>
+    </table></div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+<div class="cl">미국 반도체는 11/6 하루 반등했지만 11/5 낙폭의 3분의 1가량만 회복했습니다.</div><details><summary>근거</summary><div class="dbody"><p>나스닥 +1.09%, S&amp;P500 +0.31%, 다우 −0.46%로 끝났습니다(Yahoo Finance·Fox Business 11/6 마감 기사).</p><p>미 10년물이 고용 지표 호조로 4.859%까지 올랐다는 보도는 한 곳에서만 확인됐습니다.</p><p>미국 지수선물은 주말 휴장이라 금요일 값(ES +0.26%, NQ +1.25%)이 마지막입니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-dom">
+    <div class="sh"><h2>국내 종목 &amp; ETF</h2><span class="stag">11/6 종가</span></div>
+    <div class="sum">코스피는 −6.02%로 5,059.69에 마감했고 외국인은 2.6조원을 팔았습니다.</div>
+    <div class="tblwrap"><table class="q">
+      <thead><tr><th>종목</th><th class="r">종가</th><th class="r">등락</th></tr></thead>
+<tbody class="st"><tr><td class="nm">삼성전자<span class="cd">005930</span></td><td class="pr num down">188,700</td><td class="ch down num">▼ −6.35%</td></tr><tr><td class="cm" colspan="3">−6.35% 하락했지만 시가 179,100원보다는 올라 끝났습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK하이닉스<span class="cd">000660</span></td><td class="pr num down">1,132,000</td><td class="ch down num">▼ −10.44%</td></tr><tr><td class="cm" colspan="3">−10.44%로 마감했고 시가 1,086,000원보다는 올라 끝났습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SK스퀘어<span class="cd">402340</span></td><td class="pr num down">724,000</td><td class="ch down num">▼ −10.51%</td></tr><tr><td class="cm" colspan="3">하닉 지분 가치가 반영돼 −10.51%로 가장 크게 빠졌습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">삼성전기<span class="cd">009150</span></td><td class="pr num down">870,000</td><td class="ch down num">▼ −7.84%</td></tr><tr><td class="cm" colspan="3">반도체 부품주로 함께 밀려 −7.84% 하락했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">SOL AI반도체TOP2<span class="cd">0167A0</span></td><td class="pr num down">11,690</td><td class="ch down num">▼ −9.38%</td></tr><tr><td class="cm" colspan="3">삼전·하닉 비중이 큰 ETF라 −9.38% 하락했습니다.</td></tr></tbody><tbody class="st"><tr><td class="nm">PLUS 글로벌HBM<span class="cd">442580</span></td><td class="pr num down">67,900</td><td class="ch down num">▼ −8.98%</td></tr><tr><td class="cm" colspan="3">−8.98% 하락했습니다. 미국 메모리주 반등은 국내 마감 뒤입니다.</td></tr></tbody>
+    </table></div>
+    <div class="flow">
+      <div class="fgrid">
+<div><span class="fk">외국인</span><span class="fv down num">▼ −2조6,320억</span></div><div><span class="fk">기관</span><span class="fv up num">▲ +1조8,565억</span></div><div><span class="fk">개인</span><span class="fv up num">▲ +2,570억</span></div><div><span class="fk">기타법인</span><span class="fv up num">▲ +5,184억</span></div>
+      </div>
+      <div class="fn">외국인이 2조 6,320억원을 팔았고 기관이 1조 8,565억원을 받았습니다(확정치).<details><summary>짚을 것</summary><div class="dbody"><p>삼성전자는 외국인 85만 9,417주, 기관 50만 9,167주 순매도였습니다.</p><p>SK하이닉스는 외국인 165만 2,002주 순매도, 기관 77만 7,585주 순매수였습니다.</p></div></details></div>
+    </div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+<div class="cl">코스피는 11/5 −5.28%, 11/6 −6.02%로 이틀 연속 급락했습니다.</div><details><summary>근거</summary><div class="dbody"><p>11/6 장중 고가는 5,269.10, 저가는 4,911.28로 진폭이 7%를 넘었습니다.</p><p>기관 1조 8,565억원, 개인 2,570억원, 기타법인 5,184억원 순매수였습니다(중계기 확정치 11/6 20:06).</p><p>원달러는 1,356.6원으로 마감했습니다(이데일리). 원화가 약해졌다는 뜻입니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-issue">
+    <div class="sh"><h2>메모리 이슈</h2><span class="stag">강세 3 / 약세 3</span></div>
+    <div class="sum">최근 재료 11/9 04:58 — 주말 AP 집계로 주지사 34명이 규제를 지지했습니다.</div>
+    <div class="split">
+      <div class="col bull"><h3>▲ 올릴 힘</h3><ul><li><b>미국 반도체 반등</b><span>SOX +4.21%, 마이크론 +5.12%로 11/5 낙폭 일부를 회복했습니다.</span></li><li><b>야간선물 +1.60%</b><span>금요일 밤 세션이 주간 종가보다 12.55p 높게 끝났습니다.</span></li><li><b>규제는 아직 법이 아닙니다</b><span>연방 모라토리엄 법안은 발의 단계이고 통과 가능성이 낮습니다.</span></li></ul></div>
+      <div class="col bear"><h3>▼ 누를 힘</h3><ul><li><b>주말 규제 확산 뉴스</b><span>주지사 당선인 12명이 데이터센터 개발 중단을 공약했습니다.</span></li><li><b>외국인 매도 지속</b><span>11/4~6 코스피·코스닥에서 8조 6,900억원을 순매도했습니다.</span></li><li><b>DDR5 현물가 이틀 하락</b><span>11/6 DDR5 16Gb 현물 평균 60.167달러로 0.82% 내렸습니다.</span></li></ul></div>
+    </div>
+    <div class="chk soft">
+      <div class="ct">하방 체크</div>
+<div class="cl">B 갈래가 핵심입니다. 미 중간선거 뒤 데이터센터 규제 주장이 주지사 당선인들로 번졌습니다.</div><details><summary>근거</summary><div class="dbody"><p>샌더스·오카시오코르테스 의원이 연방 모라토리엄 법안을 냈지만 의회 통과 가능성은 낮다는 분석이 많습니다.</p><p>오픈AI는 11/5(현지) 전력 비용 부담을 약속하며 데이터센터 건설을 이어가겠다고 했습니다. 업계에서 규제 주장에 동조한 기업은 확인되지 않았습니다.</p><p>골드만삭스는 규제가 번지면 미국 계획 용량의 45%가 영향을 받는다고 추정했습니다(세계일보 11/8 인용).</p><p>배경훈 과기부 장관은 11/8 AI 투자를 멈추거나 늦추지 말자고 했습니다.</p></div></details><details><summary>이슈 출처 4건 · 미확인 3건</summary><div class="dbody"><p>주지사 데이터센터 규제 — 최초 세계일보(AP 집계 인용) (11/8 18:45) · 확인 출처 없음(미확인)</p><p>미 반도체 반등 — 최초 Yahoo Finance (11/7 06:00) · 확산 Fox Business·StockTitan · 확인 출처 없음(미확인)</p><p>DDR5 현물가 하락 — 최초 세계일보 (11/8 18:45) · 확인 출처 없음(미확인)</p><p>외국인 사흘 순매도 — 최초 이데일리 (11/9 04:58) · 확인 중계기 확정 수급(11/6)</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-scen">
+    <div class="sh"><h2>장중 시나리오</h2><span class="stag">09:00 → 15:30</span></div>
+    <div class="sum">+1.6% 안팎, 5,080~5,200 출발을 보지만 주말 규제 뉴스가 변수입니다.</div>
+    <div class="ladder">
+<div class="lv res"><span class="lvl num">5,269.10</span><span class="lvd">1차 저항 — 11/6 장중 고가 — 시가 5,263.26 바로 위 실제 거래값</span></div><div class="lv now"><span class="lvl num">5,059.69</span><span class="lvd">11/6 종가 — 장중 고가 5,269.10, 저가 4,911.28</span></div><div class="lv sup"><span class="lvl num">4,911.28</span><span class="lvd">1차 지지 — 11/6 장중 저가 — 실제 거래값</span></div><div class="lv sup2"><span class="lvl num">4,800.00</span><span class="lvd">2차 지지 — 라운드 넘버 — 실제 거래값 아님, 11/6 저가 아래</span></div>
+    </div>
+    <div class="scen">
+<div class="sc base"><div class="st">기본 시나리오 · 확률 우위</div><div class="sch">+1.6% 안팎 출발 뒤 5,200선 공방</div><div class="scb">금요일 밤 야간선물과 미국 반도체 반등이 시초가를 받칩니다. 주말 규제 뉴스로 갭 일부를 반납할 수 있습니다.</div><div class="sif">유지 조건 — 09:00 코스피가 5,080 위이고 외국인 순매도가 개장 30분 동안 5,000억원 아래면 유지됩니다.</div></div><div class="sc alt"><div class="st">대안 시나리오 · 깨질 때</div><div class="sch">주말 뉴스로 보합권 출발</div><div class="scb">주말 규제 확산 뉴스가 가격에 더해지면 갭상승 폭이 줄어듭니다. 해외 추종가는 +1.13%로 야간선물보다 낮습니다.</div><div class="sif">전환 신호 — 시초가가 5,080 아래이거나 삼전·하닉 시가 갭이 +1% 미만이면 전환으로 봅니다.</div></div>
+    </div>
+    <details style="margin-top:14px"><summary>전망 근거 자세히</summary><div class="dbody">
+<p>주말 AP 집계로 주지사 당선인 36명 중 34명이 데이터센터 규제를 지지했고, 텍사스는 신규 승인 보류를 밝혔습니다. 이 소식은 금요일 밤 야간선물에 들어 있지 않습니다.</p><p>11/6 뉴욕에서 SOX가 +4.21%, 마이크론이 +5.12% 올랐습니다. EWY도 +4.07% 올랐습니다. 연방 모라토리엄 법안은 아직 발의 단계입니다.</p><p>규칙대로 야간선물 +1.60%를 중심에 그대로 둡니다. 5,059.69 × 1.016 ≈ 5,140입니다. 주말 뉴스나 EWY 시사로 중심을 옮기지 않습니다.</p><p>score.py 가 낸 반폭은 1.14%(= 0.44 × (1 + 1.60))이고 구간은 5,080~5,200입니다. 최근 10회 갭 중앙값이 2.24%라 구간을 벗어날 위험이 큽니다.</p>
+    </div></details>
+    <div class="pts">
+      <div class="pth">장중 확인 포인트 3</div>
+<div class="pt"><div class="pn">1</div><div><b>09:00 코스피 시초가</b><span>5,080~5,200 안인지, 해외 추종가 +1.13%와 얼마나 다른지 봅니다.</span></div></div><div class="pt"><div class="pn">2</div><div><b>외국인 개장 순매도</b><span>매도가 나흘째 이어지는지, 30분 순매도가 5,000억원을 넘는지 봅니다.</span></div></div><div class="pt"><div class="pn">3</div><div><b>하닉 시가 갭</b><span>11/6처럼 지수 갭과 종목 갭이 크게 어긋나는지 봅니다.</span></div></div>
+    </div>
+    <div class="chk">
+      <div class="ct">하방 체크 · 가장 약한 고리</div>
+<div class="cl">가장 약한 고리는 주말 데이터센터 규제 뉴스입니다. 야간선물이 끝난 뒤 나와 구간 아래로 빠질 위험이 있습니다.</div><details><summary>근거</summary><div class="dbody"><p>해외 24시간 추종가는 주말에도 거래돼 07:45 기준 +1.13%입니다. 야간선물보다 0.47%p 낮습니다.</p><p>11/6 개장은 지수 갭(−2.24%)과 삼전·하닉 갭(평균 −12.6%)이 크게 어긋났습니다. 오늘도 지수 시가가 종목 시가와 다르게 나올 수 있습니다.</p></div></details>
+    </div>
+  </section>
+
+  <section id="s-score">
+    <div class="sh"><h2>예측 채점</h2><span class="stag">최근 10회차 · 왼쪽이 최신</span></div>
+    <div class="score">
+<div class="s wait">오늘</div><div class="s miss">11/6</div><div class="s hit">11/5</div><div class="s hit">11/4</div><div class="s hit">11/3</div><div class="s hit">11/2</div><div class="s hit">10/30</div><div class="s hit">10/29</div><div class="s hit">10/28</div><div class="s hit">10/27</div>
+    </div>
+    <div class="legend">녹색 적중 · 회색 빗나감 · 점선 미채점 (적중 = 실제 시초가가 예상 구간 안, 목표 80%)</div>
+    <div class="verdict miss">11/6 회차 — 빗나감</div>
+    <div class="note">11/6 전망 4,750~5,170은 빗나갔습니다. 실제 시초가는 5,263.26(−2.24%)로 구간 위였습니다.</div>
+    <details><summary>맞은 것과 놓친 것 전부 보기</summary><div class="dbody">
+<p>맞은 것은 하락 출발과 장중 낙폭입니다. 종가 5,059.69는 구간 안에 들어왔습니다.</p><p>놓친 것은 지수 시가입니다. 야간선물 −7.87%를 중심에 둔 규칙이 시가를 낮게 봤고, 삼전 179,100원·하닉 1,086,000원도 구간 아래였습니다.</p><p>지수 갭과 종목 갭이 10%p 넘게 갈려 개장 왜곡 의심 경고가 났습니다. 이 회차는 롤백 통계에서 빠집니다.</p>
+    </div></details>
+    <div class="schart" aria-label="최근 회차 예상 구간과 실제 시초가"><svg viewBox="0 0 360 150" role="img" aria-label="최근 16회차 예상 구간과 실제 시초가"><line x1="22" x2="356" y1="128.0" y2="128.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="131.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">-13</text><line x1="22" x2="356" y1="118.9" y2="118.9" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="121.9" font-size="9" text-anchor="end" style="fill:var(--tx3)">-11</text><line x1="22" x2="356" y1="109.8" y2="109.8" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="112.8" font-size="9" text-anchor="end" style="fill:var(--tx3)">-9</text><line x1="22" x2="356" y1="100.8" y2="100.8" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="103.8" font-size="9" text-anchor="end" style="fill:var(--tx3)">-7</text><line x1="22" x2="356" y1="91.7" y2="91.7" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="94.7" font-size="9" text-anchor="end" style="fill:var(--tx3)">-5</text><line x1="22" x2="356" y1="82.6" y2="82.6" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="85.6" font-size="9" text-anchor="end" style="fill:var(--tx3)">-3</text><line x1="22" x2="356" y1="73.5" y2="73.5" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="76.5" font-size="9" text-anchor="end" style="fill:var(--tx3)">-1</text><line x1="22" x2="356" y1="64.5" y2="64.5" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="67.5" font-size="9" text-anchor="end" style="fill:var(--tx3)">+1</text><line x1="22" x2="356" y1="55.4" y2="55.4" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="58.4" font-size="9" text-anchor="end" style="fill:var(--tx3)">+3</text><line x1="22" x2="356" y1="46.3" y2="46.3" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="49.3" font-size="9" text-anchor="end" style="fill:var(--tx3)">+5</text><line x1="22" x2="356" y1="37.2" y2="37.2" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="40.2" font-size="9" text-anchor="end" style="fill:var(--tx3)">+7</text><line x1="22" x2="356" y1="28.2" y2="28.2" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="31.2" font-size="9" text-anchor="end" style="fill:var(--tx3)">+9</text><line x1="22" x2="356" y1="19.1" y2="19.1" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="22.1" font-size="9" text-anchor="end" style="fill:var(--tx3)">+11</text><line x1="22" x2="356" y1="10.0" y2="10.0" style="stroke:var(--line)" stroke-width="1"/><text x="18" y="13.0" font-size="9" text-anchor="end" style="fill:var(--tx3)">+13</text><rect x="28.3" y="47.3" width="8.0" height="7.4" rx="2" style="fill:var(--line2)"/><circle cx="32.3" cy="60.8" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="48.9" y="76.1" width="8.0" height="17.6" rx="2" style="fill:var(--line2)"/><circle cx="52.9" cy="83.4" r="3.6" style="fill:var(--ok)"/><text x="52.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/19</text><rect x="69.6" y="67.3" width="8.0" height="4.7" rx="2" style="fill:var(--line2)"/><circle cx="73.6" cy="71.7" r="3.6" style="fill:var(--ok)"/><rect x="90.2" y="55.3" width="8.0" height="10.6" rx="2" style="fill:var(--line2)"/><circle cx="94.2" cy="59.7" r="3.6" style="fill:var(--ok)"/><text x="94.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/21</text><rect x="110.8" y="68.7" width="8.0" height="5.5" rx="2" style="fill:var(--line2)"/><circle cx="114.8" cy="74.2" r="3.6" style="fill:var(--ok)"/><rect x="131.4" y="73.4" width="8.0" height="14.8" rx="2" style="fill:var(--line2)"/><circle cx="135.4" cy="79.7" r="3.6" style="fill:var(--ok)"/><text x="135.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/23</text><rect x="152.1" y="67.4" width="8.0" height="4.9" rx="2" style="fill:var(--line2)"/><circle cx="156.1" cy="73.2" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><rect x="172.7" y="49.9" width="8.0" height="14.1" rx="2" style="fill:var(--line2)"/><circle cx="176.7" cy="53.3" r="3.6" style="fill:var(--ok)"/><text x="176.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/27</text><rect x="193.3" y="54.4" width="8.0" height="11.3" rx="2" style="fill:var(--line2)"/><circle cx="197.3" cy="58.9" r="3.6" style="fill:var(--ok)"/><rect x="213.9" y="63.1" width="8.0" height="6.8" rx="2" style="fill:var(--line2)"/><circle cx="217.9" cy="68.6" r="3.6" style="fill:var(--ok)"/><text x="217.9" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">10/29</text><rect x="234.6" y="72.6" width="8.0" height="12.2" rx="2" style="fill:var(--line2)"/><circle cx="238.6" cy="82.6" r="3.6" style="fill:var(--ok)"/><rect x="255.2" y="74.6" width="8.0" height="15.8" rx="2" style="fill:var(--line2)"/><circle cx="259.2" cy="76.4" r="3.6" style="fill:var(--ok)"/><text x="259.2" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">11/2</text><rect x="275.8" y="76.7" width="8.0" height="19.4" rx="2" style="fill:var(--line2)"/><circle cx="279.8" cy="80.2" r="3.6" style="fill:var(--ok)"/><rect x="296.4" y="56.0" width="8.0" height="10.4" rx="2" style="fill:var(--line2)"/><circle cx="300.4" cy="58.0" r="3.6" style="fill:var(--ok)"/><text x="300.4" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">11/4</text><rect x="317.1" y="70.9" width="8.0" height="11.2" rx="2" style="fill:var(--line2)"/><circle cx="321.1" cy="77.3" r="3.6" style="fill:var(--ok)"/><rect x="337.7" y="87.0" width="8.0" height="35.4" rx="2" style="fill:var(--line2)"/><circle cx="341.7" cy="79.2" r="3.2" style="fill:var(--panel);stroke:var(--tx2)" stroke-width="1.8"/><text x="341.7" y="143" font-size="8" text-anchor="middle" style="fill:var(--tx3)">11/6</text></svg><div class="sl">회색 막대 — 예상 구간 · 점 — 실제 시초가 (채움: 구간 안, 테두리만: 구간 밖) · 단위 전일 종가 대비 %</div></div>
+    <div class="cov">누적 52회차 — 적중(구간 안) 68.6% (35/51, 목표 80%) · 평균 구간폭 2.26%p</div>
+  </section>
+
+
+</div>
+</div><!--/brief-->
+
+<div class="wrap">
+  <section>
+    <div class="sh"><h2>지난 회차</h2></div>
+    <div class="arch"><a href="../archive/2026-11-06.html">11/6 (금)</a> <a href="../archive/2026-11-05.html">11/5 (목)</a> <a href="../archive/2026-11-04.html">11/4 (수)</a> <a href="../archive/">전체 보기</a></div>
+  </section>
+
+  <footer>
+    출처 — 중계기(토스 Open API — KRX 1분봉·확정 수급, 11/6) · 한국경제(국내 6종·주간선물 11/6 장마감) · sonmul(야간선물 11/7 06:00) · stockanalysis(미국 4종 11/6 4:00 PM EST, 중계기와 대조) · investing.com(SOX·ES·NQ 11/7 닫음) · 이데일리(원달러 서울 종가) · 세계일보·CNBC·Yahoo Finance(이슈)<br>
+    종가는 중계기(KRX)와 한국경제에서 일치했습니다. 미국 4종도 중계기와 stockanalysis가 일치했습니다.<details><summary>대조 내역</summary><div class="dbody"><p>state.json 의 직전 미국 종가(NVDA 181.84·MU 658.73·EWY 133.01·SKHY 123.45)가 stockanalysis 전일 종가(181.60·656.39·131.65·123.90)와 달라 화면 등락률은 페이지 값을 적었습니다.</p><p>원달러는 이데일리 서울 종가 1,356.6원을 썼습니다. 중계기 15:29 매매기준율은 1,356.90원입니다.</p></div></details><br>
+    개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.
+  </footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  function apply(mode){
+    var d=(mode==='dark')||(mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-jj',d?'dark':'light');
+    root.setAttribute('data-jj-mode',mode);
+    var bs=document.querySelectorAll('.theme button');
+    for(var i=0;i<bs.length;i++){bs[i].setAttribute('aria-pressed',bs[i].dataset.set===mode?'true':'false');}
+  }
+  var saved='system';
+  try{saved=localStorage.getItem('jj-theme')||'system';}catch(e){}
+  apply(saved);
+  var bs=document.querySelectorAll('.theme button');
+  for(var i=0;i<bs.length;i++){
+    bs[i].addEventListener('click',function(){
+      var m=this.dataset.set;
+      try{localStorage.setItem('jj-theme',m);}catch(e){}
+      apply(m);
+    });
+  }
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var onch=function(){if(root.getAttribute('data-jj-mode')==='system')apply('system');};
+  if(mq.addEventListener)mq.addEventListener('change',onch);else if(mq.addListener)mq.addListener(onch);
+
+  var btn=document.getElementById('expandAll'),open=false;
+  if(btn)btn.addEventListener('click',function(){
+    open=!open;
+    var ds=document.querySelectorAll('details');
+    for(var j=0;j<ds.length;j++){ds[j].open=open;}
+    btn.textContent=open?'전부 접기':'전부 펼치기';
+  });
+})();
+</script>
+<script>
+/* v5 — 대시보드/브리핑 탭 + 예측 → 실시간 차트. 데이터는 #day-data(07:45 스냅샷) + Hyperliquid info API(브라우저에서 직접) */
+(function(){
+  var root=document.documentElement; root.classList.add('js5');
+  var tabs=document.querySelectorAll('.tabs5 button[data-go]'), panels=document.querySelectorAll('[data-panel]');
+  function show(id,push){
+    for(var i=0;i<panels.length;i++)panels[i].hidden=panels[i].getAttribute('data-panel')!==id;
+    for(var j=0;j<tabs.length;j++)tabs[j].setAttribute('aria-selected',tabs[j].getAttribute('data-go')===id?'true':'false');
+    if(push){try{history.replaceState(null,'',id==='brief'?'#brief':location.pathname+location.search);}catch(e){}window.scrollTo(0,0);}
+  }
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-go]');if(b)show(b.getAttribute('data-go'),true);});
+  show(location.hash==='#brief'?'brief':'dash',false);
+
+  /* 툴팁 — 가장 가까운 x 의 값 */
+  function bindTips(box,getTips,render){
+    var svg=box.querySelector('svg'),tip=box.querySelector('.tip');
+    function move(ev){
+      var tips=getTips(); if(!tips.length)return;
+      var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,sx=(ev.clientX-r.left)*vb.width/r.width,best=null,d=1e9;
+      for(var i=0;i<tips.length;i++){var dd=Math.abs(tips[i].x-sx);if(dd<d){d=dd;best=tips[i];}}
+      tip.innerHTML=render(best); tip.hidden=false; box.classList.add('on');
+      var xh=svg.querySelector('.xh'); if(xh){xh.setAttribute('x1',best.x);xh.setAttribute('x2',best.x);}
+      tip.style.left=Math.max(64,Math.min(r.width-64,best.x*r.width/vb.width))+'px'; tip.style.top='-6px';
+    }
+    function leave(){tip.hidden=true;box.classList.remove('on');}
+    svg.addEventListener('pointermove',move); svg.addEventListener('pointerdown',move); svg.addEventListener('pointerleave',leave);
+  }
+  var sb=document.querySelectorAll('.vizbox[data-tips]');
+  for(var k=0;k<sb.length;k++)(function(box){var t=[];try{t=JSON.parse(box.getAttribute('data-tips'));}catch(e){}
+    bindTips(box,function(){return t;},function(b){var h='<b>'+b.t+'</b>';if(b.c)h+='<br>종가 '+b.c;if(b.b)h+='<br>전망 '+b.b;if(b.o)h+='<br>시초가 '+b.o;if(b.v)h+=' · '+b.v;return h;});})(sb[k]);
+
+  /* ---------- 예측 → 실시간 ---------- */
+  var el=document.getElementById('day-data'); if(!el)return;
+  var D; try{D=JSON.parse(el.textContent);}catch(e){return;}
+  var API=D.api||'https://api.hyperliquid.xyz/info', S={}, sel=0, liveOK=null, stat=document.getElementById('lvStat');
+  D.ent.forEach(function(e){S[e.key]={pts:[],openPx:null,base:e.base,path:e.path||[],krx:null};});
+  /* KRX 실제 시세 — 지인 링크(#k=키)로 한 번 열면 브라우저가 키를 기억한다. 키가 없거나 중계기가 실패하면 추종가로 그린다 */
+  var RK=null; try{var mh=location.hash.match(/(?:^#|&)k=([A-Za-z0-9_\-]+)/);
+    if(mh){RK=mh[1];try{localStorage.setItem('jj-relay-key',RK);}catch(e){} history.replaceState(null,'',location.pathname+location.search);}
+    if(!RK)RK=localStorage.getItem('jj-relay-key');}catch(e){}
+  var KRX=!!(RK&&D.relay), krxOK=null, lastIntra=0;
+  if(KRX)setupFeedback();
+  /* 의견 — 지인 링크로 연 브라우저에만 버튼을 단다. 글은 중계기 VM 에만 저장되고(저장소엔 안 올림) 토요일 주간 점검 때 읽는다 */
+  function setupFeedback(){
+    var nav=document.querySelector('.tabs5 .in'); if(!nav||document.querySelector('.fb5'))return;
+    var btn=document.createElement('button'); btn.type='button'; btn.className='fb5'; btn.textContent='의견'; btn.setAttribute('aria-haspopup','dialog');
+    nav.appendChild(btn);
+    var wrap=document.createElement('div'); wrap.className='fbs5'; wrap.hidden=true;
+    wrap.innerHTML='<div class="fbk" data-x></div><form class="fbp" role="dialog" aria-modal="true" aria-labelledby="fbT">'+
+      '<div class="fbh"><b id="fbT">의견 보내기</b><button type="button" class="fbc" data-x>닫기</button></div>'+
+      '<p class="fbn">틀린 값, 보고 싶은 것, 예측이 맞았는지 무엇이든 적어 주세요. 운영자와 Claude가 읽고 매주 토요일 개선 계획에 반영합니다.</p>'+
+      '<div class="fbg" role="radiogroup" aria-label="분류">'+['제안','오류','예측','기타'].map(function(c,i){
+        return '<label><input type="radio" name="fbcat" value="'+c+'"'+(i?'':' checked')+'><span>'+c+'</span></label>';}).join('')+'</div>'+
+      '<textarea name="t" maxlength="1000" rows="4" placeholder="예) 하이닉스 시가가 증권 앱과 달라요 / 코스닥도 보고 싶어요"></textarea>'+
+      '<div class="fbf"><input name="n" maxlength="20" placeholder="닉네임 (선택)" autocomplete="nickname"><button type="submit">보내기</button></div>'+
+      '<p class="fbm" role="status" aria-live="polite"></p></form>';
+    document.body.appendChild(wrap);
+    var form=wrap.querySelector('form'), ta=form.querySelector('textarea'), nk=form.querySelector('input[name=n]'),
+        msg=wrap.querySelector('.fbm'), sendB=form.querySelector('button[type=submit]');
+    try{nk.value=localStorage.getItem('jj-nick')||'';}catch(e){}
+    function openS(){wrap.hidden=false;msg.textContent='';setTimeout(function(){ta.focus();},30);}
+    function closeS(){wrap.hidden=true;btn.focus();}
+    btn.addEventListener('click',openS);
+    wrap.addEventListener('click',function(e){if(e.target.hasAttribute&&e.target.hasAttribute('data-x'))closeS();});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!wrap.hidden)closeS();});
+    form.addEventListener('submit',function(e){
+      e.preventDefault(); var t=ta.value.trim(); if(!t){ta.focus();return;}
+      var cur=document.querySelector('.tabs5 button[data-go][aria-selected="true"]'), ck=form.querySelector('input[name=fbcat]:checked');
+      try{localStorage.setItem('jj-nick',nk.value.trim());}catch(e2){}
+      sendB.disabled=true; msg.textContent='보내는 중…';
+      fetch(D.relay+'/v1/feedback?k='+encodeURIComponent(RK),{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},   /* text/plain — 사전 요청 없이 보낸다 */
+        body:JSON.stringify({cat:ck?ck.value:'기타',text:t,nick:nk.value.trim(),
+          ctx:{issue:D.issue,tab:cur?cur.getAttribute('data-go'):'',mode:krxOK===false?'krx-fail':'krx',w:String(window.innerWidth),page:location.pathname}})})
+      .then(function(r){
+        if(r.ok){ta.value='';form.querySelector('input[name=fbcat]').checked=true;msg.textContent='받았습니다. 토요일 점검 때 읽겠습니다.';setTimeout(closeS,1600);return;}
+        msg.textContent=r.status===429?'지금은 더 보낼 수 없어요. 잠시 뒤나 내일 다시 보내 주세요.':'보내지 못했어요 (오류 '+r.status+'). 잠시 뒤 다시 시도해 주세요.';
+      },function(){msg.textContent='보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.';})
+      .then(function(){sendB.disabled=false;});
+    });
+  }
+  function now(){return Date.now();}
+  function kstDay(t){var d=new Date(t+9*3600e3);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}
+  function hm(t){var d=new Date(t+9*3600e3);return ('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2);}
+  var today=kstDay(now()), isToday=today===D.issue, isPast=today>D.issue;
+  function post(body){return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+  function nf(v,d){return v.toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+  function sg(p){return (p>0?'+':p<0?'−':'')+Math.abs(p).toFixed(2)+'%';}
+  function tk(e,v){return e.tick?Math.round(v/e.tick)*e.tick:Math.round(v);}
+  function money(e,v){return (e.approx?'≈':'')+nf(tk(e,v),0)+(e.unit||'');}
+  function pctOf(st,px){return (px/st.base-1)*100;}
+  function ivFor(age){return age<3.2*864e5?['1m',6e4]:age<16*864e5?['5m',3e5]:age<50*864e5?['15m',9e5]:null;}
+
+  function fetchBase(e){   // 페이지에 스냅샷이 없을 때 — 직전 영업일 15:30 기준과 장외 경로를 직접 받는다
+    var st=S[e.key]; if(st.base&&st.path.length)return Promise.resolve();
+    return post({type:'candleSnapshot',req:{coin:e.coin,interval:'15m',startTime:D.t_prev-18e5,endTime:Math.min(now(),D.t_snap)}}).then(function(cs){
+      var b=cs.filter(function(c){return c.t+9e5<=D.t_prev;}); if(!b.length)throw new Error('기준 없음');
+      st.base=parseFloat(b[b.length-1].c);
+      st.path=cs.filter(function(c){return c.t+9e5>=D.t_prev&&c.t+9e5<=D.t_snap;}).map(function(c){return [c.t+9e5,pctOf(st,parseFloat(c.c))];});
+    });
+  }
+  function fetchRange(e,from,iv){
+    var st=S[e.key], end=Math.min(now(),D.t_close+6e4);
+    return post({type:'candleSnapshot',req:{coin:e.coin,interval:iv[0],startTime:from,endTime:end}}).then(function(cs){
+      var m={}; st.pts.forEach(function(p){m[p[2]]=p;});
+      cs.forEach(function(c){var t=Math.min(c.t+iv[1],now());m[c.t]=[t,pctOf(st,parseFloat(c.c)),c.t];
+        if(c.t>=D.t_open&&(st.openT==null||c.t<st.openT)){st.openT=c.t;st.openPx=parseFloat(c.o);}});
+      st.pts=Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return a[0]-b[0];});
+    });
+  }
+  function relayGet(path){return fetch(D.relay+path+(path.indexOf('?')<0?'?':'&')+'k='+encodeURIComponent(RK),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+  function loadKrx(){
+    if(!KRX)return Promise.resolve();
+    var jobs=[], fresh=isToday&&now()<D.t_close+12e5;
+    if(!lastIntra||(fresh&&now()-lastIntra>6e4)){
+      jobs.push(relayGet('/v1/intraday?date='+D.issue).then(function(r){lastIntra=now();
+        D.ent.forEach(function(e){var it=(r.items||{})[e.key]; if(!it)return; var k=S[e.key].krx||(S[e.key].krx={});
+          k.pts=(it.bars||[]).map(function(b){return [b[0],(b[1]/e.prev-1)*100,b[0]];});
+          k.open=it.open!=null?(it.open/e.prev-1)*100:null;});}));}
+    if(fresh)jobs.push(relayGet('/v1/live').then(function(r){
+      D.ent.forEach(function(e){var it=(r.items||{})[e.key]; if(!it)return; var k=S[e.key].krx||(S[e.key].krx={pts:[]}); k.last=(it.last/e.prev-1)*100;});}));
+    return Promise.all(jobs).then(function(){krxOK=true;},function(){krxOK=false;});
+  }
+  function krxOf(e){var k=S[e.key].krx;return (KRX&&krxOK!==false&&k&&k.pts)?k:null;}
+  function useKrx(e){var k=krxOf(e);return !!(k&&(k.open!=null||(k.last!=null&&(e.key!=='KOSPI'||now()>=D.t_open))||k.pts.some(function(p){return p[0]<=D.t_open;})));}
+  var iv0=ivFor(now()-D.t_snap), lastFull=0;
+  function load(full){
+    if(!iv0)return Promise.reject(new Error('기록 보관 기간 지남'));
+    return Promise.all(D.ent.map(function(e){
+      return fetchBase(e).then(function(){
+        var st=S[e.key], from=(full||!st.pts.length)?D.t_snap:st.pts[st.pts.length-1][2]-2*iv0[1];
+        return fetchRange(e,from,iv0);
+      });
+    }));
+  }
+  function setStat(cls,msg){if(!stat)return;stat.className='lv5 '+cls;stat.innerHTML='<i></i>'+msg;}
+  function tick(){
+    if(document.hidden)return;
+    var full=now()-lastFull>5*6e4; if(full)lastFull=now();
+    var when=isToday&&now()<D.t_close?hm(now())+' 갱신':(isToday?'장 마감':'지난 회차 기록');
+    Promise.all([load(full).then(function(){liveOK=true;},function(){liveOK=false;}),loadKrx()]).then(function(){
+      if(KRX&&krxOK)setStat('ok','KRX · '+when);
+      else if(liveOK)setStat(KRX?'err':'ok',(KRX?'KRX 연결 실패 · 추종가 ':'')+when);
+      else setStat('err',isPast&&!iv0?'지난 회차 · 07:45 값만':'실시간 연결 실패 · 07:45 값');
+      draw();});
+  }
+
+  function sessPts(e){var k=krxOf(e);
+    if(k){var a=k.pts.filter(function(p){return p[0]>D.t_open&&p[0]<=D.t_close+6e4;}); if(a.length)return a;}
+    return S[e.key].pts.filter(function(p){return p[2]>=D.t_open&&p[2]<D.t_close;});}
+  function tailPts(e){var hl=S[e.key].pts.filter(function(p){return p[2]<D.t_open&&p[0]>D.t_snap;}), k=krxOf(e);
+    if(k){var pre=k.pts.filter(function(p){return p[0]<=D.t_open;}); if(pre.length)hl=hl.filter(function(p){return p[0]<pre[0][0];}).concat(pre);}   // NXT 프리마켓(08:00~) 실제가
+    return hl;}
+  function lastPct(e){var st=S[e.key], k=krxOf(e);
+    if(k){if(now()>D.t_close+6e4){var s=sessPts(e); if(s.length)return s[s.length-1][1];}
+      else if(k.last!=null&&(e.key!=='KOSPI'||now()>=D.t_open))return k.last;}
+    if(st.pts.length)return st.pts[st.pts.length-1][1]; if(st.path.length)return st.path[st.path.length-1][1]; return null;}
+  function openPct(e){var st=S[e.key], k=krxOf(e); if(k&&k.open!=null)return k.open; return st.openPx!=null&&st.base?pctOf(st,st.openPx):null;}
+  function band(e,p){return p<e.lo?'아래':p>e.hi?'위':'안';}
+  function bcls(w){return w==='안'?'in':w==='아래'?'lo':'hi';}
+
+  var sel5=document.getElementById('sel5');
+  function tiles(){
+    sel5.innerHTML=D.ent.map(function(e,i){
+      var p=lastPct(e), op=openPct(e), b='';
+      if(e.lo!=null&&p!=null){var w=op!=null?band(e,op):band(e,p);b='<span class="b '+bcls(w)+'">'+(op!=null?'시가 ':'예측 ')+w+'</span>';}
+      return '<button type="button" role="tab" aria-selected="'+(i===sel)+'" data-i="'+i+'"><span class="n">'+e.name+'</span>'+
+        '<span class="v num">'+(p==null?'—':(e.approx&&!useKrx(e)?'≈':'')+nf(tk(e,e.prev*(1+p/100)),0))+'</span>'+
+        '<span class="c num '+(p==null?'':p<0?'down':p>0?'up':'')+'">'+(p==null?'미확보':(p<0?'▼ ':p>0?'▲ ':'')+sg(p))+'</span>'+b+'</button>';
+    }).join('');
+  }
+  sel5.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;sel=+b.getAttribute('data-i');draw();});
+
+  var svg=document.getElementById('daySvg'), tipsNow=[], zA=0, zB=1;   // 확대 창 — 그래프 가로폭 중 보이는 비율 [zA,zB]
+  function draw(){
+    tiles();
+    var e=D.ent[sel], st=S[e.key], W=360,H=236,L=34,R=58,T=20,B=22, PW=W-L-R, xo=L+PW*0.45;
+    var xb=xo;
+    function X0(t){ if(t<=D.t_open)return L+Math.max(0,(t-D.t_prev))/(D.t_open-D.t_prev)*(xb-L);
+      return xb+(Math.min(t,D.t_close)-D.t_open)/(D.t_close-D.t_open)*(L+PW-xb); }
+    function X(t){return L+((X0(t)-L)/PW-zA)/(zB-zA)*PW;}
+    function inX(x){return x>=L-0.5&&x<=L+PW+0.5;}
+    zoomGeo={L:L,PW:PW};
+    var pre=st.path, tail=tailPts(e), ses=sessPts(e), last=lastPct(e);
+    if(pre.length&&tail.length)tail=[pre[pre.length-1]].concat(tail);
+    var ys=[0].concat(pre.map(function(p){return p[1];}),tail.map(function(p){return p[1];}),ses.map(function(p){return p[1];}));
+    if(e.lo!=null)ys.push(e.lo,e.hi); if(e.night!=null)ys.push(e.night);
+    var lo=Math.min.apply(null,ys)-0.3, hi=Math.max.apply(null,ys)+0.3, sp=hi-lo, step=sp>12?4:sp>8?2:sp>4?1:0.5;
+    lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
+    function Y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
+    function line(pts,cls){if(pts.length<2)return '';return '<polyline class="'+cls+'" points="'+pts.map(function(p){return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1);}).join(' ')+'"/>';}
+    var xs=X(D.t_open), xe=X(D.t_close);
+    var o=['<defs><clipPath id="dayClip"><rect x="'+L+'" y="'+(T-8)+'" width="'+PW+'" height="'+(H-T+8-B)+'"/></clipPath></defs><g clip-path="url(#dayClip)">',
+      '<rect class="sess" x="'+xs+'" y="'+T+'" width="'+(xe-xs)+'" height="'+(H-T-B)+'" rx="4"/>'];
+    for(var g=lo;g<=hi+1e-9;g+=step){var z=Math.abs(g)<1e-9;
+      o.push('<line x1="'+L+'" x2="'+(L+PW)+'" y1="'+Y(g)+'" y2="'+Y(g)+'" class="'+(z?'base':'grid')+'"/>');
+      o.push('<text x="'+(L-5)+'" y="'+(Y(g)+3.5)+'" class="tick" text-anchor="end">'+(z?'0':(g>0?'+':'')+g)+'</text>');}
+    xo=xs;
+    var xn=X(D.t_night); o.push('<line x1="'+xn+'" x2="'+xn+'" y1="'+T+'" y2="'+(H-B)+'" class="vmark"/>');
+    if(e.lo!=null){var bx1=X(D.t_snap), bx2=X(D.t_open+18e5);
+      o.push('<rect class="bandnow" x="'+bx1+'" y="'+Y(e.hi)+'" width="'+(bx2-bx1)+'" height="'+Math.max(2,Y(e.lo)-Y(e.hi))+'" rx="2"/>');
+      o.push('<text x="'+((bx1+bx2)/2)+'" y="'+(Y(e.hi)-4)+'" class="lab strong" text-anchor="middle">예측</text>');}
+    o.push('<line x1="'+xo+'" x2="'+xo+'" y1="'+(T-6)+'" y2="'+(H-B)+'" class="div9"/>');
+    o.push('<text x="'+(xo-4)+'" y="'+(T-8)+'" class="lab" text-anchor="end">장외</text><text x="'+(xo+4)+'" y="'+(T-8)+'" class="lab">장중</text>');
+    o.push(line(pre,'pre')); o.push(line(tail,'tail'));
+    if(e.night!=null){var nx=X(D.t_night),ny=Y(e.night);
+      o.push('<path class="night" d="M'+nx+' '+(ny-5)+'L'+(nx+5)+' '+ny+'L'+nx+' '+(ny+5)+'L'+(nx-5)+' '+ny+'Z"/><text x="'+(nx-7)+'" y="'+(ny+3.5)+'" class="lab" text-anchor="end">야간 '+sg(e.night)+'</text>');}
+    var col=(last!=null&&last<0)?'dn':'upl';
+    if(ses.length){
+      o.push(line(ses,'ses '+col));
+      var op=openPct(e); if(op!=null)o.push('<circle class="open '+col+'" cx="'+X(D.t_open)+'" cy="'+Y(op)+'" r="4.5"/>');
+      var ep=ses[ses.length-1]; o.push('<circle class="end '+col+'" cx="'+X(ep[0])+'" cy="'+Y(ep[1])+'" r="4"/>');
+      o.push('<text x="'+(X(ep[0])+7)+'" y="'+(Y(ep[1])+3.5)+'" class="lab">'+sg(ep[1])+'</text>');
+    }else{
+      o.push('<text x="'+((xo+L+PW)/2)+'" y="'+((T+H-B)/2)+'" class="ph" text-anchor="middle">'+(isPast&&!liveOK?'장중 기록 없음':'09:00 개장 후 실시간')+'</text>');
+      var lp=tail.length?tail[tail.length-1]:(pre.length?pre[pre.length-1]:null);
+      if(lp)o.push('<circle class="end '+(lp[1]<0?'dn':'upl')+'" cx="'+X(lp[0])+'" cy="'+Y(lp[1])+'" r="3.5"/>');
+    }
+    o.push('</g>');
+    [[D.t_prev,'15:30'],[D.t_night,'05:00'],[D.t_open,'09:00'],[D.t_open+108e5,'12:00'],[D.t_close,'15:30']].forEach(function(a){
+      if(inX(X(a[0])))o.push('<text x="'+X(a[0])+'" y="'+(H-6)+'" class="tick" text-anchor="middle">'+a[1]+'</text>');});
+    if(zB-zA<0.999)o.push('<text x="'+(L+PW)+'" y="'+(T-8)+'" class="lab" text-anchor="end">더블클릭: 원래대로</text>');
+    o.push('<line class="xh" x1="0" x2="0" y1="'+T+'" y2="'+(H-B)+'"/>');
+    svg.innerHTML=o.join('');
+    svg.setAttribute('aria-label',e.name+(e.lo!=null?' 예측 구간 '+sg(e.lo)+' ~ '+sg(e.hi):'')+(last!=null?', 현재 '+sg(last):''));
+    tipsNow=pre.concat(tail.slice(1),ses).map(function(p){return {x:X(p[0]),t:hm(p[0]),p:p[1]};}).filter(function(b){return inX(b.x);});
+    var vt=document.getElementById('verd5'), op2=openPct(e), h=e.prev_label+' 종가 <b class="num">'+nf(e.prev,e.dec||0)+'</b>';
+    if(e.lo!=null)h+=' · 예측 <b class="num">'+nf(e.lo_v,0)+' ~ '+nf(e.hi_v,0)+'</b> ('+sg(e.lo)+' ~ '+sg(e.hi)+')';
+    var kx=useKrx(e);
+    if(op2!=null)h+=' · 시가'+(kx?'':'(추종가)')+' <b class="num">'+sg(op2)+'</b> → 구간 <b>'+band(e,op2)+'</b>';
+    else if(last!=null&&e.lo!=null)h+=' · '+(kx?'지금(NXT)':liveOK?'지금 추정':'07:45 추정')+' <b class="num">'+sg(last)+'</b> → 구간 '+band(e,last);
+    if(kx&&e.key!=='KOSPI'&&now()>D.t_close+6e4&&ses.length)h+=' · 종가는 KRX 기준입니다(15:40 이후 NXT 애프터마켓 가격은 반영하지 않음)';
+    if(e.approx&&!kx)h+=' · 코스피200 추종가 기준이라 지수와 차이가 있습니다';
+    vt.innerHTML=h;
+  }
+  /* 확대·축소 — PC 마우스 휠(커서 위치 기준), 드래그로 이동, 더블클릭으로 원래대로. 터치 화면은 그대로 둔다 */
+  var zoomGeo=null, fine=!!(window.matchMedia&&matchMedia('(pointer:fine)').matches), drag=null;
+  function setZ(a,b){var w=Math.max(0.08,Math.min(1,b-a)); a=Math.max(0,Math.min(1-w,a)); zA=a; zB=a+w; draw();}
+  function fracAt(ev){var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,g=zoomGeo||{L:34,PW:268};
+    var x=(ev.clientX-r.left)*vb.width/r.width; return Math.max(0,Math.min(1,(x-g.L)/g.PW));}
+  if(fine){
+    svg.addEventListener('wheel',function(ev){ev.preventDefault();
+      var f=fracAt(ev), c=zA+f*(zB-zA), w=(zB-zA)*(ev.deltaY<0?0.8:1.25); setZ(c-f*w,c-f*w+w);},{passive:false});
+    svg.addEventListener('dblclick',function(){setZ(0,1);});
+    svg.addEventListener('pointerdown',function(ev){if(ev.pointerType==='mouse'&&zB-zA<0.999){drag={x:ev.clientX,a:zA,b:zB};try{svg.setPointerCapture(ev.pointerId);}catch(e){}}});
+    svg.addEventListener('pointermove',function(ev){if(!drag)return; var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,
+      d=(ev.clientX-drag.x)*vb.width/r.width/zoomGeo.PW*(drag.b-drag.a); setZ(drag.a-d,drag.b-d);});
+    svg.addEventListener('pointerup',function(){drag=null;});
+  }
+  bindTips(document.getElementById('dayBox'),function(){return tipsNow;},function(b){
+    var e=D.ent[sel];return '<b>'+b.t+'</b><br>'+sg(b.p)+' · '+money(e,e.prev*(1+b.p/100));});
+
+  draw(); tick();
+  if(isToday&&now()<D.t_close+12e5){
+    setInterval(tick,15000);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)tick();});
+  }
+})();
+</script>
+</body>
+</html>
