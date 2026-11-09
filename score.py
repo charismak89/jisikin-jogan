@@ -21,6 +21,10 @@
   python3 score.py --dry-run  기록하지 않고 결과만 출력
 같은 날짜가 이미 기록돼 있으면 다시 기록하지 않는다(멱등).
 
+월요일 반폭 확장 (2026-11-09, CALIBRATION.md H5)
+  rule.monday_widen 이 있으면 월요일 코스피 반폭에 |야간선물 마감(토 06:00) 뒤 코스피200 추종가 변화|(perp.json)를 더한다.
+  추종가가 없으면 반폭 × monday_widen_fallback. 중심은 그대로. 매 회차 '야간선물 마감 뒤 추종가' 줄도 낸다.
+
 개장 왜곡 예외 (2026-11-07)
   코스피 시가 갭이 삼전·하닉 시초가 갭 평균과 5%p 넘게 다르면 기록에 exclude(open_distorted)를 붙인다.
   기록·판정은 공식 시가 그대로 두고, analyze.py 의 롤백·규칙 통계에서만 뺀다.
@@ -176,9 +180,48 @@ def half_width(rule, k200n):
         return None if (q is None or b is None or k200n is None) else q * (b + abs(k200n))
     return num(rule.get('half_width_pct'))
 
+def issue_day(fill):
+    from datetime import date, datetime, timedelta, timezone
+    try:
+        return date.fromisoformat(str(fill.get('issue_date')))
+    except Exception:
+        return datetime.now(timezone(timedelta(hours=9))).date()
+
+def post_night(fill):
+    """야간선물 마감 뒤 코스피200 추종가 변화(%)와 마감 시각 글자. perp.json 이 없거나 오늘 것이 아니면 (None, 시각)."""
+    try:
+        from render import perp_post_night, night_close_ms, KST
+        from datetime import datetime
+        d = issue_day(fill)
+        at = datetime.fromtimestamp(night_close_ms(d) / 1000, KST)
+        at = '%d/%d(%s) %02d:%02d' % (at.month, at.day, '월화수목금토일'[at.weekday()], at.hour, at.minute)
+    except Exception:
+        return None, None
+    try:
+        perp = json.load(io.open('perp.json', encoding='utf-8'))
+    except Exception:
+        return None, at
+    if perp.get('issue_date') != d.isoformat(): return None, at
+    return (perp_post_night(perp, d).get('KOSPI') or {}).get('post'), at
+
+def monday_widen(rule, fill, post):
+    """월요일 반폭 추가분(%)과 설명. 2026-11-09 사용자 결정(CALIBRATION.md H5).
+    야간선물은 금요일 밤 값이라 주말 사흘이 빠진다 — 그사이 추종가가 움직인 만큼 반폭을 더 넓힌다. 중심은 그대로.
+    rule.monday_widen 이 없으면(롤백) 0. 추종가가 없으면 반폭 × monday_widen_fallback."""
+    if rule.get('monday_widen') != 'post_night_abs' or issue_day(fill).weekday() != 0: return None, None
+    if post is None:
+        f = num(rule.get('monday_widen_fallback')) or 1.25
+        return ('x', f), '× %.2f (월요일, 추종가 없음)' % f
+    return ('+', abs(post)), '+ 월요일 주말 추종가 변화 |%+.2f%%|' % post
+
 def print_rule(cal, fill):
     rule = cal.get('rule') or {}
     cs = rule.get('center_signal')
+    post, at = post_night(fill)
+    if at and post is not None:
+        print('야간선물 마감(%s) 뒤 코스피200 추종가 %+.2f%% — 야간선물에 없는 움직임이다. 0.3%% 넘게 움직였으면 why·checks.scenario 에 이 숫자와 마감 시각을 그대로 쓴다' % (at, post))
+    elif at:
+        print('야간선물 마감(%s) 뒤 코스피200 추종가 미확보 — perp.json 이 없거나 오늘 것이 아니다(fetch_perp.py 를 다시 돌릴 것)' % at)
     if not cs:
         print('규칙 상태 — rule.applied=%s, center_signal 없음 → 전망은 기존 방식(사람 판단)대로. 야간선물·시사 갭은 기록만 한다.' % rule.get('applied'))
         return
@@ -191,6 +234,11 @@ def print_rule(cal, fill):
         # 휴장일에도 미국장은 열리는 게 보통이다. 야간선물(연휴 전 밤 세션)은 그 미국장을 담지 못한다 — 2026-10-06 회차 실측
         print('규칙 적용 실패 — 휴장(%s) 뒤 회차라 야간선물이 휴장 중 미국장을 반영하지 못한다(값이 있어도 묵은 값). RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % ', '.join(hol))
     elif cs == 'k200n' and k200n is not None and prev and hw is not None:
+        mw, mtxt = monday_widen(rule, fill, post)
+        if mw:
+            base_hw = hw
+            hw = hw * mw[1] if mw[0] == 'x' else hw + mw[1]
+            how = '%s %.2f %s' % (how, base_hw, mtxt)
         lo, hi = prev * (1 + (k200n - hw) / 100), prev * (1 + (k200n + hw) / 100)
         print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% (%s) → %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
             k200n, hw, how, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))

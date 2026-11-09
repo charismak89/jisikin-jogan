@@ -8,6 +8,7 @@
   python3 analyze.py
 """
 import io, json, statistics as st
+from datetime import date
 
 recs = json.load(io.open('calibration.json', encoding='utf-8'))['records']
 X = [r for r in recs if r.get('exclude')]   # 개장 왜곡 등 채점 예외(2026-11-07, CALIBRATION.md) — 모든 통계·롤백 집계에서 뺀다
@@ -73,7 +74,7 @@ if len(N) >= 5:
 
 # 현행 규칙 점검 — 마지막 규칙 변경 뒤 회차(휴장 뒤 폴백 제외)를 현행 규칙과 고정 0.8 반사실로 채점. 롤백 판단용
 rule = json.load(io.open('calibration.json', encoding='utf-8')).get('rule') or {}
-since = ((rule.get('history') or [{}])[-1]).get('date') or ''
+since = next((h['date'] for h in reversed(rule.get('history') or []) if h.get('changed') == 'half_width_mode'), '')   # 반폭 방식 마지막 변경(월요일 확장 H5 는 따로 본다)
 A = [r for r in N if r['date'] > since and not r['signals'].get('night_skipped')]
 if rule.get('half_width_mode') == 'scaled':
     q, b = rule.get('half_width_q'), rule.get('half_width_base')
@@ -93,17 +94,36 @@ if len(E) >= 5:
         e = [abs(r['gap_pct'] - r['signals']['k200n_pct'] - k * r['signals']['es_pct']) for r in E]
         print('야간 + %.1f×ES  MAE %.2f  (야간 단독 %.2f)' % (k, st.mean(e), st.mean(abs(y) for y in ys)))
 
-# 기록 전용 — 야간선물 마감 뒤(05:00 → 스냅샷) 코스피200 추종가 움직임. 2026-10-16 회차부터 기록 (CALIBRATION.md)
+# 기록 전용 — 야간선물 마감 뒤(pnight → 스냅샷) 코스피200 추종가 움직임 (CALIBRATION.md H2).
+# 2026-11-09 측정 수정: 마감 시각을 발행일 05:00 에서 실제 마감(평일 발행일 06:00, 월요일 토 06:00)으로. 10/16 이후 기록은 pnight 를 다시 받아 채웠다
 P = [r for r in N if ((r['signals'].get('perp') or {}).get('KOSPI') or {}).get('snap') is not None
-     and r['signals']['perp']['KOSPI'].get('p0500') is not None]
-print('\n추종가(KR200) 기록 %d건' % len(P))
+     and r['signals']['perp']['KOSPI'].get('pnight') is not None]
+def post(r):
+    k = r['signals']['perp']['KOSPI']; return ((1 + k['snap'] / 100) / (1 + k['pnight'] / 100) - 1) * 100
+def h2(rs, label):
+    if len(rs) < 3: print('%s %d건 — 3건 미만' % (label, len(rs))); return
+    ys = [r['gap_pct'] - r['signals']['k200n_pct'] for r in rs]
+    print('%s %d건 — 야간 단독 MAE %.2f · 야간 + 0.5×사후 %.2f · 야간 + 1.0×사후 %.2f' % (label, len(rs), st.mean(abs(y) for y in ys),
+          st.mean(abs(y - 0.5 * post(r)) for y, r in zip(ys, rs)), st.mean(abs(y - post(r)) for y, r in zip(ys, rs))))
+print('\n추종가(KR200) 기록 %d건 — 야간선물 마감 뒤 변화' % len(P))
 if len(P) >= 5:
-    def post(r):
-        k = r['signals']['perp']['KOSPI']; return ((1 + k['snap'] / 100) / (1 + k['p0500'] / 100) - 1) * 100
     ys = [r['gap_pct'] - r['signals']['k200n_pct'] for r in P]
     print('잔차(갭 − 야간) vs KR200 사후 변화 상관 r=%.2f' % st.correlation([post(r) for r in P], ys))
-    for k in (0.5, 1.0):
-        print('야간 + %.1f×KR200 사후  MAE %.2f  (야간 단독 %.2f)' % (k, st.mean(abs(y - k * post(r)) for y, r in zip(ys, P)), st.mean(abs(y) for y in ys)))
+    h2(P, '전체')
+    h2([r for r in P if r['date'] > '2026-10-31'], 'H2 등록(10/31) 뒤')
+    h2([r for r in P if date.fromisoformat(r['date']).weekday() == 0], '월요일만(참고)')
+
+# H5 — 월요일 반폭 + |주말 추종가 변화| (2026-11-09 사용자 결정). 적용 뒤 월요일을 확장 없는 반사실과 비교
+if rule.get('monday_widen'):
+    since5 = next((h['date'] for h in reversed(rule.get('history') or []) if 'monday_widen' in (h.get('changed') or '')), '')
+    M = [r for r in N if r['date'] > since5 and date.fromisoformat(r['date']).weekday() == 0 and not r['signals'].get('night_skipped')]
+    if rule.get('half_width_mode') == 'scaled':
+        base = lambda r: rule['half_width_q'] * (rule['half_width_base'] + abs(r['signals']['k200n_pct']))
+        nowid = sum(abs(r['gap_pct'] - r['signals']['k200n_pct']) <= base(r) for r in M)
+        extra = [r['band_width_pct'] / 2 - base(r) for r in M if r.get('band_width_pct') is not None]
+        print('\nH5 월요일 확장 점검 (%s 적용 뒤 월요일 %d회, 폴백 제외) — 실제 구간 안 %d/%d · 확장 없었으면 %d/%d · 평균 추가 반폭 %s' % (
+            since5, len(M), sum(bool(r['in_range']) for r in M), len(M), nowid, len(M), ('%.2f%%p' % st.mean(extra)) if extra else '-'))
+        if len(M) >= 8: print('  → 8회 도달. 실제 구간 안이 확장 없는 반사실보다 많지 않으면 monday_widen 을 지운다(CALIBRATION.md H5)')
 
 # 종목 채점 (stock_records)
 SR = json.load(io.open('calibration.json', encoding='utf-8')).get('stock_records') or []

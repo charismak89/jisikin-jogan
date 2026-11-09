@@ -26,6 +26,9 @@
   "half_width_q": 0.44,
   "half_width_base": 1.0,
   "half_width_note": "scaled: 반폭(%) = half_width_q × (half_width_base + |야간선물 등락률|). fixed 로 바꾸면 half_width_pct 를 쓴다(되돌리기 = half_width_mode 를 \"fixed\" 로).",
+  "monday_widen": "post_night_abs",
+  "monday_widen_fallback": 1.25,
+  "monday_widen_note": "월요일(휴장 폴백 제외) 반폭 = 위 반폭 + |야간선물 마감(토 06:00) 뒤 코스피200 추종가 변화|. 추종가가 없으면 반폭 × monday_widen_fallback. 중심은 그대로. score.py monday_widen(). 되돌리기 = monday_widen 을 지운다(CALIBRATION.md H5).",
   "planned": "구간 반폭(%) = 최근 10회 abs(gap_pct)의 80퍼센타일. 활성화 전까지는 기존 방식대로 판단하고 기록만 쌓는다.",
   "planned_v2": "구간 중심 = 야간선물 등락률(signals.k200n_pct), 반폭 = 최근 10회 |gap_pct − k200n_pct| 의 80퍼센타일. 켜려면 center_signal 을 \"k200n\", half_width_pct 를 숫자로. CALIBRATION.md 참고.",
   "change_policy": "규칙 변경은 금요일 마감 후에만, 한 번에 한 변수만. 변경 시 history에 남긴다.",
@@ -46,6 +49,14 @@
     "to": "scaled 0.44 × (1 + |야간|)",
     "why": "야간선물 크기와 오차 크기 상관 0.54(n=18), 직전일 등락 크기와는 0.20. LOO(야간선물 있는 18회차): 고정 p80 커버 14/18·평균 폭 2.42%p vs 비례 14/18·2.01%p. q = |갭 − 야간| / (1 + |야간|) 의 80퍼센타일 0.4389 → 0.44(같은 18회차 in-sample 14/18, 평균 폭 2.03%p, 최대 3.51%p). 고정 0.8 은 18회 중 12회. DIRECTION.md A1, 사용자 결정 2026-10-16",
     "baseline": "고정 0.8 적용 회차(10/7~, 폴백 10/12 제외) 10/15 까지 2/5. 적용 뒤 10회차(폴백 제외) coverage 가 같은 회차에 고정 0.8 을 댄 반사실보다 낮으면 fixed 로 되돌린다. 8/10 미만이면 q 재추정을 금요일 후보로 올린다(analyze.py '현행 규칙 점검' 블록)"
+   },
+   {
+    "date": "2026-11-09",
+    "changed": "monday_widen",
+    "from": null,
+    "to": "post_night_abs (반폭 + |주말 추종가 변화|)",
+    "why": "11/9 회고. 비례 반폭 적용(10/19) 뒤 빗나간 날 10/26·11/9 가 모두 월요일(월 2/4, 나머지 11/11, 11/6 개장 왜곡 제외). 월요일 야간선물은 토 06:00 값이라 주말 사흘이 빠진다. 같은 4번의 월요일에 적용했으면 4/4, 월요일 평균 반폭 +0.63%p. n=4. 사용자 결정 2026-11-09(금요일 규칙 예외, 한 변수 — 반폭만, 중심 그대로)",
+    "baseline": "적용 뒤 월요일 8회(휴장 폴백 제외) — 실제 구간 안이 확장 없는 반사실보다 많지 않으면 monday_widen 을 지운다(analyze.py H5 블록)"
    }
   ]
  },
@@ -822,18 +833,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 4.08,
-      "snap": 3.72
+      "snap": 3.72,
+      "pnight": 3.74
      },
      "005930": {
       "p0500": 4.55,
-      "snap": 4.52
+      "snap": 4.52,
+      "pnight": 4.29
      },
      "000660": {
       "p0500": 3.75,
-      "snap": 3.77
+      "snap": 3.77,
+      "pnight": 3.27
      }
     },
-    "perp_asof": "10/16 07:46"
+    "perp_asof": "10/16 07:46",
+    "perp_night_at": "10/16 06:00"
    },
    "source": "2026-10-19 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -866,18 +881,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -4.78,
-      "snap": -2.8
+      "snap": -2.8,
+      "pnight": -2.92
      },
      "005930": {
       "p0500": -5.87,
-      "snap": -3.09
+      "snap": -3.09,
+      "pnight": -3.62
      },
      "000660": {
       "p0500": -7.05,
-      "snap": -4.25
+      "snap": -4.25,
+      "pnight": -4.09
      }
     },
-    "perp_asof": "10/19 07:46"
+    "perp_asof": "10/19 07:46",
+    "perp_night_at": "10/17 06:00"
    },
    "source": "2026-10-20 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -910,18 +929,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -0.72,
-      "snap": -0.13
+      "snap": -0.13,
+      "pnight": -0.45
      },
      "005930": {
       "p0500": -0.03,
-      "snap": 1.01
+      "snap": 1.01,
+      "pnight": 0.43
      },
      "000660": {
       "p0500": 0.3,
-      "snap": 1.03
+      "snap": 1.03,
+      "pnight": 0.71
      }
     },
-    "perp_asof": "10/20 07:46"
+    "perp_asof": "10/20 07:46",
+    "perp_night_at": "10/20 06:00"
    },
    "source": "2026-10-21 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -954,18 +977,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 1.35,
-      "snap": 3.42
+      "snap": 3.42,
+      "pnight": 2.5
      },
      "005930": {
       "p0500": 1.3,
-      "snap": 4.33
+      "snap": 4.33,
+      "pnight": 3.04
      },
      "000660": {
       "p0500": 1.01,
-      "snap": 3.83
+      "snap": 3.83,
+      "pnight": 2.83
      }
     },
-    "perp_asof": "10/21 07:46"
+    "perp_asof": "10/21 07:46",
+    "perp_night_at": "10/21 06:00"
    },
    "source": "2026-10-22 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -998,18 +1025,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -0.18,
-      "snap": -1.38
+      "snap": -1.38,
+      "pnight": -0.09
      },
      "005930": {
       "p0500": -0.34,
-      "snap": -2.29
+      "snap": -2.29,
+      "pnight": -0.47
      },
      "000660": {
       "p0500": -1.04,
-      "snap": -2.49
+      "snap": -2.49,
+      "pnight": -0.93
      }
     },
-    "perp_asof": "10/22 07:46"
+    "perp_asof": "10/22 07:46",
+    "perp_night_at": "10/22 06:00"
    },
    "source": "2026-10-23 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1042,18 +1073,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -2.29,
-      "snap": -3.08
+      "snap": -3.08,
+      "pnight": -2.97
      },
      "005930": {
       "p0500": -3.1,
-      "snap": -3.94
+      "snap": -3.94,
+      "pnight": -3.99
      },
      "000660": {
       "p0500": -2.79,
-      "snap": -3.0
+      "snap": -3.0,
+      "pnight": -3.53
      }
     },
-    "perp_asof": "10/23 07:46"
+    "perp_asof": "10/23 07:46",
+    "perp_night_at": "10/23 06:00"
    },
    "source": "2026-10-26 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1086,18 +1121,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 0.55,
-      "snap": 0.56
+      "snap": 0.56,
+      "pnight": -0.42
      },
      "005930": {
       "p0500": 0.16,
-      "snap": 0.1
+      "snap": 0.1,
+      "pnight": -0.78
      },
      "000660": {
       "p0500": 0.3,
-      "snap": 0.18
+      "snap": 0.18,
+      "pnight": -1.15
      }
     },
-    "perp_asof": "10/26 07:46"
+    "perp_asof": "10/26 07:46",
+    "perp_night_at": "10/24 06:00"
    },
    "source": "2026-10-27 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1130,18 +1169,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 2.26,
-      "snap": 2.87
+      "snap": 2.87,
+      "pnight": 2.36
      },
      "005930": {
       "p0500": 2.48,
-      "snap": 3.81
+      "snap": 3.81,
+      "pnight": 3.32
      },
      "000660": {
       "p0500": 2.21,
-      "snap": 3.1
+      "snap": 3.1,
+      "pnight": 2.47
      }
     },
-    "perp_asof": "10/27 07:46"
+    "perp_asof": "10/27 07:46",
+    "perp_night_at": "10/27 06:00"
    },
    "source": "2026-10-28 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1174,18 +1217,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 2.63,
-      "snap": 2.71
+      "snap": 2.71,
+      "pnight": 2.53
      },
      "005930": {
       "p0500": 2.91,
-      "snap": 2.8
+      "snap": 2.8,
+      "pnight": 2.45
      },
      "000660": {
       "p0500": 1.85,
-      "snap": 2.44
+      "snap": 2.44,
+      "pnight": 1.51
      }
     },
-    "perp_asof": "10/28 07:46"
+    "perp_asof": "10/28 07:46",
+    "perp_night_at": "10/28 06:00"
    },
    "source": "2026-10-29 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1218,18 +1265,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 2.42,
-      "snap": 0.45
+      "snap": 0.45,
+      "pnight": 0.34
      },
      "005930": {
       "p0500": 1.93,
-      "snap": -0.53
+      "snap": -0.53,
+      "pnight": -0.3
      },
      "000660": {
       "p0500": 3.61,
-      "snap": 1.09
+      "snap": 1.09,
+      "pnight": 1.58
      }
     },
-    "perp_asof": "10/29 07:46"
+    "perp_asof": "10/29 07:46",
+    "perp_night_at": "10/29 06:00"
    },
    "source": "2026-10-30 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1262,18 +1313,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 0.18,
-      "snap": -2.86
+      "snap": -2.86,
+      "pnight": -2.15
      },
      "005930": {
       "p0500": -0.7,
-      "snap": -5.68
+      "snap": -5.68,
+      "pnight": -4.37
      },
      "000660": {
       "p0500": -0.77,
-      "snap": -5.17
+      "snap": -5.17,
+      "pnight": -3.98
      }
     },
-    "perp_asof": "10/30 07:46"
+    "perp_asof": "10/30 07:46",
+    "perp_night_at": "10/30 06:00"
    },
    "source": "2026-11-02 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1306,18 +1361,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -2.03,
-      "snap": -1.93
+      "snap": -1.93,
+      "pnight": -2.27
      },
      "005930": {
       "p0500": -3.78,
-      "snap": -3.56
+      "snap": -3.56,
+      "pnight": -3.91
      },
      "000660": {
       "p0500": -1.14,
-      "snap": -0.96
+      "snap": -0.96,
+      "pnight": -3.01
      }
     },
-    "perp_asof": "11/02 07:46"
+    "perp_asof": "11/02 07:46",
+    "perp_night_at": "10/31 06:00"
    },
    "source": "2026-11-03 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1350,18 +1409,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -3.54,
-      "snap": -4.39
+      "snap": -4.39,
+      "pnight": -4.56
      },
      "005930": {
       "p0500": -4.39,
-      "snap": -5.08
+      "snap": -5.08,
+      "pnight": -5.79
      },
      "000660": {
       "p0500": -4.99,
-      "snap": -6.27
+      "snap": -6.27,
+      "pnight": -5.97
      }
     },
-    "perp_asof": "11/03 07:46"
+    "perp_asof": "11/03 07:46",
+    "perp_night_at": "11/03 06:00"
    },
    "source": "2026-11-04 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1394,18 +1457,22 @@
     "perp": {
      "KOSPI": {
       "p0500": 1.27,
-      "snap": 2.71
+      "snap": 2.71,
+      "pnight": 1.59
      },
      "005930": {
       "p0500": 0.97,
-      "snap": 3.16
+      "snap": 3.16,
+      "pnight": 1.72
      },
      "000660": {
       "p0500": 1.49,
-      "snap": 4.12
+      "snap": 4.12,
+      "pnight": 2.33
      }
     },
-    "perp_asof": "11/04 07:46"
+    "perp_asof": "11/04 07:46",
+    "perp_night_at": "11/04 06:00"
    },
    "source": "2026-11-05 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1438,18 +1505,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -1.15,
-      "snap": -1.0
+      "snap": -1.0,
+      "pnight": -1.21
      },
      "005930": {
       "p0500": -1.96,
-      "snap": -1.52
+      "snap": -1.52,
+      "pnight": -2.2
      },
      "000660": {
       "p0500": -3.64,
-      "snap": -3.21
+      "snap": -3.21,
+      "pnight": -3.57
      }
     },
-    "perp_asof": "11/05 07:45"
+    "perp_asof": "11/05 07:45",
+    "perp_night_at": "11/05 06:00"
    },
    "source": "2026-11-06 회차 채점 (score.py, prices.KOSPI.open)"
   },
@@ -1482,18 +1553,22 @@
     "perp": {
      "KOSPI": {
       "p0500": -5.87,
-      "snap": -9.24
+      "snap": -9.24,
+      "pnight": -8.87
      },
      "005930": {
       "p0500": -7.84,
-      "snap": -11.14
+      "snap": -11.14,
+      "pnight": -10.18
      },
      "000660": {
       "p0500": -7.06,
-      "snap": -10.97
+      "snap": -10.97,
+      "pnight": -10.62
      }
     },
-    "perp_asof": "11/06 07:46"
+    "perp_asof": "11/06 07:46",
+    "perp_night_at": "11/06 06:00"
    },
    "source": "2026-11-09 회차 채점 (score.py, prices.KOSPI.open)",
    "exclude": {
