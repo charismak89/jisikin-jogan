@@ -15,7 +15,7 @@
 - 같은 날 후속(사용자 요청): 종목 구간(삼전·하닉)도 월요일에 |주말 그 종목 추종가 변화|만큼 넓힌다(`render.py`, `stock_rule.monday_widen`, H6). 11/9 에 댔으면 삼전 186,000~196,000·하닉 1,115,000~1,179,000 → 둘 다 구간 안. 되돌리기: `stock_rule.monday_widen` 삭제.
 - 확인 예약(이 관리 세션 `send_later`): 11/10 08:15 `trig_01TCcgFQHW7FNU67oxBGYj1B`(평일 — 단서 줄·마감 뒤 줄·pnight 기록), 11/16 08:15 `trig_0161XJbcybgAts2n7FvgWPQV`(월요일 확장 첫 적용).
 - 확인 명령: `python3 analyze.py | grep -A1 "H5\|H2 등록"` → H5 줄(적용 뒤 월요일 n회), H2 줄(등록 뒤 n건). 11/10 회차 뒤 `python3 -c "import json;print(json.load(open('calibration.json'))['records'][-1]['signals']['perp']['KOSPI'])"` → `pnight` 2.23 이 있는 11/9 기록.
-- 확인: (11/10 08:15 예정)
+- 확인 완료(11/10 08:15 KST, `trig_01TCcgFQHW7FNU67oxBGYj1B`): 11/10 회차(`148b037`, 07:45~07:50, GATE PASS, main 직접). `뉴스 단서 없음` 줄(마감 뒤 1시간 변화 모두 1% 안), score.py 마감 뒤 줄 `야간선물 마감(11/10(화) 06:00) 뒤 코스피200 추종가 +0.59%` → 회차가 `why`·`checks.scenario` 에 '변화'로 옮김(수준 비교 없음). 규칙 줄에 월요일 없음(반폭 2.98 = 0.44 × (1 + 5.78)), 종목 `monday_widen_pct` 없음. state `signals.perp.KOSPI` pnight 5.73 · `perp_night_at` "11/10 06:00". calibration 마지막 record 11/9 miss(5,034.20) pnight 2.23, stock_records 11/9 에 `half_width_pct` 기록(H6 전이라 `monday_widen_pct` null). 검색은 이슈용 3건 이상(젠슨 황 이사회 조사·미국 마감·뉴욕증시 엔비디아 의혹), 휴장일·종가 검색 없음. datalog 누락 0. 관찰: `checks.issue.src` 의 젠슨 황 `origin` 이 '서울신문 11/10 01:03' 이다. 최초 보도는 11/9 05:12(CNBC)라 '최초 보도 매체' 정의와 어긋난다. 반복되면 RUNBOOK 3절 `origin` 설명을 손본다. 회차 보고상 미국 지수선물 페이지의 등락률과 전일 종가 대비 값이 맞지 않았다(ES +2.41% vs +0.03%, 기록 전용). 다음 확인: 11/16 08:15 `trig_0161XJbcybgAts2n7FvgWPQV`(월요일 확장 첫 적용)
 - 되돌리기: 월요일 확장만 끄려면 `calibration.json` `rule.monday_widen` 을 지운다(score.py 가 0 으로 본다). 전체는 이 PR revert(기록 backfill 도 함께 빠진다).
 
 ## 0-7. 2026-10-22 v5 화면 삭제(사용자 결정)
