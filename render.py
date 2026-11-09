@@ -29,7 +29,7 @@ FIRST_ISSUE = date(2026, 8, 21)   # 제1호
 
 # 표기명·코드. CONTEXT.md 의 "표기용 종목명" 표가 있으면 그 표기가 우선한다.
 NAMES = {
-    'K200N':  ('K200 야간선물', '야간 · 05:00'),
+    'K200N':  ('K200 야간선물', '야간 · 06:00'),
     'SOX':    ('SOX', 'PHLX'),
     'NVDA':   ('엔비디아', 'NVDA'),
     'MU':     ('마이크론', 'MU'),
@@ -153,6 +153,33 @@ def prev_business_day(d):
 
 def kst_ms(d, h, m):
     return int(datetime(d.year, d.month, d.day, h, m, tzinfo=KST).timestamp() * 1000)
+
+NIGHT_CLOSE = (6, 0)   # KRX 야간 파생상품시장 18:00 ~ 익일 06:00 (2025-06-09 부터. 그 전 유렉스 연계는 05:00)
+
+def night_close_ms(d):
+    """발행일 d 회차가 보는 야간선물 세션이 끝난 시각(ms). 직전 영업일 밤 세션 → 그다음 날 06:00.
+    화~금은 발행일 06:00, 월요일은 토 06:00 (일요일 밤 세션은 없다). 2026-11-09 전에는 발행일 05:00 으로 재서
+    월요일에 주말 움직임이 빠지고 평일에는 05:00~06:00 이 야간선물과 겹쳤다(CALIBRATION.md H2)."""
+    return kst_ms(prev_business_day(d) + timedelta(days=1), *NIGHT_CLOSE)
+
+def perp_post_night(perp, d, t_snap=None):
+    """perp.json → {key: {'pnight', 'snap', 'post'}}. pnight·snap 은 직전 영업일 15:30 대비 %,
+    post 는 야간선물 마감 뒤 스냅샷까지 변화 %. 스냅샷은 fetched_ms(08:59 상한). 못 구한 키는 값이 None."""
+    items = (perp or {}).get('items') or {}
+    if t_snap is None:
+        t_snap = min(int((perp or {}).get('fetched_ms') or kst_ms(d, 7, 45)), kst_ms(d, 8, 59))
+    t_n = night_close_ms(d)
+    out = {}
+    for key, it in items.items():
+        b, cs = it.get('base'), it.get('candles') or []
+        def at(t):
+            v = [c for tt, c in cs if tt <= t]
+            return v[-1] if (v and b) else None
+        n, s = at(t_n), at(t_snap)
+        out[key] = {'pnight': None if n is None else round((n / b - 1) * 100, 2),
+                    'snap': None if s is None else round((s / b - 1) * 100, 2),
+                    'post': None if (n is None or s is None) else round((s / n - 1) * 100, 2)}
+    return out
 
 def issue_window(d):
     """CONTEXT.md '조회 창' — 직전 영업일 15:30 ~ 발행일 07:45 (KST). 월요일·연휴 뒤도 prev_business_day 가 마지막 영업일을 준다."""
@@ -697,9 +724,13 @@ def main():
         hi_v = math.ceil(pc * (1 + (c + hw) / 100) / tk) * tk
         stock_fc[code] = {'low': lo_v, 'high': hi_v, 'prev_close': pc, 'center_pct': round(c, 2), 'half_width_pct': round(hw, 2),
                           'inputs': {'k200n_pct': k200n_now, 'perp_pct': None if pp is None else round(pp, 2)}}
-    # 기록 전용 — 야간선물 마감 뒤(05:00 → 스냅샷) 추종가 움직임. 전망에는 쓰지 않는다 (CALIBRATION.md)
+    # 기록 전용 — 야간선물 마감 뒤(pnight → 스냅샷) 추종가 움직임. 코스피 중심에는 쓰지 않는다 (CALIBRATION.md H2).
+    # p0500 은 2026-11-09 전 방식(발행일 05:00) 그대로 남긴다 — 옛 기록과 이어 보기용
+    pn = perp_post_night(perp, d, t_snap) if pitems else {}
     signals['perp'] = {k: {'p0500': None if perp_at(k, t_night) is None else round(perp_at(k, t_night), 2),
+                           'pnight': (pn.get(k) or {}).get('pnight'),
                            'snap': None if perp_at(k, t_snap) is None else round(perp_at(k, t_snap), 2)} for k in pitems}
+    signals['perp_night_at'] = datetime.fromtimestamp(night_close_ms(d) / 1000, KST).strftime('%m/%d %H:%M')
     signals['perp_asof'] = datetime.fromtimestamp(t_snap / 1000, KST).strftime('%m/%d %H:%M') if pitems else None
 
     pl = (lambda iso: md(iso))(fill.get('closes_as_of') or pday.isoformat())
