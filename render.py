@@ -712,6 +712,10 @@ def main():
     hws = srule.get('half_width_pct') or {}
     stock_fc = {}
     STOCK_KEYS = ('005930', '000660')
+    pn = perp_post_night(perp, d, t_snap) if pitems else {}
+    # 월요일 확장(2026-11-09 사용자 결정, CALIBRATION.md H6) — 반폭 + |야간선물 마감(토 06:00) 뒤 그 종목 추종가 변화|. 코스피(H5)와 같은 방식.
+    # 휴장 뒤 월요일은 빼고(야간선물을 안 쓰는 날), 추종가가 없으면 아래 한쪽 신호 ×1.25 가 이미 넓혀 둔다
+    s_monday = d.weekday() == 0 and srule.get('monday_widen') == 'post_night_abs' and not signals['night_skipped']
     for code in STOCK_KEYS:
         pc, pp = close.get(code), perp_at(code, t_snap)
         comps = [x for x in (k200n_now, pp) if x is not None]
@@ -719,14 +723,20 @@ def main():
             warn('%s 예측 구간 못 냄 — 종가 또는 신호(야간선물·추종가) 없음' % code); continue
         c = sum(comps) / len(comps)
         hw = float(hws.get(code, 1.5)) * (1.0 if len(comps) == 2 else 1.25)
+        mw = None
+        if s_monday:
+            post = (pn.get(code) or {}).get('post')
+            if post is not None: mw = abs(post)
+            elif len(comps) == 2: mw = hw * (float(srule.get('monday_widen_fallback') or 1.25) - 1)
+            if mw is not None: hw += mw
         tk = krx_tick(pc)
         lo_v = math.floor(pc * (1 + (c - hw) / 100) / tk) * tk
         hi_v = math.ceil(pc * (1 + (c + hw) / 100) / tk) * tk
         stock_fc[code] = {'low': lo_v, 'high': hi_v, 'prev_close': pc, 'center_pct': round(c, 2), 'half_width_pct': round(hw, 2),
                           'inputs': {'k200n_pct': k200n_now, 'perp_pct': None if pp is None else round(pp, 2)}}
+        if mw is not None: stock_fc[code]['monday_widen_pct'] = round(mw, 2)
     # 기록 전용 — 야간선물 마감 뒤(pnight → 스냅샷) 추종가 움직임. 코스피 중심에는 쓰지 않는다 (CALIBRATION.md H2).
     # p0500 은 2026-11-09 전 방식(발행일 05:00) 그대로 남긴다 — 옛 기록과 이어 보기용
-    pn = perp_post_night(perp, d, t_snap) if pitems else {}
     signals['perp'] = {k: {'p0500': None if perp_at(k, t_night) is None else round(perp_at(k, t_night), 2),
                            'pnight': (pn.get(k) or {}).get('pnight'),
                            'snap': None if perp_at(k, t_snap) is None else round(perp_at(k, t_snap), 2)} for k in pitems}
@@ -836,6 +846,9 @@ def main():
     hw_txt = ' · '.join('%s ±%.2f%%' % (names[c][0], float(hws.get(c, 1.5))) for c in STOCK_KEYS)
     V['STOCK_NOTE'] = ('종목 예측 구간 = 야간선물과 해외 24시간 추종가(%s)의 평균 ± 최근 오차 80%% 범위(%s). 해외 추종가는 해외 코인거래소의 한국 종목 무기한선물 가격이라 실제 체결가와 다릅니다.' % (
         signals['perp_asof'] or '미확보', hw_txt)) + ('' if pitems else ' 오늘은 추종가를 받지 못해 야간선물만으로 구간을 잡았습니다.')
+    mws = [(c, stock_fc[c]['monday_widen_pct']) for c in STOCK_KEYS if 'monday_widen_pct' in (stock_fc.get(c) or {})]
+    if mws:
+        V['STOCK_NOTE'] += ' 월요일이라 야간선물이 끝난 토 06:00 뒤 추종가가 움직인 만큼 더 넓혔습니다(%s).' % ' · '.join('%s +%.2f%%p' % (names[c][0], w) for c, w in mws)
 
     # ----- 화면용 JSON (v6 앱이 읽는다. HTML 출력과 별개이고 게이트·글자수에는 영향이 없다) -----
     def plain(x): return html.unescape(re.sub(r'<[^>]+>', '', str(x or ''))).strip()
@@ -917,7 +930,8 @@ def main():
         num(low, 0) if low else '—', num(high, 0) if high else '—', V['OPEN_RANGE'].split('<br>')[-1].strip('()'),
         pct_str(signals['k200n_pct']), pct_str(signals['ewy_implied_pct']), pct_str(signals['adr_implied_pct'])))
     print(V['COVERAGE'])
-    print('종목 예측 — ' + (' · '.join('%s %s~%s (중심 %+.2f%%)' % (c, num(v['low'], 0), num(v['high'], 0), v['center_pct']) for c, v in stock_fc.items()) or '없음')
+    print('종목 예측 — ' + (' · '.join('%s %s~%s (중심 %+.2f%%, 반폭 %.2f%%%s)' % (c, num(v['low'], 0), num(v['high'], 0), v['center_pct'], v['half_width_pct'],
+          ' — 월요일 +%.2f' % v['monday_widen_pct'] if 'monday_widen_pct' in v else '') for c, v in stock_fc.items()) or '없음')
           + ' · 추종가 %s' % (signals['perp_asof'] or '미확보'))
 
     # ----- state.json (이번 회차) -----

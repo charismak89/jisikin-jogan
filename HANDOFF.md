@@ -12,6 +12,7 @@
   - `render.py` — `night_close_ms()`(평일 발행일 06:00, 월요일 토 06:00), `signals.perp.*.pnight`·`signals.perp_night_at`. 옛 `p0500` 은 그대로 남김. 10/16 이후 기록 16건·11/9 state 를 Hyperliquid 로 다시 채움(H2 측정 수정).
   - `fetch_perp.py` — 엔비디아 추종가(`CUES`)를 받고 야간선물 마감 뒤 1시간 변화가 1% 넘는 구간을 `뉴스 단서` 줄로 낸다.
   - `CONTEXT.md` — 야간 세션 06:00, B 갈래에 핵심 고객사 경영진·지배구조, "검색 배분과 읽는 법". `RUNBOOK.md` 2·3·4·9절. `CALIBRATION.md` H5 등록·H2 측정 수정·교훈 2줄. `DIRECTION.md` 결정 기록.
+- 같은 날 후속(사용자 요청): 종목 구간(삼전·하닉)도 월요일에 |주말 그 종목 추종가 변화|만큼 넓힌다(`render.py`, `stock_rule.monday_widen`, H6). 11/9 에 댔으면 삼전 186,000~196,000·하닉 1,115,000~1,179,000 → 둘 다 구간 안. 되돌리기: `stock_rule.monday_widen` 삭제.
 - 확인 예약(이 관리 세션 `send_later`): 11/10 08:15 `trig_01TCcgFQHW7FNU67oxBGYj1B`(평일 — 단서 줄·마감 뒤 줄·pnight 기록), 11/16 08:15 `trig_0161XJbcybgAts2n7FvgWPQV`(월요일 확장 첫 적용).
 - 확인 명령: `python3 analyze.py | grep -A1 "H5\|H2 등록"` → H5 줄(적용 뒤 월요일 n회), H2 줄(등록 뒤 n건). 11/10 회차 뒤 `python3 -c "import json;print(json.load(open('calibration.json'))['records'][-1]['signals']['perp']['KOSPI'])"` → `pnight` 2.23 이 있는 11/9 기록.
 - 확인: (11/10 08:15 예정)
