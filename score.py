@@ -274,6 +274,7 @@ def score_stocks(dry):
                'gap_pct': round(gap, 2), 'in_range': bool(low <= op <= high), 'center_pct': center,
                'center_err_pct': None if center is None else round(gap - center, 2),
                'band_width_pct': round((high - low) / pc * 100, 2), 'inputs': f.get('inputs'),
+               'half_width_pct': f.get('half_width_pct'), 'monday_widen_pct': f.get('monday_widen_pct'),   # 2026-11-09 — H6 반사실(확장 없는 구간) 계산용
                'source': '%s 회차 채점 (score.py, prices.%s.open)' % (fill.get('issue_date') or '', code)}
         recs.append(rec); added.append(rec)
         print('종목 %s %s — 예측 %s~%s / 실제 시초가 %s (갭 %+.2f%%) → 구간 %s' % (code, fdate, '{:,.0f}'.format(low), '{:,.0f}'.format(high),

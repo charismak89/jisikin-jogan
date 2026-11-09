@@ -127,6 +127,19 @@ if rule.get('monday_widen'):
 
 # 종목 채점 (stock_records)
 SR = json.load(io.open('calibration.json', encoding='utf-8')).get('stock_records') or []
+
+# H6 — 종목 월요일 반폭 + |주말 그 종목 추종가 변화| (2026-11-09 사용자 결정). 종목별로 확장 없는 반사실과 비교
+srule = json.load(io.open('calibration.json', encoding='utf-8')).get('stock_rule') or {}
+if srule.get('monday_widen'):
+    since6 = next((h['date'] for h in reversed(srule.get('history') or []) if 'monday_widen' in (h.get('changed') or '')), '')
+    for code in ('005930', '000660'):
+        M6 = [r for r in SR if r['code'] == code and r['date'] > since6 and date.fromisoformat(r['date']).weekday() == 0 and r.get('monday_widen_pct') is not None]
+        if not M6: print('H6 %s 월요일 확장 점검 (%s 적용 뒤 0회)' % (code, since6)); continue
+        nowid = sum(abs(r['gap_pct'] - r['center_pct']) <= r['half_width_pct'] - r['monday_widen_pct'] for r in M6)
+        print('H6 %s 월요일 확장 점검 (%s 적용 뒤 %d회) — 실제 구간 안 %d/%d · 확장 없었으면 %d/%d · 평균 추가 반폭 %.2f%%p' % (
+            code, since6, len(M6), sum(bool(r['in_range']) for r in M6), len(M6), nowid, len(M6), st.mean(r['monday_widen_pct'] for r in M6)))
+        if len(M6) >= 8: print('  → 8회 도달. 실제 구간 안이 반사실보다 많지 않으면 이 종목은 확장을 뺀다(CALIBRATION.md H6)')
+
 for code in sorted({r['code'] for r in SR}):
     rr = [r for r in SR if r['code'] == code]
     print('종목 %s %d회 — 구간 안 %d · 중심 오차 MAE %.2f · 평균 폭 %.2f%%p' % (code, len(rr), sum(r['in_range'] for r in rr),
