@@ -114,6 +114,11 @@
 - `GATE HOLD — …` + `claude/hold-<날짜>` → diff 보고 머지 여부 결정. HOLD 사유는 `state.json` 의 `signals` 에 대부분 보인다
 - push 전부 실패, 문구가 `not in this session's authorized repository set` → 루틴의 저장소 부착이 풀림. 웹 UI 에서 다시 붙인다
 - 원인 추적: `git log origin/main --graph` 와 해당 커밋의 `state.json`
+- **빗나간 회차 회고 순서**(2026-11-09 — 관리 세션이 회차가 적은 규제 뉴스를 원인으로 받아 젠슨 황 보도를 놓쳤고 사용자가 정정했다)
+  1. 실제 시가: 중계기 `/v1/intraday?date=YYYY-MM-DD`(키 없이). 지수는 `open`(첫 봉 시가), 종목은 `open`(09:01 봉 시가).
+  2. 움직인 시각부터 뽑는다: 당일이면 `python3 fetch_perp.py --print` 마지막 `뉴스 단서` 줄, 지난 날이면 Hyperliquid 15분봉에서 야간선물 마감(`render.night_close_ms`) 뒤 가장 크게 움직인 구간.
+  3. 그 시각 뉴스를 회차 기록과 따로 검색한다(대상·날짜만). 회차의 `news_flag`·`bear` 를 원인으로 옮기지 않는다. 시각 일치는 사실, 인과는 추정으로 적는다.
+  4. 회차가 놓친 이유: 2절 조건(`kinds=["assistant"]`, `limit` 20)으로 검색어(tool_use `input.query`)를 찾고, 결과 제목은 검색 시각 근처 `user` 이벤트를 `after_id`·`limit` 8~12 로 읽는다.
 
 ## 4. 게이트 (render.py 마지막 줄)
 HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · 야간선물 미확보 · `data_note.diverged` > 2 · 발행일 ≠ 오늘.
