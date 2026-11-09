@@ -1587,6 +1587,54 @@
     "stock_gap_mean": -12.6,
     "detail": "코스피 시가 갭 -2.24% vs 삼전 -11.12%·하닉 -14.08% 평균 -12.60% (차이 10.36%p > 5%p)"
    }
+  },
+  {
+   "date": "2026-11-09",
+   "low": 5080.0,
+   "high": 5200.0,
+   "band_width_pct": 2.37,
+   "prev_close": 5059.69,
+   "actual_open": 5034.2,
+   "gap_pct": -0.5,
+   "in_range": false,
+   "verdict": "miss",
+   "sign_hit": false,
+   "center_pct": 1.59,
+   "center_err_pct": -2.09,
+   "signals": {
+    "k200n_pct": 1.6,
+    "k200n_close": 795.5,
+    "k200n_asof": "11/7 06:00",
+    "k200f_close": 782.95,
+    "ewy_implied_pct": 10.79,
+    "adr_implied_pct": 16.42,
+    "news_flag": "주말(11/8) AP 집계로 주지사 당선인 36명 중 34명이 데이터센터 규제를 지지했고 텍사스는 신규 승인 보류를 밝혔습니다. 금요일 밤 야간선물에는 들어 있지 않습니다",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 0.26,
+    "nq_pct": 1.25,
+    "us_fut_asof": "11/7 07:00 닫음(주말 휴장)",
+    "perp": {
+     "KOSPI": {
+      "p0500": 2.85,
+      "snap": 1.13,
+      "pnight": 2.23
+     },
+     "005930": {
+      "p0500": 3.62,
+      "snap": 0.81,
+      "pnight": 2.1
+     },
+     "000660": {
+      "p0500": 5.05,
+      "snap": 0.99,
+      "pnight": 2.3
+     }
+    },
+    "perp_asof": "11/09 07:45",
+    "perp_night_at": "11/07 06:00"
+   },
+   "source": "2026-11-10 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -2165,6 +2213,46 @@
     "perp_pct": -11.14
    },
    "source": "2026-11-09 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-09",
+   "code": "000660",
+   "low": 1129000.0,
+   "high": 1164000.0,
+   "prev_close": 1132000.0,
+   "actual_open": 1130000.0,
+   "gap_pct": -0.18,
+   "in_range": true,
+   "center_pct": 1.29,
+   "center_err_pct": -1.47,
+   "band_width_pct": 3.09,
+   "inputs": {
+    "k200n_pct": 1.6,
+    "perp_pct": 0.99
+   },
+   "half_width_pct": 1.5,
+   "monday_widen_pct": null,
+   "source": "2026-11-10 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-09",
+   "code": "005930",
+   "low": 188400.0,
+   "high": 193600.0,
+   "prev_close": 188700.0,
+   "actual_open": 187200.0,
+   "gap_pct": -0.79,
+   "in_range": false,
+   "center_pct": 1.21,
+   "center_err_pct": -2.0,
+   "band_width_pct": 2.76,
+   "inputs": {
+    "k200n_pct": 1.6,
+    "perp_pct": 0.81
+   },
+   "half_width_pct": 1.36,
+   "monday_widen_pct": null,
+   "source": "2026-11-10 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
