@@ -311,7 +311,7 @@ html.js5 [data-panel][hidden]{display:none!important}
   .live5 .lgrid{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start}
   .live5 .sel5{grid-template-columns:1fr}
 }
-/* v5.1 — 2026-10-16 · 의견 버튼(지인 링크로 연 브라우저만) + 아래에서 올라오는 입력 창 */
+/* v5.1 — 2026-10-16 · 의견 버튼 + 아래에서 올라오는 입력 창 (2026-11-10 부터 누구에게나 보인다) */
 .tabs5 .fb5{margin-left:auto;align-self:center;font-size:13px;font-weight:800;color:var(--tx2);background:var(--panel2);
   border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 .tabs5 .fb5:hover{color:var(--tx);border-color:var(--line2)}

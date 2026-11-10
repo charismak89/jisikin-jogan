@@ -1,5 +1,5 @@
 // v5 대시보드 스크립트(template-v5.html)의 실시간 부분을 옮긴 것.
-//  - 2026-10-19 부터 실시간은 토스(KRX·NXT) 시세만 쓴다. 지인 키가 없어도 중계기를 부른다(중계기 PUBLIC_VIEW). 키가 있으면 같이 보낸다.
+//  - 2026-10-19 부터 실시간은 토스(KRX·NXT) 시세만 쓴다. 키 없이 중계기를 부른다(중계기 PUBLIC_VIEW). 지인 키는 2026-11-10 없앴다.
 //  - 토스 시세를 받는 동안에는 해외 24시간 추종가(Hyperliquid)를 부르지 않는다. 밤사이 선은 07:45 회차가 남긴 기록(day.json)이다.
 //  - 중계기가 끊기면 그때만 추종가를 15초마다 받아 대신 그린다(화면에 'KRX 연결 실패 · 추종가').
 import type { Bar, DayCfg, Ent, Pt } from '../types'
@@ -12,18 +12,12 @@ const now = () => Date.now()
 const pctOf = (st: St, px: number) => (px / (st.base as number) - 1) * 100
 const ivFor = (age: number): Iv => (age < 3.2 * 864e5 ? ['1m', 6e4] : age < 16 * 864e5 ? ['5m', 3e5] : age < 50 * 864e5 ? ['15m', 9e5] : null)
 
-export function readRelayKey(): string | null {
-  let rk: string | null = null
+/** 지인 키는 2026-11-10 없앴다. 옛 지인 링크(#k=…)로 열어도 그냥 열리게 주소의 키를 지우고, 브라우저에 남은 키도 버린다 */
+export function dropOldKey() {
   try {
-    const m = location.hash.match(/(?:^#|&)k=([A-Za-z0-9_\-]+)/)
-    if (m) {
-      rk = m[1]
-      try { localStorage.setItem('jj-relay-key', rk) } catch { /* 저장 불가 환경 */ }
-      history.replaceState(null, '', location.pathname + location.search)
-    }
-    if (!rk) rk = localStorage.getItem('jj-relay-key')
+    if (/(?:^#|&)k=/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search)
+    localStorage.removeItem('jj-relay-key')
   } catch { /* 저장소 접근 불가 */ }
-  return rk
 }
 
 export class Live {
@@ -39,7 +33,7 @@ export class Live {
   private listeners = new Set<() => void>()
   version = 0
 
-  constructor(public D: DayCfg, public RK: string | null) {
+  constructor(public D: DayCfg) {
     const today = new Date(now() + 9 * 3600e3).toISOString().slice(0, 10)
     this.isToday = today === D.issue
     this.isPast = today > D.issue
@@ -56,8 +50,7 @@ export class Live {
   }
   relayGet(path: string) {
     const D = this.D
-    const q = this.RK ? (path.indexOf('?') < 0 ? '?' : '&') + 'k=' + encodeURIComponent(this.RK) : ''
-    return fetch(D.relay + path + q, { cache: 'no-store' })
+    return fetch(D.relay + path, { cache: 'no-store' })
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
   }
 

@@ -4,7 +4,7 @@
 
   python3 uicheck.py                     루트(v6) · v6/ · archive/(지난 회차 목록) 를 390px·1440px 로
   python3 uicheck.py --out <폴더>        스크린샷을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
-  python3 uicheck.py --path '#k=test'    검사할 주소를 하나 더 (루트 기준, 여러 번 써도 된다)
+  python3 uicheck.py --path '#brief'     검사할 주소를 하나 더 (루트 기준, 여러 번 써도 된다)
 
 결과: 화면마다 h1, 가로 넘침(px), 콘솔 오류, 저장소 파일 4xx·실패. 하나라도 있으면 종료 코드 1, 없으면 0,
       playwright 가 없으면 2. 글꼴(jsdelivr) 말고 외부 요청은 막는다 — 실시간 칸은 비어 보이는 게 정상이다.

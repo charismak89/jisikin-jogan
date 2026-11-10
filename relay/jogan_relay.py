@@ -6,27 +6,26 @@
 그래서 토큰은 이 중계기 한 곳에서만 발급하고, 대시보드(지인 브라우저)와 07:45 루틴은 모두 여기를 거친다.
 표준 라이브러리만 쓴다. 127.0.0.1 에만 열고 TLS 는 앞단 Caddy 가 맡는다.
 
-엔드포인트 (모두 GET, 키는 ?k= 또는 X-Relay-Key 헤더)
+엔드포인트 (루틴용은 루틴 키를 ?k= 또는 X-Relay-Key 헤더로. 화면용은 키가 없다)
   /healthz                       키 없이. 토큰 상태만
-  /v1/live                       코스피·삼전·하닉 현재가 (5초 캐시)                     — 키 없이(PUBLIC_VIEW) 또는 지인 키
-  /v1/intraday?date=YYYY-MM-DD   그날 1분봉 종가 (코스피 09:00~15:30, 두 종목 08:00~20:00) — 키 없이(PUBLIC_VIEW) 또는 지인 키
+  /v1/live                       코스피·삼전·하닉 현재가 (5초 캐시)                     — 키 없이
+  /v1/intraday?date=YYYY-MM-DD   그날 1분봉 종가 (코스피 09:00~15:30, 두 종목 08:00~20:00) — 키 없이
   /v1/daily?date=YYYY-MM-DD[&us_until=YYYY-MM-DD]
                                  그날 일봉(시고저종)·환율·코스피 투자자별 매매대금 (루틴용) — 루틴 키
                                  2026-10-21 추가: 미국 일봉은 us_until(발행일) 전날까지 5개, 수급은 그날 것(until=date),
                                  fx_close(그날 15:30 매매기준율), stock_flow(삼전·하닉 투자자별 순매수 주식 수)
   /v1/calendar?date=YYYY-MM-DD   국내·미국 장 운영(전·당·익 영업일) — 휴장일 대조용 — 루틴 키
-  POST /v1/feedback              대시보드 '의견' 버튼. 본문 JSON {cat, text, nick, ctx} → STATE_DIR/feedback.jsonl — 지인 키 (PUBLIC_FEEDBACK=1 이면 키 없이)
-  2026-10-19 부터 대시보드 화면용 조회 둘(live·intraday)은 키 없이 연다. 메인 주소가 지인 키 없이도 KRX 시세를 쓰게 하기 위해서다.
-  2026-11-10 의견 쓰기는 다시 지인 키를 요구한다 — 이 글은 토요일 주간 점검 세션(Claude)이 읽는데, 저장소가 Public 이라 누구나 써 넣을 수 있었다.
-  업스트림 호출은 캐시가 묶는다(live 5초, intraday 오늘 20초·지난날 1시간, 날짜는 30일 안). 같은 키로 동시에 온 요청은 한 번만 업스트림을 부른다(2026-11-10).
+  POST /v1/feedback              대시보드 '의견' 버튼. 본문 JSON {cat, text, nick, ctx} → STATE_DIR/feedback.jsonl — 키 없이
+  2026-11-10 지인 키를 없앴다(사용자 결정). 화면용 셋(live·intraday·의견 쓰기)은 공개 주소에서 누구나 쓴다. 키는 루틴 키 하나만 남는다.
+  의견 쓰기는 대시보드 주소(ALLOW_ORIGINS)에서 온 요청만 받는다 — 브라우저는 Origin 을 늘 붙인다. 직접 호출을 막는 장치는 아니다(헤더는 흉내 낼 수 있다).
+  이 글은 토요일 주간 점검 세션(Claude)이 읽는다. 누구나 쓸 수 있으니 읽는 쪽이 데이터로만 다룬다(WEEKLY.md 1절). IP 당 하루 5건·전체 하루 30건.
+  업스트림 호출은 캐시가 묶는다(live 5초, intraday 오늘 20초·지난날 1시간, 날짜는 30일 안). 같은 키로 동시에 온 요청은 한 번만 업스트림을 부른다.
   IP 당 분당 120회 제한은 그대로다.
   GET  /v1/feedback?since=YYYY-MM-DD   그날부터 쌓인 의견 (토요일 주간 점검용)        — 루틴 키
 
 환경 변수 (/etc/jogan-relay.env)
   TOSS_CLIENT_ID, TOSS_CLIENT_SECRET   토스 WTS 설정 > Open API 에서 받은 값
-  VIEW_KEYS                            지인용 키, 콤마 구분
-  PUBLIC_VIEW                          1(기본)이면 live·intraday 를 키 없이 연다. 0 이면 예전처럼 지인 키를 요구한다
-  PUBLIC_FEEDBACK                      0(기본)이면 의견 쓰기에 지인 키를 요구한다. 1 이면 키 없이 받는다
+  PUBLIC_VIEW                          1(기본)이면 live·intraday·의견 쓰기를 키 없이 연다. 0 이면 닫는다(루틴 키만 통한다 — 대시보드는 해외 추종가로 그린다)
   ROUTINE_KEY                          루틴용 키 (/v1/daily 와 나머지 전부 허용)
   ALLOW_ORIGINS                        CORS 허용 Origin, 콤마 구분 (기본 https://charismak89.github.io)
   STATE_DIR                            토큰·의견 보관 (기본 /var/lib/jogan-relay)
@@ -41,10 +40,8 @@ KST = timezone(timedelta(hours=9))
 API = os.environ.get('TOSS_API', 'https://openapi.tossinvest.com').rstrip('/')
 CID = os.environ.get('TOSS_CLIENT_ID', '')
 CSECRET = os.environ.get('TOSS_CLIENT_SECRET', '')
-VIEW_KEYS = [k.strip() for k in os.environ.get('VIEW_KEYS', '').split(',') if k.strip()]
 ROUTINE_KEY = os.environ.get('ROUTINE_KEY', '').strip()
 PUBLIC_VIEW = os.environ.get('PUBLIC_VIEW', '1').strip().lower() not in ('0', 'false', 'no', 'off')
-PUBLIC_FEEDBACK = os.environ.get('PUBLIC_FEEDBACK', '0').strip().lower() in ('1', 'true', 'yes', 'on')
 PUBLIC_PATHS = ('/v1/live', '/v1/intraday')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
 ORIGINS = [o.strip() for o in os.environ.get('ALLOW_ORIGINS', 'https://charismak89.github.io').split(',') if o.strip()]
 STATE_DIR = os.environ.get('STATE_DIR', '/var/lib/jogan-relay')
@@ -380,7 +377,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(429, {'error': 'rate-limited'})
         k = q.get('k') or self.headers.get('X-Relay-Key', '')
         is_routine = key_ok(k, [ROUTINE_KEY])
-        if not (is_routine or key_ok(k, VIEW_KEYS) or (PUBLIC_VIEW and u.path in PUBLIC_PATHS)):
+        if not (is_routine or (PUBLIC_VIEW and u.path in PUBLIC_PATHS)):
             return self.send_json(401, {'error': 'bad-key'})
         try:
             d = date.fromisoformat(q['date']) if q.get('date') else datetime.now(KST).date()
@@ -423,8 +420,9 @@ class Handler(BaseHTTPRequestHandler):
         if not rate_ok(('fb', ip), 10):
             return self.send_json(429, {'error': 'rate-limited'})
         k = q.get('k') or self.headers.get('X-Relay-Key', '')
-        if not (PUBLIC_FEEDBACK or key_ok(k, VIEW_KEYS + [ROUTINE_KEY])):
-            return self.send_json(401, {'error': 'bad-key'})
+        if not key_ok(k, [ROUTINE_KEY]):   # 키 없는 의견은 대시보드 주소에서 온 것만 받는다
+            if not PUBLIC_VIEW: return self.send_json(401, {'error': 'bad-key'})
+            if self.headers.get('Origin') not in ORIGINS: return self.send_json(403, {'error': 'bad-origin'})
         try:
             n = int(self.headers.get('Content-Length') or 0)
         except ValueError:
@@ -445,10 +443,9 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
     if not (CID and CSECRET): sys.exit('TOSS_CLIENT_ID / TOSS_CLIENT_SECRET 없음 (/etc/jogan-relay.env)')
-    if not (VIEW_KEYS or ROUTINE_KEY): sys.exit('VIEW_KEYS 또는 ROUTINE_KEY 가 하나는 있어야 한다')
+    if not ROUTINE_KEY: sys.exit('ROUTINE_KEY 없음 (/etc/jogan-relay.env)')
     srv = ThreadingHTTPServer(('127.0.0.1', PORT), Handler)
-    log.info('jogan-relay 127.0.0.1:%d · 업스트림 %s · Origin %s · 화면용 조회 키 없이 %s · 의견 쓰기 키 없이 %s', PORT, API, ORIGINS,
-             '열림' if PUBLIC_VIEW else '닫힘', '열림' if PUBLIC_FEEDBACK else '닫힘')
+    log.info('jogan-relay 127.0.0.1:%d · 업스트림 %s · Origin %s · 화면용(시세·의견) %s', PORT, API, ORIGINS, '열림' if PUBLIC_VIEW else '닫힘')
     srv.serve_forever()
 
 if __name__ == '__main__':

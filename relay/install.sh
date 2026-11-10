@@ -26,11 +26,10 @@ if [ ! -f "$ENVF" ]; then
   echo "== 토스 Open API 키 입력 (화면에 표시되지 않음)"
   read -rp  '  client_id: '     TID
   read -rsp '  client_secret: ' TSEC; echo
-  VK=$(python3 -c 'import secrets;print(secrets.token_urlsafe(18))')
   RK=$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')
   ( umask 077
-    printf 'TOSS_CLIENT_ID=%s\nTOSS_CLIENT_SECRET=%s\nVIEW_KEYS=%s\nROUTINE_KEY=%s\nALLOW_ORIGINS=https://charismak89.github.io\n' \
-      "$TID" "$TSEC" "$VK" "$RK" > "$ENVF" )
+    printf 'TOSS_CLIENT_ID=%s\nTOSS_CLIENT_SECRET=%s\nROUTINE_KEY=%s\nALLOW_ORIGINS=https://charismak89.github.io\n' \
+      "$TID" "$TSEC" "$RK" > "$ENVF" )
   chmod 600 "$ENVF"; unset TID TSEC
   NEW_KEYS=1
 fi
@@ -90,17 +89,17 @@ echo "== 상태"
 systemctl is-active jogan-relay caddy | paste -sd' ' || true
 curl -s http://127.0.0.1:8787/healthz || echo '중계기 응답 없음 — sudo journalctl -u jogan-relay -n 30 --no-pager'; echo
 
-# 키는 처음 설치할 때만 이 터미널에 보여 준다. 갱신 때 출력은 캡처해 공유해도 되게 키를 찍지 않는다
+# 루틴 키는 처음 설치할 때만 이 터미널에 보여 준다. 갱신 때 출력은 캡처해 공유해도 되게 키를 찍지 않는다.
+# 지인 키는 2026-11-10 없앴다 — 화면은 공개 주소 하나로 연다. 옛 env 에 남은 VIEW_KEYS 줄은 읽지 않으니 그대로 둬도 된다
 . "$ENVF"
-VK1=${VIEW_KEYS%%,*}
 echo
 echo "== 확인 명령 (1~2분 뒤 인증서가 붙으면 성공)"
 echo "  curl -s https://$HOST/healthz"
+echo "  curl -s -o /dev/null -w '%{http_code}\n' https://$HOST/v1/live      # 200"
+echo
+echo "== 대시보드 주소 (키 없음)"
+echo "  https://charismak89.github.io/jisikin-jogan/"
 if [ "$NEW_KEYS" = 1 ]; then
-  echo "  curl -s 'https://$HOST/v1/live?k=$VK1'"
-  echo
-  echo "== 지인 공유 링크 (이 링크로 처음 연 브라우저는 키를 기억한다)"
-  echo "  https://charismak89.github.io/jisikin-jogan/#k=$VK1"
   echo
   echo "== 루틴용 키 — Claude 환경 설정의 Network secrets(또는 환경 변수)에 넣는다"
   echo "  JJ_RELAY_URL=https://$HOST"
