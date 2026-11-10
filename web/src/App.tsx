@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import type { DayData } from './types'
-import { Live, readRelayKey } from './lib/live'
+import { Live, dropOldKey } from './lib/live'
 import { Hero } from './components/Hero'
 import { LiveChart } from './components/LiveChart'
 import { K20Chart } from './components/K20Chart'
@@ -46,7 +46,8 @@ export default function App() {
     fetch(site('day.json'), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
       .then(setData, () => setErr('오늘 데이터(day.json)가 아직 없습니다. 다음 회차(평일 07:45) 발행부터 보입니다. 지금은 기존 화면을 이용해 주세요.'))
   }, [])
-  const live = useMemo(() => (data ? new Live(data.day, readRelayKey()) : null), [data])
+  useEffect(dropOldKey, [])
+  const live = useMemo(() => (data ? new Live(data.day) : null), [data])
   useEffect(() => (live ? live.start() : undefined), [live])
   // 오늘 회차가 아직 없으면(발행 전·실패·휴장일) day.json 은 지난 회차 것이다. 날짜만 보고는 놓치기 쉬워 띠로 알린다(2026-11-10)
   const past = !!data && kstDay(Date.now()) > data.issue
@@ -70,8 +71,8 @@ export default function App() {
               <div className="text-[13px] font-semibold text-brand">제 {data.issue_no} 호 · 07:45 발행</div>
               <h1 className="text-[22px] font-extrabold tracking-tight text-tx">{data.date_label}</h1>
             </div>
-            {/* 의견 쓰기는 지인 링크(#k=)로 연 브라우저만 — 중계기가 다시 지인 키를 요구한다(2026-11-10) */}
-            <div className="flex items-center gap-2">{live && live.KRX && live.RK && <Feedback live={live} tab={tab} />}</div>
+            {/* 의견은 누구나 보낸다 — 지인 키는 2026-11-10 없앴다 */}
+            <div className="flex items-center gap-2">{live && live.KRX && <Feedback live={live} tab={tab} />}</div>
           </div>
           {past && (
             <p role="status" className="mb-4 rounded-2xl bg-card px-4 py-3 text-[13px] leading-snug text-tx2 shadow-[var(--shadow)]">
