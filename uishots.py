@@ -5,6 +5,9 @@
   python3 uishots.py                     대시보드·차트 크게 보기·의견 창·브리핑(전부 펼치기)을 390·1440px, 라이트·다크로
   python3 uishots.py --intraday          + 중계기 /v1/intraday·/v1/live 응답을 가짜 장중 봉으로 바꿔 장중 선을 그린다
   python3 uishots.py --width 820         폭을 바꾼다 (여러 번 써도 된다)
+  python3 uishots.py --day <파일>        day.json 대신 그 파일을 화면에 준다 — 지난 회차 띠·월요일 야간 표식처럼 오늘 데이터로는 안 나오는 상태를 볼 때.
+                                         예: git show <월요일 brief 커밋>:day.json > /tmp/day-mon.json (2026-11-10 — 이 옵션이 없어 일회용 스크립트를 네 개 짰다)
+  python3 uishots.py --hash '#brief'     주소 뒤에 붙인다 (옛 지인 링크 '#k=…' 가 정리되는지 볼 때 등)
   python3 uishots.py --out <폴더>        사진을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
 
 판정은 하지 않는다. 가로 넘침·콘솔 오류·4xx 는 uicheck.py 로 본다. 이 스크립트는 눈으로 볼 사진만 만든다.
@@ -27,18 +30,20 @@ def fake_intraday(day):
         items[e['key']] = {'bars': bars, 'open': bars[0][1], 'last': bars[-1][1]}
     return json.dumps({'items': items})
 
-def shoot(b, origin, w, h, dark, out, relay, body):
+def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag=''):
     ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme='dark' if dark else 'light')
     p = ctx.new_page()
     def route(r):
         u = r.request.url
+        if day_body and u.split('?')[0].endswith('/day.json'):
+            return r.fulfill(status=200, content_type='application/json', body=day_body)
         if body and relay and u.startswith(relay):
             return r.fulfill(status=200, content_type='application/json', body=body, headers={'Access-Control-Allow-Origin': '*'})
         if u.startswith((origin,) + ALLOW): return r.continue_()
         r.abort()
     p.route('**/*', route)
     p.on('pageerror', lambda e: print('       pageerror: %s' % str(e)[:200]))
-    p.goto(origin + BASE, wait_until='load'); p.wait_for_timeout(1500)
+    p.goto(origin + BASE + frag, wait_until='load'); p.wait_for_timeout(1500)
     sfx, shots = '%d%s' % (w, '-dark' if dark else ''), []
     def snap(name, full):
         f = os.path.join(out, '%s-%s.png' % (name, sfx)); p.screenshot(path=f, full_page=full); shots.append(os.path.basename(f))
@@ -65,7 +70,10 @@ def main():
     out = (args('--out') or [tempfile.mkdtemp(prefix='uishots-')])[0]
     os.makedirs(out, exist_ok=True)
     widths = [(int(x), 900) for x in args('--width')] or [(390, 844), (1440, 900)]
-    day = json.load(open(os.path.join(ROOT, 'day.json'), encoding='utf-8'))['day']
+    day_file = (args('--day') or [None])[0]
+    day_body = open(day_file, encoding='utf-8').read() if day_file else None
+    frag = (args('--hash') or [''])[0]
+    day = json.loads(day_body or open(os.path.join(ROOT, 'day.json'), encoding='utf-8').read())['day']
     relay, body = day.get('relay'), None
     if '--intraday' in sys.argv:
         if relay: body = fake_intraday(day)
@@ -77,11 +85,11 @@ def main():
         with sync_playwright() as pw:
             b = pw.chromium.launch(**({'executable_path': CHROMIUM} if os.path.exists(CHROMIUM) else {}))
             for w, h in widths:
-                for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body)
+                for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag)
             b.close()
     finally:
         srv.shutdown(); srv.server_close()
-    print('UISHOTS %s사진 %s' % ('가짜 장중 봉 · ' if body else '', out))
+    print('UISHOTS %s%s사진 %s' % ('가짜 장중 봉 · ' if body else '', ('day=%s · ' % day_file) if day_file else '', out))
     return 0
 
 if __name__ == '__main__':
