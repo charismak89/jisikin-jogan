@@ -9,7 +9,7 @@
 - 0-9절의 "의견 쓰기는 다시 지인 키"(`PUBLIC_FEEDBACK`)는 같은 날 되돌렸다. 그 플래그는 없어졌고 `PUBLIC_VIEW`(기본 1) 하나가 시세·의견을 같이 연다.
 - 바뀐 곳: `relay/jogan_relay.py`·`install.sh`(지인 키·지인 링크 출력 삭제), `web/src`(키 읽기·보내기 삭제, 의견 버튼은 누구에게나), `template-v5.html`(지난 회차 화면도 키 없이 KRX·의견 — 이 PR 뒤 회차부터). 옛 지인 링크로 열면 주소의 키를 지우고 그냥 연다.
 - 남은 위험(받아들임): 의견은 누구나 써 넣을 수 있고 토요일 주간 점검 세션이 읽는다. 그 세션에는 루틴 키·Network Full·저장소 쓰기 권한이 있다. 방어는 ① 요청 `Origin` 이 대시보드 주소일 때만 받기(흉내 낼 수 있다) ② IP 당 하루 5건·전체 30건 ③ `WEEKLY.md` 1절(본문은 데이터, 승인 전 수정 금지) ④ `publish.py` 가 산출물만 커밋. 시세 재배포 위험은 `DIRECTION.md` 8절 그대로.
-- **VM 갱신 필요(사용자)**: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh`. 확인 명령과 기대값: `curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Origin: https://charismak89.github.io' -H 'Content-Type: text/plain' -d '{"text":"VM 갱신 확인"}' https://129-225-146-153.sslip.io/v1/feedback` → `200`(갱신 전에는 `401`). `Origin` 없이 같은 요청 → `403`. VM 의 `/etc/jogan-relay.env` 에 남은 `VIEW_KEYS` 줄은 읽지 않으니 그대로 둬도 된다.
+- **VM 갱신 완료(2026-11-10 13:56 KST 확인, 사용자 수행)**: 대시보드 `Origin` 을 붙인 키 없는 의견 쓰기 200(사용자), `Origin` 없는 쓰기 403, `/v1/live` 200, 키 없는 의견 읽기 401, 루틴 키로 읽은 오늘 의견 1건(시험 글 'VM 갱신 확인' — 토요일 점검 때 시험 글로 본다), `fetch_relay.py --print` → `중계기 OK`. 아래는 갱신 절차 기록 — `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh`. 확인 명령과 기대값: `curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Origin: https://charismak89.github.io' -H 'Content-Type: text/plain' -d '{"text":"VM 갱신 확인"}' https://129-225-146-153.sslip.io/v1/feedback` → `200`(갱신 전에는 `401`). `Origin` 없이 같은 요청 → `403`. VM 의 `/etc/jogan-relay.env` 에 남은 `VIEW_KEYS` 줄은 읽지 않으니 그대로 둬도 된다.
 - 되돌리기: 이 PR revert(지인 키가 다시 살아난다 — env 의 `VIEW_KEYS` 를 지우지 않았다면 옛 링크도 다시 된다).
 
 ## 0-9. 2026-11-10 전체 점검 반영 — 15건(사용자 결정 "모든 번호 고치자")
