@@ -19,7 +19,9 @@
 사용법
   python3 score.py            채점하고 calibration.json 에 기록
   python3 score.py --dry-run  기록하지 않고 결과만 출력
-같은 날짜가 이미 기록돼 있으면 다시 기록하지 않는다(멱등).
+같은 날짜가 이미 기록돼 있으면 다시 기록하지 않는다(멱등). 단, 시초가가 기록과 0.05% 넘게 다르면 그 기록을 바꿔 쓴다
+(2026-11-10 — 잘못 적은 시초가로 채점된 기록을 고칠 길이 없었다. 바꾼 기록에는 corrected_from 이 남는다).
+같은 날 다시 돌려 state.json 이 이미 오늘 것이면 발행 커밋 직전 기록을 읽는다(render.read_state).
 
 월요일 반폭 확장 (2026-11-09, CALIBRATION.md H5)
   rule.monday_widen 이 있으면 월요일 코스피 반폭에 |야간선물 마감(토 06:00) 뒤 코스피200 추종가 변화|(perp.json)를 더한다.
@@ -56,17 +58,31 @@ def load_fill(say=False):
         if say: print('중계기 보완 건너뜀 — %s' % e)
     return fill
 
+def load_state(fill, say=False):
+    """직전 회차 state. 같은 날 다시 돌린 경우(state.json 이 이미 오늘 것)는 발행 커밋 직전 기록을 읽는다. 없으면 None."""
+    try:
+        from render import read_state
+        st, status = read_state(issue_day(fill))
+    except Exception:
+        try: return json.load(io.open('state.json', encoding='utf-8'))
+        except Exception: return None
+    if say and status == 'recovered': print('같은 날 다시 돌림 — 발행 커밋 직전 기록(%s 회차)으로 채점한다' % st.get('issue_date'))
+    return None if status == 'none' else st
+
+def differs(a, b):
+    """시초가 두 값이 0.05% 넘게 다른가 (fetch_relay.merge_into 의 불일치 기준과 같다)"""
+    return a is not None and b is not None and abs(a - b) > max(abs(b) * 0.0005, 0.005)
+
 def main():
     dry = '--dry-run' in sys.argv
-    try:
-        state = json.load(io.open('state.json', encoding='utf-8'))
-    except Exception:
+    fill = load_fill(say=True)
+    state = load_state(fill, say=True)
+    if state is None:
         print('채점 불가 — state.json 없음 (직전 전망 없음). 기록하지 않는다.'); return 0
     try:
         cal = json.load(io.open('calibration.json', encoding='utf-8'))
     except Exception:
         print('채점 불가 — calibration.json 을 읽지 못함. 새로 만들지 않는다.'); return 0
-    fill = load_fill(say=True)
 
     fc = state.get('forecast') or {}
     fdate = fc.get('date')
@@ -75,10 +91,7 @@ def main():
         print('채점 불가 — state.forecast 에 date/prev_close 없음'); return 0
 
     recs = cal.setdefault('records', [])
-    if recs and recs[-1].get('date') == fdate:
-        r = recs[-1]
-        print('이미 채점됨 — %s %s (시초가 %s, 갭 %+.2f%%)' % (fdate, r.get('verdict'), r.get('actual_open'), r.get('gap_pct') or 0))
-        print_summary(cal); print_rule(cal, fill); return 0
+    old = recs[-1] if (recs and recs[-1].get('date') == fdate) else None
 
     kospi = (fill.get('prices') or {}).get('KOSPI') or {}
     sc = fill.get('score') or {}
@@ -89,6 +102,9 @@ def main():
         if not od: print('참고 — KOSPI.open_date 가 없어 %s 시초가로 간주한다' % fdate)
     elif num(sc.get('actual_open')) is not None and (sc.get('actual_open_date') in (None, fdate)):
         actual, src = num(sc.get('actual_open')), 'score.actual_open'
+    if old is not None and not differs(actual, num(old.get('actual_open'))):
+        print('이미 채점됨 — %s %s (시초가 %s, 갭 %+.2f%%)' % (fdate, old.get('verdict'), old.get('actual_open'), old.get('gap_pct') or 0))
+        print_summary(cal); print_rule(cal, fill); return 0
     if actual is None:
         why = ('시초가 날짜 %s 가 전망 날짜 %s 와 다름' % (od, fdate)) if (od and od != fdate) else '직전 영업일 코스피 시초가(prices.KOSPI.open)를 확보하지 못함'
         print('채점 불가 — %s. 기록하지 않는다.' % why)
@@ -118,7 +134,12 @@ def main():
         print('경고 개장 왜곡 의심 — %s. 기록은 공식 시가 그대로 남기고 롤백·규칙 통계(analyze.py)에서 뺀다(CALIBRATION.md 채점 예외). 사람이 확인할 것' % ex['detail'])
     if abs(gap) > 15:
         print('경고 갭 %+.1f%% — 시초가나 기준 종가가 잘못됐을 가능성. 기록은 남기되 사람이 확인할 것' % gap)
-    recs.append(rec)
+    if old is not None:   # 시초가가 기록과 다르다 — 잘못 적혔던 기록을 바꿔 쓴다
+        rec['corrected_from'] = old.get('actual_open')
+        recs[-1] = rec
+        print('채점 정정 — %s 기록의 시초가 %s → %s (0.05%% 넘게 달라 기록을 바꿔 쓴다)' % (fdate, old.get('actual_open'), actual))
+    else:
+        recs.append(rec)
     print('%s 회차 — %s (전망 %s~%s / 실제 시초가 %s, 갭 %+.2f%%, 구간 %s)' % (
         fdate, '적중' if verdict == 'hit' else '빗나감',
         '{:,.0f}'.format(low) if low is not None else '—', '{:,.0f}'.format(high) if high is not None else '—',
@@ -248,8 +269,8 @@ def print_rule(cal, fill):
 def score_stocks(dry):
     """삼전·하닉 시초가 채점 → calibration.json stock_records. 코스피 채점이 끝난 뒤 파일을 다시 읽어 붙인다."""
     try:
-        state = json.load(io.open('state.json', encoding='utf-8'))
         fill = load_fill()
+        state = load_state(fill) or {}
         cal = json.load(io.open('calibration.json', encoding='utf-8'))
     except Exception as e:
         print('종목 채점 불가 — %s' % e); return
@@ -258,14 +279,15 @@ def score_stocks(dry):
     if not items or not fdate:
         print('종목 채점 — 직전 회차에 종목 전망 없음 (v5 이전 회차)'); return
     recs = cal.setdefault('stock_records', [])
-    done = {(r.get('date'), r.get('code')) for r in recs}
+    done = {(r.get('date'), r.get('code')): i for i, r in enumerate(recs)}
     added = []
     for code, f in sorted(items.items()):
-        if (fdate, code) in done:
-            print('종목 채점 — %s %s 이미 기록됨' % (fdate, code)); continue
         p = (fill.get('prices') or {}).get(code) or {}
         op, od = num(p.get('open')), p.get('open_date')
         low, high, pc = num(f.get('low')), num(f.get('high')), num(f.get('prev_close'))
+        at = done.get((fdate, code))
+        if at is not None and not (od == fdate and differs(op, num(recs[at].get('actual_open')))):
+            print('종목 채점 — %s %s 이미 기록됨' % (fdate, code)); continue
         if op is None or od != fdate or not pc:
             print('종목 채점 불가 — %s 시초가(prices.%s.open, open_date=%s) 없음 또는 날짜 불일치' % (code, code, fdate)); continue
         gap = (op / pc - 1) * 100
@@ -276,7 +298,12 @@ def score_stocks(dry):
                'band_width_pct': round((high - low) / pc * 100, 2), 'inputs': f.get('inputs'),
                'half_width_pct': f.get('half_width_pct'), 'monday_widen_pct': f.get('monday_widen_pct'),   # 2026-11-09 — H6 반사실(확장 없는 구간) 계산용
                'source': '%s 회차 채점 (score.py, prices.%s.open)' % (fill.get('issue_date') or '', code)}
-        recs.append(rec); added.append(rec)
+        if at is not None:   # 시초가가 기록과 다르다 — 바꿔 쓴다
+            rec['corrected_from'] = recs[at].get('actual_open'); recs[at] = rec
+            print('종목 채점 정정 — %s %s 시초가 %s → %s' % (fdate, code, rec['corrected_from'], '{:,.0f}'.format(op)))
+        else:
+            recs.append(rec)
+        added.append(rec)
         print('종목 %s %s — 예측 %s~%s / 실제 시초가 %s (갭 %+.2f%%) → 구간 %s' % (code, fdate, '{:,.0f}'.format(low), '{:,.0f}'.format(high),
               '{:,.0f}'.format(op), gap, '안' if rec['in_range'] else '밖'))
     for code in sorted({r['code'] for r in recs}):

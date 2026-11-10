@@ -38,7 +38,7 @@
    ]},
   {"id": "k200n", "label": "코스피200 야간선물", "fields": ["prices.K200N.close"],
    "routes": [
-    {"id": "sonmul", "status": "primary", "how": "https://sonmul.co.kr/", "verified": "2026-10-21", "note": "9/14 도입 뒤 휴장 회차 말고는 빠진 적 없음"},
+    {"id": "sonmul", "status": "primary", "how": "https://sonmul.co.kr/", "verified": "2026-10-21", "note": "9/14 도입 뒤 휴장 회차 말고는 빠진 적 없음. 2026-11-10 부터 render.py 가 기준 시각(직전 야간 세션 마감일)과 같은 시각 코스피200 추종가(pnight, 17회 |차이| 최대 1.00%p)로 대조하고 어긋나면 게이트에 건다"},
     {"id": "none", "status": "candidate", "how": "대안 없음 — 단일 경로", "verified": null, "note": "investing korea-200-futures 는 기준이 달라 쓰지 말 것(CONTEXT.md). 주간 점검이 대안을 찾는다"}
    ]},
   {"id": "k200f", "label": "코스피200 주간선물", "fields": ["prices.K200F.close"],
@@ -54,7 +54,7 @@
    ]},
   {"id": "us_fut", "label": "미국 지수선물(ES·NQ)", "fields": ["signals.us_fut.es_pct", "signals.us_fut.nq_pct"],
    "routes": [
-    {"id": "investing", "status": "primary", "how": "https://kr.investing.com/indices/us-spx-500-futures · /nq-100-futures (WebFetch 만, curl 403)", "verified": "2026-10-21", "note": "기록 전용"}
+    {"id": "investing", "status": "primary", "how": "https://kr.investing.com/indices/us-spx-500-futures · /nq-100-futures (WebFetch 만, curl 403)", "verified": "2026-11-10", "note": "기록 전용. 미국 표준시 기간(11월 첫 일요일 ~ 3월 둘째 일요일)에는 07:45 KST 가 CME 일일 휴장 중이라 전일 미국장 전체 등락이 찍힌다(render.py signals.us_fut_basis=prev_session, analyze.py 는 이 기록을 뺀다)"}
    ]},
   {"id": "perp", "label": "해외 24시간 추종가", "fields": ["signals.perp_asof"],
    "routes": [

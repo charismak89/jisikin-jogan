@@ -15,15 +15,18 @@
                                  2026-10-21 추가: 미국 일봉은 us_until(발행일) 전날까지 5개, 수급은 그날 것(until=date),
                                  fx_close(그날 15:30 매매기준율), stock_flow(삼전·하닉 투자자별 순매수 주식 수)
   /v1/calendar?date=YYYY-MM-DD   국내·미국 장 운영(전·당·익 영업일) — 휴장일 대조용 — 루틴 키
-  POST /v1/feedback              대시보드 '의견' 버튼. 본문 JSON {cat, text, nick, ctx} → STATE_DIR/feedback.jsonl — 키 없이(PUBLIC_VIEW) 또는 지인 키
-  2026-10-19 부터 대시보드 화면용 셋(live·intraday·의견 쓰기)은 키 없이 연다. 메인 주소가 지인 키 없이도 KRX 시세를 쓰게 하기 위해서다.
-  업스트림 호출은 캐시가 묶는다(live 5초, intraday 오늘 20초·지난날 1시간, 날짜는 30일 안). IP 당 분당 120회 제한은 그대로다.
+  POST /v1/feedback              대시보드 '의견' 버튼. 본문 JSON {cat, text, nick, ctx} → STATE_DIR/feedback.jsonl — 지인 키 (PUBLIC_FEEDBACK=1 이면 키 없이)
+  2026-10-19 부터 대시보드 화면용 조회 둘(live·intraday)은 키 없이 연다. 메인 주소가 지인 키 없이도 KRX 시세를 쓰게 하기 위해서다.
+  2026-11-10 의견 쓰기는 다시 지인 키를 요구한다 — 이 글은 토요일 주간 점검 세션(Claude)이 읽는데, 저장소가 Public 이라 누구나 써 넣을 수 있었다.
+  업스트림 호출은 캐시가 묶는다(live 5초, intraday 오늘 20초·지난날 1시간, 날짜는 30일 안). 같은 키로 동시에 온 요청은 한 번만 업스트림을 부른다(2026-11-10).
+  IP 당 분당 120회 제한은 그대로다.
   GET  /v1/feedback?since=YYYY-MM-DD   그날부터 쌓인 의견 (토요일 주간 점검용)        — 루틴 키
 
 환경 변수 (/etc/jogan-relay.env)
   TOSS_CLIENT_ID, TOSS_CLIENT_SECRET   토스 WTS 설정 > Open API 에서 받은 값
   VIEW_KEYS                            지인용 키, 콤마 구분
-  PUBLIC_VIEW                          1(기본)이면 live·intraday·의견 쓰기를 키 없이 연다. 0 이면 예전처럼 지인 키를 요구한다
+  PUBLIC_VIEW                          1(기본)이면 live·intraday 를 키 없이 연다. 0 이면 예전처럼 지인 키를 요구한다
+  PUBLIC_FEEDBACK                      0(기본)이면 의견 쓰기에 지인 키를 요구한다. 1 이면 키 없이 받는다
   ROUTINE_KEY                          루틴용 키 (/v1/daily 와 나머지 전부 허용)
   ALLOW_ORIGINS                        CORS 허용 Origin, 콤마 구분 (기본 https://charismak89.github.io)
   STATE_DIR                            토큰·의견 보관 (기본 /var/lib/jogan-relay)
@@ -41,6 +44,7 @@ CSECRET = os.environ.get('TOSS_CLIENT_SECRET', '')
 VIEW_KEYS = [k.strip() for k in os.environ.get('VIEW_KEYS', '').split(',') if k.strip()]
 ROUTINE_KEY = os.environ.get('ROUTINE_KEY', '').strip()
 PUBLIC_VIEW = os.environ.get('PUBLIC_VIEW', '1').strip().lower() not in ('0', 'false', 'no', 'off')
+PUBLIC_FEEDBACK = os.environ.get('PUBLIC_FEEDBACK', '0').strip().lower() in ('1', 'true', 'yes', 'on')
 PUBLIC_PATHS = ('/v1/live', '/v1/intraday')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
 ORIGINS = [o.strip() for o in os.environ.get('ALLOW_ORIGINS', 'https://charismak89.github.io').split(',') if o.strip()]
 STATE_DIR = os.environ.get('STATE_DIR', '/var/lib/jogan-relay')
@@ -118,15 +122,31 @@ def toss(path, params=None, retry=True):
         raise Upstream(e.code, code, err.get('message', ''))
 
 # ---------- 캐시 ----------
-_cache, _clock = {}, threading.Lock()
+# 같은 키로 동시에 온 요청은 하나만 업스트림을 부르고 나머지는 그 결과를 기다린다. 전에는 캐시가 빈 순간에 온 요청이
+# 저마다 토스를 불러, 한 IP 가 캐시에 없는 날짜를 몰아 요청하면 토스 호출이 요청 수 × 18 로 늘었다(2026-11-10).
+# 실패도 ERR_TTL 초 동안 기억한다 — 업스트림이 죽었을 때 줄 선 요청이 차례로 10초씩 기다리지 않게.
+_cache, _clock, _klocks = {}, threading.Lock(), {}
+ERR_TTL, CACHE_MAX = 3, 300
 def cached(key, ttl, fn):
-    now = time.time()
-    with _clock:
+    def fresh():
         hit = _cache.get(key)
-        if hit and now - hit[0] < ttl: return hit[1]
-    val = fn()
-    with _clock: _cache[key] = (now, val)
-    return val
+        return hit if hit and time.time() - hit[0] < (ttl if hit[2] is None else min(ttl, ERR_TTL)) else None
+    with _clock:
+        hit = fresh()
+        lk = None if hit else _klocks.setdefault(key, threading.Lock())
+    if not hit:
+        with lk:
+            with _clock: hit = fresh()
+            if not hit:
+                try: hit = (time.time(), fn(), None)
+                except Exception as e: hit = (time.time(), None, e)
+                with _clock:
+                    _cache[key] = hit
+                    if len(_cache) > CACHE_MAX:   # 오래된 것부터 버린다(루틴 키 요청은 날짜가 제각각이라 끝없이 쌓일 수 있다)
+                        for k, _ in sorted(_cache.items(), key=lambda kv: kv[1][0])[:len(_cache) - CACHE_MAX]:
+                            _cache.pop(k, None); _klocks.pop(k, None)
+    if hit[2] is not None: raise hit[2]
+    return hit[1]
 
 def iso_ms(s):
     return int(datetime.fromisoformat(s.replace('Z', '+00:00')).timestamp() * 1000)
@@ -200,7 +220,7 @@ def daily(d, us_until=None):
             if c and k: c = dict(c, nxt_open=c['open'], nxt_close=c['close'], open=k['open'], close=k['close'], src=k['src'], complete=k['complete'])
             elif c: c['src'] = 'toss-1d'   # 1분봉이 없는 날(보관 기간 지남) — 시가·종가는 NXT 통합값이라 KRX 공식값과 다를 수 있다
             out['kr'][s] = c
-        except Upstream as e: out['errors'].append('%s %s' % (s, e))
+        except Exception as e: out['errors'].append('%s %s' % (s, str(e)[:120]))
     # 미국 일봉의 날짜는 미국 거래일 (현지 자정을 KST 로 표기 — 10/20 봉이 2026-10-20T13:00+09:00).
     # us_until(발행일) 00:00 KST 이전 봉만 받는다 — 발행일 아침에는 그 전날 미국 거래일 봉이 마지막이다. 없으면 date 다음 날
     ub = us_until or (d + timedelta(days=1))
@@ -210,10 +230,10 @@ def daily(d, us_until=None):
                                            'before': datetime(ub.year, ub.month, ub.day, tzinfo=KST).isoformat()}) or {}
             cs = res.get('candles') or []
             out['us'][s] = [{'date': c['timestamp'], 'close': float(c['closePrice'])} for c in cs]
-        except Upstream as e: out['errors'].append('%s %s' % (s, e))
+        except Exception as e: out['errors'].append('%s %s' % (s, str(e)[:120]))
     for s in DAILY_IDX:
         try: out['index'][s] = day_candle('/api/v1/market-indicators/%s/candles' % s, {}, d)
-        except Upstream as e: out['errors'].append('%s %s' % (s, e))
+        except Exception as e: out['errors'].append('%s %s' % (s, str(e)[:120]))
     try:
         fx = toss('/api/v1/exchange-rate', {'baseCurrency': 'USD', 'quoteCurrency': 'KRW'}) or {}
         out['fx'] = {'mid': float(fx['midRate']), 'from': fx.get('validFrom')}
@@ -260,7 +280,18 @@ def calendar(d):
 FEEDBACK = os.path.join(STATE_DIR, 'feedback.jsonl')
 FB_CATS = ('오류', '제안', '예측', '기타')
 FB_DAY_MAX, FB_FILE_MAX, FB_BODY_MAX = 30, 2000000, 8192
+FB_IP_DAY_MAX = 5   # 한 IP 가 하루 30건을 혼자 채워 남의 의견을 막지 못하게(2026-11-10). 세는 값은 메모리에만 두고 재시작하면 지워진다
 _fblock = threading.Lock()
+_fb_ip = {}
+
+def fb_ip_ok(ip):
+    today = datetime.now(KST).date().isoformat()
+    with _fblock:
+        for k in [k for k in _fb_ip if k[0] != today]: _fb_ip.pop(k, None)
+        n = _fb_ip.get((today, ip), 0)
+        if n >= FB_IP_DAY_MAX: return False
+        _fb_ip[(today, ip)] = n + 1
+        return True
 
 class Reject(Exception):
     def __init__(self, status, code): super().__init__(code); self.status, self.code = status, code
@@ -392,7 +423,7 @@ class Handler(BaseHTTPRequestHandler):
         if not rate_ok(('fb', ip), 10):
             return self.send_json(429, {'error': 'rate-limited'})
         k = q.get('k') or self.headers.get('X-Relay-Key', '')
-        if not (PUBLIC_VIEW or key_ok(k, VIEW_KEYS + [ROUTINE_KEY])):
+        if not (PUBLIC_FEEDBACK or key_ok(k, VIEW_KEYS + [ROUTINE_KEY])):
             return self.send_json(401, {'error': 'bad-key'})
         try:
             n = int(self.headers.get('Content-Length') or 0)
@@ -401,7 +432,9 @@ class Handler(BaseHTTPRequestHandler):
         if n <= 0 or n > FB_BODY_MAX:
             return self.send_json(413 if n > FB_BODY_MAX else 400, {'error': 'bad-length'})
         try:
-            rec = save_feedback(self.rfile.read(n))
+            raw = self.rfile.read(n)
+            if not fb_ip_ok(ip): raise Reject(429, 'daily-limit')
+            rec = save_feedback(raw)
         except Reject as e:
             return self.send_json(e.status, {'error': e.code})
         except Exception:
@@ -414,7 +447,8 @@ def main():
     if not (CID and CSECRET): sys.exit('TOSS_CLIENT_ID / TOSS_CLIENT_SECRET 없음 (/etc/jogan-relay.env)')
     if not (VIEW_KEYS or ROUTINE_KEY): sys.exit('VIEW_KEYS 또는 ROUTINE_KEY 가 하나는 있어야 한다')
     srv = ThreadingHTTPServer(('127.0.0.1', PORT), Handler)
-    log.info('jogan-relay 127.0.0.1:%d · 업스트림 %s · Origin %s · 화면용 키 없이 %s', PORT, API, ORIGINS, '열림' if PUBLIC_VIEW else '닫힘')
+    log.info('jogan-relay 127.0.0.1:%d · 업스트림 %s · Origin %s · 화면용 조회 키 없이 %s · 의견 쓰기 키 없이 %s', PORT, API, ORIGINS,
+             '열림' if PUBLIC_VIEW else '닫힘', '열림' if PUBLIC_FEEDBACK else '닫힘')
     srv.serve_forever()
 
 if __name__ == '__main__':

@@ -85,8 +85,12 @@ if rule.get('half_width_mode') == 'scaled':
     if len(A) >= 10: print('  → 10회 도달. 비례 < 고정이면 half_width_mode 를 fixed 로 되돌린다. 비례 < 8/10 이면 q 재추정을 금요일 후보로')
 
 # 후보 3 — 미국 지수선물(야간 마감 뒤 움직임)이 야간선물 잔차를 설명하는가. 2026-10-02 회차부터 기록
-E = [r for r in N if r['signals'].get('es_pct') is not None]
-print('\n미국 지수선물 기록 %d건' % len(E))
+# 2026-11-10: 미국 표준시 기간(11월 첫 일요일 ~ 3월 둘째 일요일)에는 07:45 KST 가 CME 일일 휴장 중이라 페이지 등락률이
+# 방금 끝난 세션 전체의 등락이다(render.us_fut_basis = prev_session). 그 기록은 '야간 마감 뒤 움직임'이 아니므로 뺀다
+from render import us_fut_basis
+EA = [r for r in N if r['signals'].get('es_pct') is not None]
+E = [r for r in EA if us_fut_basis(date.fromisoformat(r['date'])) != 'prev_session']
+print('\n미국 지수선물 기록 %d건 (전일 세션 등락이 찍힌 %d건 제외 — 미국 표준시 기간)' % (len(E), len(EA) - len(E)))
 if len(E) >= 5:
     xs = [r['signals']['es_pct'] for r in E]; ys = [r['gap_pct'] - r['signals']['k200n_pct'] for r in E]
     print('잔차(갭 − 야간) vs ES 상관 r=%.2f' % st.correlation(xs, ys))

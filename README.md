@@ -33,7 +33,7 @@
 | `template.html` / `fill.py` | v1 잔재. v2 가 안정되면 삭제 | — |
 
 ## 발행 경로
-- 자동: 예약 세션이 `render.py` 검증(`GATE PASS`)을 통과하면 `publish.py --push` 로 바로 올린다. 토큰은 비공개 Notion 페이지 `jisikin-jogan deploy token` 에서 읽는다.
+- 자동: 예약 세션이 `render.py` 검증(`GATE PASS`)을 통과하면 `publish.py --push` 로 바로 올린다. 토큰은 쓰지 않는다 — 루틴에 저장소가 붙어 있으면 git 프록시가 자격증명을 넣는다(`RUNBOOK.md` 8절). 2026-09 의 Notion 배포 토큰 경로는 폐기했다.
 - 수동(폴백): `publish.bat` 은 2026-10-19 뒤로 쓰지 않는다. GATE HOLD 는 `claude/hold-<날짜>` 브랜치를 머지하고, push 가 전부 실패하면 루틴 저장소 부착을 고친 뒤 Run now(UPDATE.md).
 
 ## 최초 1회 설정

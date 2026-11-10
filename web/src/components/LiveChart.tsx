@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { Bar, Pt } from '../types'
 import { band, type Live } from '../lib/live'
-import { arrow, dir, hm, money, nf, sg, tk } from '../lib/fmt'
+import { arrow, dir, hm, kstDay, md, money, nf, sg, tk } from '../lib/fmt'
 import { Card, CardHead, Cap } from './ui/card'
 import { cn } from '../lib/cn'
 
@@ -99,6 +99,9 @@ export function LiveChart({ live }: { live: Live }) {
   const col = last != null && last < 0 ? 'var(--dn)' : 'var(--up)'
   const poly = (pts: (Bar | Pt)[]) => pts.map((p) => X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1)).join(' ')
   const kx = live.useKrx(e), now = Date.now()
+  // 야간선물 마감 눈금 — day.json 의 t_night 그대로(평일 06:00, 월요일은 토 06:00 이라 날짜를 붙인다). 옛 회차 기록은 05:00 이다
+  const nightOther = kstDay(D.t_night) !== D.issue
+  const nightLabel = (nightOther ? md(kstDay(D.t_night)) + ' ' : '') + hm(D.t_night)
   const afterClose = kx && e.key !== 'KOSPI' && now > D.t_close + 6e4 && ses.length > 0
 
   const showTip = (clientX: number) => {
@@ -181,7 +184,9 @@ export function LiveChart({ live }: { live: Live }) {
             {pre.length > 1 && <polyline points={poly(pre)} fill="none" stroke="var(--tx3)" strokeWidth={1.4} />}
             {tail.length > 1 && <polyline points={poly(tail)} fill="none" stroke="var(--tx2)" strokeWidth={1.6} />}
             {e.night != null && (() => { const nx = X(D.t_night), ny = Y(e.night); return <g><path d={`M${nx} ${ny - 5}L${nx + 5} ${ny}L${nx} ${ny + 5}L${nx - 5} ${ny}Z`} fill="var(--brand)" />
-              <text x={nx - 7} y={ny + 3.5} textAnchor="end" fontSize={9} fill="var(--tx2)">야간 {sg(e.night)}</text></g> })()}
+              {/* 마감 시각을 표식 글자에 같이 쓴다(06:00 눈금은 09:00 과 붙어 빠진다). 월요일은 표식이 토 06:00 자리(왼쪽 끝)라 글자를 오른쪽에 둔다. 선 위에 겹쳐도 읽히게 카드색 테두리를 두른다 */}
+              <text x={nx < L + 96 ? nx + 7 : nx - 7} y={ny + 3.5} textAnchor={nx < L + 96 ? 'start' : 'end'} fontSize={9} fill="var(--tx2)"
+                stroke="var(--card)" strokeWidth={3} paintOrder="stroke" strokeLinejoin="round">야간 {nightLabel} {sg(e.night)}</text></g> })()}
             {ses.length > 0 ? <g>
                 <polyline points={poly(ses)} fill="none" stroke={col} strokeWidth={2} strokeLinejoin="round" />
                 {op != null && <circle cx={xo} cy={Y(op)} r={4.5} fill="var(--card)" stroke={col} strokeWidth={2} />}
@@ -200,9 +205,9 @@ export function LiveChart({ live }: { live: Live }) {
           {grid.map((g) => <text key={g} x={L - 5} y={Y(g) + 3.5} textAnchor="end" fontSize={9} fill="var(--tx3)">{Math.abs(g) < 1e-9 ? '0' : (g > 0 ? '+' : '') + g}</text>)}
           <text x={xo - 4} y={T - 8} textAnchor="end" fontSize={9} fill="var(--tx3)">장외</text>
           <text x={xo + 4} y={T - 8} fontSize={9} fill="var(--tx3)">장중</text>
-          {([[D.t_open, '09:00'], [D.t_prev, '15:30'], [D.t_night, '05:00'], [D.t_open + 108e5, '12:00'], [D.t_close, '15:30']] as [number, string][])
+          {([[D.t_open, '09:00'], [D.t_prev, '15:30'], [D.t_night, nightLabel], [D.t_open + 108e5, '12:00'], [D.t_close, '15:30']] as [number, string][])
             .filter(([t]) => inX(X(t)))
-            .filter(([t], i, arr) => arr.slice(0, i).every(([u]) => Math.abs(X(u) - X(t)) >= 26))   // 겹치는 시각 글자는 뒤의 것을 뺀다(09:00 우선)
+            .filter(([t, s], i, arr) => arr.slice(0, i).every(([u, v]) => Math.abs(X(u) - X(t)) >= (s.length + v.length) * 2.35 + 6))   // 겹치는 시각 글자는 뒤의 것을 뺀다(09:00 우선). 글자 폭은 9px 숫자 한 자 4.7px 로 잡고 6px 띄운다
             .map(([t, s]) => <text key={s + t} x={X(t)} y={H - 6} textAnchor={X(t) > L + PW - 14 ? 'end' : 'middle'} fontSize={9} fill="var(--tx3)">{s}</text>)}
         </svg>
         {tip && (
@@ -222,7 +227,7 @@ export function LiveChart({ live }: { live: Live }) {
         {afterClose && ' · 종가는 KRX 기준입니다(15:40 이후 NXT 애프터마켓 가격은 반영하지 않음)'}
       </p>
       <Cap>
-        왼쪽 — 전일 15:30 ~ 07:45 밤사이 해외 24시간 추종가(07:45 회차 기록, 예측 근거) · 08:00 부터 종목은 NXT 실제가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 토스(KRX) 실제 시세. 중계기가 끊긴 동안만 추종가로 대신 그립니다 ·
+        왼쪽 — 전일 15:30 ~ 07:45 밤사이 해외 24시간 추종가(07:45 회차 기록, 예측 근거) · 세로 점선 — 야간선물 마감 · 08:00 부터 종목은 NXT 실제가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 토스(KRX) 실제 시세. 중계기가 끊긴 동안만 추종가로 대신 그립니다 ·
         오른쪽 위 + · − 로 확대·축소하고, 확대한 뒤에는 좌우로 끌어 옮깁니다. PC 는 마우스 휠도 되고, 더블클릭하면 원래대로 돌아갑니다.
         맨 오른쪽 버튼은 차트를 화면 가득 크게 보여 줍니다(Esc 또는 같은 버튼으로 닫기).
       </Cap>
