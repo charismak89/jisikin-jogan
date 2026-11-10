@@ -17,7 +17,7 @@ relay.json 은 fetch_relay.py 가 만든다(토스 중계기). fill.json 의 빈
 
 종료 코드 0 = OK (경고가 있어도 0). 1 = FAIL (플레이스홀더 누락·타입 오류·구간 역전 등)
 """
-import html, io, json, re, sys, os, math
+import html, io, json, re, subprocess, sys, os, math
 from datetime import datetime, timedelta, timezone, date
 
 KST = timezone(timedelta(hours=9))
@@ -162,6 +162,69 @@ def night_close_ms(d):
     월요일에 주말 움직임이 빠지고 평일에는 05:00~06:00 이 야간선물과 겹쳤다(CALIBRATION.md H2)."""
     return kst_ms(prev_business_day(d) + timedelta(days=1), *NIGHT_CLOSE)
 
+def us_fut_basis(d):
+    """07:45 KST 에 미국 지수선물(ES·NQ) 페이지의 등락률이 무엇을 뜻하는가.
+    'post_close'   — 새 세션이 열린 뒤(미국 서머타임 기간, 07:45 KST = 18:45 ET). 직전 마감 뒤 ~ 지금의 움직임.
+    'prev_session' — CME 일일 휴장(17:00~18:00 ET)·주말 휴장 중(미국 표준시 기간, 07:45 KST = 17:45 ET).
+                     페이지는 방금 끝난 세션 전체의 등락을 보여 준다 — 야간선물 마감 뒤 움직임이 아니다.
+    2026-11-02 회차부터 기록 시각이 07:36 → 06:59 로, |ES| 평균이 0.19% → 1.57% 로 바뀐 원인이다(2026-11-10 점검).
+    판정 못 하면 None."""
+    try:
+        from zoneinfo import ZoneInfo
+        et = datetime(d.year, d.month, d.day, 7, 45, tzinfo=KST).astimezone(ZoneInfo('America/New_York'))
+    except Exception:
+        return None
+    wd, h = et.weekday(), et.hour   # CME Globex: 일 18:00 ~ 금 17:00 ET, 매일 17:00~18:00 휴장
+    closed = h == 17 or (wd == 4 and h >= 17) or wd == 5 or (wd == 6 and h < 18)
+    return 'prev_session' if closed else 'post_close'
+
+NIGHT_XCHECK_PP, NIGHT_XCHECK_REL = 1.5, 0.2   # 야간선물 등락률 vs 같은 시각 추종가(pnight). 10/16~11/9 17회 |차이| 중앙 0.44·최대 1.00%p
+
+def state_before(iso):
+    """발행일 iso 의 발행 커밋(brief: <iso> 발행) 직전 state.json. git 이 없거나 못 찾으면 None."""
+    try:
+        sha = subprocess.run(['git', 'log', '-1', '--format=%H', '--grep=^brief: %s ' % iso], capture_output=True, text=True, timeout=20).stdout.strip()
+        if not sha: return None
+        r = subprocess.run(['git', 'show', '%s~1:state.json' % sha], capture_output=True, text=True, timeout=20)
+        return json.loads(r.stdout) if r.returncode == 0 else None
+    except Exception:
+        return None
+
+def read_state(d=None):
+    """state.json → (state, 상태). render.py·score.py 가 같이 쓴다.
+    state.closes 는 '직전 영업일 회차가 남긴 종가'여야 등락률 기준이 된다(2026-11-10 재연: 아니면 틀린 등락률이 GATE PASS 로 나갔다).
+      ok        직전 영업일 회차의 기록
+      none      파일 없음
+      recovered 같은 날 다시 돌린 경우 — state.json 이 이미 오늘 것이라 발행 커밋 직전 것을 git 에서 읽었다
+      stale     직전 영업일 회차가 없다(건너뛴 날) — closes 를 등락률 기준으로 쓰면 안 된다"""
+    try:
+        st = json.load(io.open('state.json', encoding='utf-8'))
+    except Exception:
+        return {}, 'none'
+    got = str(st.get('issue_date') or '')
+    if d is None or not got: return st, 'ok'
+    want = prev_business_day(d).isoformat()
+    if got == want: return st, 'ok'
+    if got == d.isoformat():
+        old = state_before(got)
+        if old: return old, ('recovered' if str(old.get('issue_date') or '') == want else 'stale')
+    return st, 'stale'
+
+def relay_closed_today(d):
+    """holidays.json 에 없는 휴장일을 토스 장 달력(중계기 /v1/calendar)으로 한 번 더 본다. 휴장이면 사유, 아니거나 못 물으면 None.
+    달력 응답이 깨졌을 때 멀쩡한 거래일을 휴장으로 보지 않도록, 오늘은 닫히고 다음 영업일은 열린다고 답할 때만 믿는다."""
+    try:
+        from fetch_relay import get
+        base, key = os.environ.get('JJ_RELAY_URL', '').strip(), os.environ.get('JJ_RELAY_TOKEN', '').strip()
+        if not (base and key): return None
+        kr = (get(base, key, '/v1/calendar?date=%s' % d.isoformat(), timeout=15) or {}).get('kr') or {}
+        t, n = kr.get('today') or {}, kr.get('nextBusinessDay') or {}
+        if t.get('date') == d.isoformat() and t.get('open') is False and n.get('open') is True and str(n.get('date') or '') > d.isoformat():
+            return '토스 장 달력 휴장(holidays.json 에 없음 — 관리 세션이 추가할 것)'
+    except Exception:
+        pass
+    return None
+
 def perp_post_night(perp, d, t_snap=None):
     """perp.json → {key: {'pnight', 'snap', 'post'}}. pnight·snap 은 직전 영업일 15:30 대비 %,
     post 는 야간선물 마감 뒤 스냅샷까지 변화 %. 스냅샷은 fetched_ms(08:59 상한). 못 구한 키는 값이 None."""
@@ -197,7 +260,9 @@ def parse_at(s, d):
         return None
 
 def issue_sources(src, d):
-    """checks.issue.src(B6 출처 3분류 + D3 기사 시각) → (details HTML, day.json 목록, 미확인 건수). 경고만 내고 게이트에는 넣지 않는다."""
+    """checks.issue.src(B6 출처 3분류 + D3 기사 시각) → (details HTML, day.json 목록, 미확인 건수). 경고만 내고 게이트에는 넣지 않는다.
+    origin·at 은 회차가 실제로 읽은 기사의 매체와 시각이다(2026-11-10 — '최초 보도'로 적게 했더니 조회 창 안 재보도를 최초로 적었다).
+    그 재료의 첫 보도가 더 이르다는 걸 알면 first 에 따로 적는다(예: "11/9 05:12 CNBC")."""
     if not src:
         warn('checks.issue.src 없음 — 이슈마다 최초 보도·확산·확인 출처와 기사 시각(at)을 적을 것 (게이트 무관)')
         return '', [], 0
@@ -214,7 +279,8 @@ def issue_sources(src, d):
             warn('이슈 출처 "%s" 기사 시각 %s 가 조회 창(%s ~ %s) 밖 — 묵은 기사인지 확인 (게이트 무관)' % (
                 t, at, '%d/%d %s' % (w0.month, w0.day, w0.strftime('%H:%M')), '%d/%d %s' % (w1.month, w1.day, w1.strftime('%H:%M'))))
         if not ver: unv += 1
-        parts = ['%s — 최초 %s%s' % (t, origin or '미기재', ' (%s)' % at if at else '')]
+        parts = ['%s — 출처 %s%s' % (t, origin or '미기재', ' (%s)' % at if at else '')]
+        if x.get('first'): parts.append('첫 보도 %s' % x.get('first'))
         if mom: parts.append('확산 %s' % mom)
         parts.append('확인 %s' % ver if ver else '확인 출처 없음(미확인)')
         items.append(' · '.join(parts))
@@ -261,22 +327,26 @@ def load_banned():
                 pats.append(piece)
     return pats
 
+def load_internal_terms():
+    """CONTEXT.md '내부 용어' 절의 표 첫 열 — 절차 문서·스크립트에서만 쓰는 말. 독자 화면에 나가면 경고한다(게이트 무관)."""
+    pats = []
+    for m in re.finditer(r'^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$', context_section('내부 용어'), re.M):
+        left = m.group(1)
+        if left in ('쓰지 말 것', '---') or left.startswith('-'): continue
+        pats += [x.strip() for x in left.split('/') if len(x.strip()) >= 2]
+    return pats
+
 # ---------- 본체 ----------
 def main():
     if '--today' in sys.argv:
         d = kst_today()
-        h = holiday_of(d)
+        h = holiday_of(d) or relay_closed_today(d)
         print(('HOLIDAY %s' % h) if h else 'OPEN', d.isoformat())
         return 0
 
     check_only = '--check' in sys.argv
     tpl = io.open(TEMPLATE, encoding='utf-8').read()
     fill = json.load(io.open('fill.json', encoding='utf-8'))
-    try:
-        prev = json.load(io.open('state.json', encoding='utf-8'))
-    except Exception:
-        prev = {}
-        warn('state.json 없음 — 등락률은 fill.json 의 pct_screen 을 쓴다')
     try:
         cal = json.load(io.open('calibration.json', encoding='utf-8'))
     except Exception:
@@ -294,6 +364,18 @@ def main():
         fail('issue_date 형식 오류: %r' % issue_date); d = kst_today()
     if d != kst_today():
         warn('issue_date %s 가 오늘(KST %s)과 다름 — publish 스크립트가 막는다' % (issue_date, kst_today()))
+    prev, prev_status = read_state(d)
+    base_ok = prev_status != 'stale'   # False 면 state.closes 를 등락률 기준으로 쓰지 않는다
+    if prev_status == 'none':
+        warn('state.json 없음 — 등락률은 fill.json 의 pct_screen 을 쓴다')
+    elif prev_status == 'recovered':
+        warn('같은 날 다시 돌림 — state.json 이 이미 %s 것이라 발행 커밋 직전 기록(%s 회차)을 git 에서 읽었다 (게이트 무관)' % (issue_date, prev.get('issue_date')))
+    elif prev_status == 'stale':
+        warn('직전 회차 기록이 %s 것 — 직전 영업일(%s) 회차가 없다. 등락률은 화면값(pct_screen)을 쓰고 EWY·ADR 시사 갭은 비운다. '
+             'pct_screen 이 빠진 종목은 등락률이 미확보로 나가니 모두 채울 것 (게이트 무관)' % (prev.get('issue_date'), prev_business_day(d).isoformat()))
+    made_at = datetime.now(KST)
+    if d == made_at.date() and (made_at.hour, made_at.minute) >= (9, 0):
+        warn('개장(09:00) 뒤에 만든 회차 — %s. 전망이 시초가를 본 뒤의 값일 수 있다. state.forecast.made_at 에 남긴다 (게이트 무관)' % made_at.strftime('%H:%M'))
     DOW = '월화수목금토일'
     V = {}
     V['GENERATED'] = '%sT07:45+09:00' % issue_date
@@ -335,7 +417,7 @@ def main():
         c = as_num(p.get('close'), 'prices.%s.close' % k)
         close[k] = c
         scr = as_num(p.get('pct_screen'), 'prices.%s.pct_screen' % k)
-        base = as_num(prev_closes.get(k), 'state.closes.%s' % k) if k != 'K200N' else None
+        base = as_num(prev_closes.get(k), 'state.closes.%s' % k) if (k != 'K200N' and base_ok) else None
         if k == 'K200N':
             pct[k] = scr   # 야간선물은 페이지가 주는 값(주간 종가 대비)을 그대로 쓴다
             continue
@@ -348,7 +430,7 @@ def main():
                 warn('%s 등락률 %+.1f%% — 액면분할·병합 또는 기준값 오류 의심' % (k, calc))
         elif c is not None and scr is not None:
             pct[k] = scr
-            if base is None: warn('%s 기준값이 state.json 에 없어 화면 등락률을 씀' % k)
+            if base is None and base_ok: warn('%s 기준값이 state.json 에 없어 화면 등락률을 씀' % k)
         else:
             pct[k] = None
     for k in ('KOSPI', 'SOX', '005930', '000660'):
@@ -394,10 +476,10 @@ def main():
     # 미국 종가가 직전 기록과 똑같으면 미국 휴장(또는 값 재사용)이다. 그대로 계산하면 한국 쪽 움직임만
     # 뒤집혀 허위 갭이 나오므로 그 시사 갭은 뺀다.
     us_same = [k for k in ('EWY', 'SKHY')
-               if close.get(k) is not None and prev_closes.get(k) is not None and close[k] == prev_closes.get(k)]
+               if base_ok and close.get(k) is not None and prev_closes.get(k) is not None and close[k] == prev_closes.get(k)]
     for k in us_same: warn('%s 종가가 직전 기록과 같음 — 미국 휴장으로 보고 시사 갭에서 제외' % k)
     def implied(fx_key, us_key, kr_key):
-        if us_key in us_same: return None
+        if us_key in us_same or not base_ok: return None   # 기준이 묵은 날은 미국 휴장을 가려낼 수 없어 시사 갭을 내지 않는다
         a, b, c = pct.get(us_key), pct.get(fx_key), pct.get(kr_key)
         if a is None or b is None or c is None: return None
         return ((1 + a / 100) * (1 + b / 100) / (1 + c / 100) - 1) * 100
@@ -418,6 +500,8 @@ def main():
         'es_pct': es_pct,
         'nq_pct': nq_pct,
         'us_fut_asof': uf.get('asof'),
+        'us_fut_basis': us_fut_basis(d),   # post_close | prev_session — analyze.py 가 post_close 만 후보 3 에 쓴다
+        'base_stale': not base_ok,         # True 면 등락률이 화면값이고 시사 갭이 비어 있다
     }
     if es_pct is None and nq_pct is None:
         warn('미국 지수선물(signals.us_fut) 미확보 — 기록만 비운다(게이트 무관)')
@@ -430,6 +514,17 @@ def main():
             warn('야간선물(K200N) 미확보 — 휴장(%s) 뒤 회차라 야간 세션이 없다. 게이트에서 제외' % ', '.join(signals['night_skipped']))
         else:
             warn('야간선물(K200N) 미확보 — 자동 발행 게이트에 걸린다')
+    # 야간선물은 구간 중심인데 경로가 하나뿐이다(sources.json). 기준 시각이 직전 야간 세션 마감일인지 본다 — 묵은 값이면 게이트에 건다
+    night_flags = []
+    if signals['k200n_pct'] is not None and not signals['night_skipped']:
+        n_close = datetime.fromtimestamp(night_close_ms(d) / 1000, KST)
+        n_at = parse_at(signals['k200n_asof'], d)
+        if n_at is None:
+            warn('야간선물 기준 시각(prices.K200N.asof) %r 을 읽지 못함 — "M/D HH:mm" 으로 적을 것 (게이트 무관)' % signals['k200n_asof'])
+        elif n_at.date() != n_close.date():
+            night_flags.append('기준 시각')
+            warn('야간선물 기준 시각 %s 가 직전 야간 세션 마감(%d/%d %s)과 날짜가 다름 — 묵은 값인지 sonmul 에서 다시 확인. 자동 발행 게이트에 걸린다' % (
+                signals['k200n_asof'], n_close.month, n_close.day, n_close.strftime('%H:%M')))
     if signals['k200n_pct'] is not None and close.get('K200N') and close.get('K200F'):
         calc = (close['K200N'] / close['K200F'] - 1) * 100
         if abs(calc - signals['k200n_pct']) >= 0.05:
@@ -440,7 +535,7 @@ def main():
     V['SIGNAL_STRIP'] = (chip('야간선물', signals['k200n_pct'], signals['k200n_asof'] or '') +
                          chip('EWY 시사', signals['ewy_implied_pct']) +
                          chip('ADR 시사', signals['adr_implied_pct']) +
-                         (chip('미국선물 ES', es_pct, uf.get('asof') or '') if es_pct is not None else ''))
+                         (chip('미국선물 ES', es_pct, uf.get('asof') or '') if (es_pct is not None and signals['us_fut_basis'] != 'prev_session') else ''))
 
     # ----- 전망 -----
     # 전망은 구간(low·high)만. 방향 3분류(갭상승·보합·갭하락)는 2026-10-21 폐지 — fill 에 dir 가 남아 있어도 읽지 않는다
@@ -686,7 +781,8 @@ def main():
 
     # ----- v5 대시보드 (첫 화면). 회차(LLM)가 쓰는 값은 없다 — 전부 위에서 만든 값과 perp.json 으로 만든다 -----
     pday = prev_business_day(d)
-    t_prev, t_open, t_close, t_night = kst_ms(pday, 15, 30), kst_ms(d, 9, 0), kst_ms(d, 15, 30), kst_ms(d, 5, 0)
+    t_prev, t_open, t_close = kst_ms(pday, 15, 30), kst_ms(d, 9, 0), kst_ms(d, 15, 30)
+    t_night, t_0500 = night_close_ms(d), kst_ms(d, 5, 0)   # 차트 야간 표식은 실제 마감(평일 06:00, 월요일은 토 06:00). 05:00 은 옛 p0500 기록용
     try:
         perp = json.load(io.open('perp.json', encoding='utf-8'))
     except Exception:
@@ -735,9 +831,17 @@ def main():
         stock_fc[code] = {'low': lo_v, 'high': hi_v, 'prev_close': pc, 'center_pct': round(c, 2), 'half_width_pct': round(hw, 2),
                           'inputs': {'k200n_pct': k200n_now, 'perp_pct': None if pp is None else round(pp, 2)}}
         if mw is not None: stock_fc[code]['monday_widen_pct'] = round(mw, 2)
+    # 야간선물 대조 — 같은 시각 코스피200 추종가(pnight)와 크게 다르면 한쪽이 틀렸다. 게이트에 건다
+    kpn = (pn.get('KOSPI') or {}).get('pnight')
+    if k200n_now is not None and kpn is not None:
+        lim = max(NIGHT_XCHECK_PP, NIGHT_XCHECK_REL * abs(k200n_now))
+        if abs(k200n_now - kpn) > lim:
+            night_flags.append('추종가 대조')
+            warn('야간선물 %+.2f%% 와 같은 시각 코스피200 추종가 %+.2f%% 가 %.2f%%p 다름(허용 %.2f%%p) — sonmul 값·기준 시각을 다시 확인. 자동 발행 게이트에 걸린다' % (
+                k200n_now, kpn, abs(k200n_now - kpn), lim))
     # 기록 전용 — 야간선물 마감 뒤(pnight → 스냅샷) 추종가 움직임. 코스피 중심에는 쓰지 않는다 (CALIBRATION.md H2).
     # p0500 은 2026-11-09 전 방식(발행일 05:00) 그대로 남긴다 — 옛 기록과 이어 보기용
-    signals['perp'] = {k: {'p0500': None if perp_at(k, t_night) is None else round(perp_at(k, t_night), 2),
+    signals['perp'] = {k: {'p0500': None if perp_at(k, t_0500) is None else round(perp_at(k, t_0500), 2),
                            'pnight': (pn.get(k) or {}).get('pnight'),
                            'snap': None if perp_at(k, t_snap) is None else round(perp_at(k, t_snap), 2)} for k in pitems}
     signals['perp_night_at'] = datetime.fromtimestamp(night_close_ms(d) / 1000, KST).strftime('%m/%d %H:%M')
@@ -898,6 +1002,9 @@ def main():
     for pat in banned:
         n = plain.count(pat)
         if n: warn('금지 표현 "%s" %d회' % (pat, n))
+    for pat in load_internal_terms():
+        n = plain.count(pat)
+        if n: warn('내부 용어 "%s" %d회 — 절차 문서에서만 쓰는 말이다. 독자용 말로 바꿀 것 (게이트 무관)' % (pat, n))
     n = plain.count('당일')   # 시점어(D3+) — '금일'은 금지 표현 표에 있다. '당일 고가'처럼 우리 문장에도 쓰여 게이트에는 넣지 않는다
     if n: warn("'당일' %d회 — 기사 원문의 '당일'을 옮긴 것이면 날짜로 바꿀 것 (게이트 무관)" % n)
     for pat, lim in (('한 셈입니다', 2), ('반영했습니다', 3)):
@@ -943,6 +1050,7 @@ def main():
                  'note': '회차 간 인수인계 파일. render.py 가 매 회차 통째로 갱신한다. 아카이브 HTML 을 파싱하지 않기 위해 존재한다.',
                  'issue_date': issue_date,
                  'forecast': {'date': issue_date, 'low': low, 'high': high, 'prev_close': kospi_close,
+                              'made_at': made_at.strftime('%Y-%m-%dT%H:%M+09:00') if d == made_at.date() else None,   # 실제로 만든 시각(재연이면 null)
                               'note': '다음 회차가 이 전망을 실제 시초가와 대조해 채점한다'},
                  'signals': signals,
                  'stock_forecast': {'date': issue_date, 'items': stock_fc,
@@ -959,6 +1067,7 @@ def main():
     if any('(상한' in w for w in WARNS): hold.append('글자 초과')
     if any('4,000자 초과' in w for w in WARNS): hold.append('접힘 4,000자 초과')
     if signals['k200n_pct'] is None and not signals['night_skipped']: hold.append('야간선물 미확보')
+    if night_flags: hold.append('야간선물 대조 불일치(%s)' % '·'.join(night_flags))
     dv = as_num(dn.get('diverged'), 'data_note.diverged')
     if dv is None or dv > 2: hold.append('종가 대조 불일치 %s건' % ('미기재' if dv is None else int(dv)))
     if any(w.startswith('issue_date') for w in WARNS): hold.append('발행일이 오늘이 아님')

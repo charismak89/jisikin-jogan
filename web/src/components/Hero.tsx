@@ -1,5 +1,5 @@
 import type { DayData } from '../types'
-import { dir, nf, sg } from '../lib/fmt'
+import { dir, md, nf, sg } from '../lib/fmt'
 import { Card } from './ui/card'
 
 function Chip({ label, v, sub }: { label: string; v: number | null; sub?: string | null }) {
@@ -12,13 +12,13 @@ function Chip({ label, v, sub }: { label: string; v: number | null; sub?: string
   )
 }
 
-export function Hero({ data, onBrief }: { data: DayData; onBrief: () => void }) {
+export function Hero({ data, past, onBrief }: { data: DayData; past?: boolean; onBrief: () => void }) {
   const f = data.forecast, s = data.signals
   const hasBand = f.low != null && f.high != null && f.prev_close
   const center = f.low_pct != null && f.high_pct != null ? (f.low_pct + f.high_pct) / 2 : null   // 방향 3분류 대신 구간 중심(2026-10-21)
   return (
     <Card aria-label="시초가 전망" className="lg:p-8">
-      <div className="text-[13px] font-semibold text-tx3">09:00 코스피 시초가 전망</div>
+      <div className="text-[13px] font-semibold text-tx3">{past ? `${md(data.issue)} ` : ''}09:00 코스피 시초가 전망</div>
       <div className="mt-1 text-[26px] font-extrabold leading-tight tracking-tight text-tx sm:text-[30px]">{center != null ? `${sg(center)} 안팎 출발` : hasBand ? '구간 전망' : '전망 없음'}</div>
       {hasBand ? (
         <div className="num mt-1 text-[20px] font-bold text-brand sm:text-[22px]">

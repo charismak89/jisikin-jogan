@@ -10,6 +10,7 @@ import { BriefTab } from './components/BriefTab'
 import { Feedback } from './components/Feedback'
 import { Card } from './components/ui/card'
 import { site } from './lib/site'
+import { kstDay, md } from './lib/fmt'
 
 type Mode = 'system' | 'light' | 'dark'
 const applyTheme = (m: Mode) => {
@@ -47,6 +48,8 @@ export default function App() {
   }, [])
   const live = useMemo(() => (data ? new Live(data.day, readRelayKey()) : null), [data])
   useEffect(() => (live ? live.start() : undefined), [live])
+  // 오늘 회차가 아직 없으면(발행 전·실패·휴장일) day.json 은 지난 회차 것이다. 날짜만 보고는 놓치기 쉬워 띠로 알린다(2026-11-10)
+  const past = !!data && kstDay(Date.now()) > data.issue
   const go = (v: string) => { setTab(v); try { history.replaceState(null, '', v === 'brief' ? '#brief' : location.pathname + location.search) } catch { /* 무시 */ } window.scrollTo(0, 0) }
 
   return (
@@ -67,8 +70,14 @@ export default function App() {
               <div className="text-[13px] font-semibold text-brand">제 {data.issue_no} 호 · 07:45 발행</div>
               <h1 className="text-[22px] font-extrabold tracking-tight text-tx">{data.date_label}</h1>
             </div>
-            <div className="flex items-center gap-2">{live && live.KRX && <Feedback live={live} tab={tab} />}</div>
+            {/* 의견 쓰기는 지인 링크(#k=)로 연 브라우저만 — 중계기가 다시 지인 키를 요구한다(2026-11-10) */}
+            <div className="flex items-center gap-2">{live && live.KRX && live.RK && <Feedback live={live} tab={tab} />}</div>
           </div>
+          {past && (
+            <p role="status" className="mb-4 rounded-2xl bg-card px-4 py-3 text-[13px] leading-snug text-tx2 shadow-[var(--shadow)]">
+              <b className="text-tx">지난 회차입니다.</b> {md(data.issue)} 07:45 에 낸 전망이고, 오늘 회차는 아직 없습니다(발행 전이거나 휴장일).
+            </p>
+          )}
           <Tabs.List aria-label="보기 전환" className="mb-4 flex gap-1 border-b border-line">
             {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
               <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2.5 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
@@ -78,7 +87,7 @@ export default function App() {
             {/* 모바일은 한 열, PC(1024px~)는 2단: 왼쪽 전망·실시간, 오른쪽 20거래일·간밤 시장 */}
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
               <div className="space-y-4">
-                <Hero data={data} onBrief={() => go('brief')} />
+                <Hero data={data} past={past} onBrief={() => go('brief')} />
                 {live && <LiveChart live={live} />}
               </div>
               <div className="space-y-4">

@@ -786,7 +786,7 @@ html.js5 [data-panel][hidden]{display:none!important}
     o.push('<text x="'+(xo-4)+'" y="'+(T-8)+'" class="lab" text-anchor="end">장외</text><text x="'+(xo+4)+'" y="'+(T-8)+'" class="lab">장중</text>');
     o.push(line(pre,'pre')); o.push(line(tail,'tail'));
     if(e.night!=null){var nx=X(D.t_night),ny=Y(e.night);
-      o.push('<path class="night" d="M'+nx+' '+(ny-5)+'L'+(nx+5)+' '+ny+'L'+nx+' '+(ny+5)+'L'+(nx-5)+' '+ny+'Z"/><text x="'+(nx-7)+'" y="'+(ny+3.5)+'" class="lab" text-anchor="end">야간 '+sg(e.night)+'</text>');}
+      o.push('<path class="night" d="M'+nx+' '+(ny-5)+'L'+(nx+5)+' '+ny+'L'+nx+' '+(ny+5)+'L'+(nx-5)+' '+ny+'Z"/><text x="'+(nx<L+70?nx+7:nx-7)+'" y="'+(ny+3.5)+'" class="lab" text-anchor="'+(nx<L+70?'start':'end')+'" style="paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round">야간 '+hm(D.t_night)+' '+sg(e.night)+'</text>');}
     var col=(last!=null&&last<0)?'dn':'upl';
     if(ses.length){
       o.push(line(ses,'ses '+col));
@@ -799,7 +799,8 @@ html.js5 [data-panel][hidden]{display:none!important}
       if(lp)o.push('<circle class="end '+(lp[1]<0?'dn':'upl')+'" cx="'+X(lp[0])+'" cy="'+Y(lp[1])+'" r="3.5"/>');
     }
     o.push('</g>');
-    [[D.t_prev,'15:30'],[D.t_night,'05:00'],[D.t_open,'09:00'],[D.t_open+108e5,'12:00'],[D.t_close,'15:30']].forEach(function(a){
+    [[D.t_prev,'15:30'],[D.t_night,hm(D.t_night)],[D.t_open,'09:00'],[D.t_open+108e5,'12:00'],[D.t_close,'15:30']].forEach(function(a){
+      if(a[0]===D.t_night&&Math.abs(X(D.t_open)-X(a[0]))<30)return;   // 06:00 눈금은 09:00 과 붙는다 — 시각은 야간 표식 글자에 있다
       if(inX(X(a[0])))o.push('<text x="'+X(a[0])+'" y="'+(H-6)+'" class="tick" text-anchor="middle">'+a[1]+'</text>');});
     if(zB-zA<0.999)o.push('<text x="'+(L+PW)+'" y="'+(T-8)+'" class="lab" text-anchor="end">더블클릭: 원래대로</text>');
     o.push('<line class="xh" x1="0" x2="0" y1="'+T+'" y2="'+(H-B)+'"/>');

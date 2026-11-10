@@ -23,6 +23,7 @@
   - 새 calibration.json 의 records 수가 기존보다 적으면 calibration.json 은 건너뛴다
   - 새 state.json 에 issue_date/forecast/closes 가 없으면 state.json 은 건너뛴다
   - 새 datalog.json(데이터 누락 기록) 의 줄 수가 기존보다 적으면 건너뛴다
+  - 커밋에는 회차 산출물(PUBLISH_PATHS)만 넣는다. 그 밖에 바뀐 파일(절차 문서·스크립트·화면 소스)은 커밋하지 않고 목록만 알린다 (2026-11-10)
   - 토큰은 인자로 받지 않는다. GH_TOKEN 환경변수가 있을 때만 폴백으로 쓰고 출력에 찍지 않는다
   - 클라우드 세션(Cowork·루틴)의 git 프록시는 PAT 를 그대로 통과시키지 않는다. 자동 발행은 루틴에 저장소를 붙여야 된다
 """
@@ -32,6 +33,11 @@ from datetime import datetime, timedelta, timezone, date
 KST = timezone(timedelta(hours=9))
 DOW = '일월화수목금토'   # datetime.weekday: 월=0 → 아래에서 변환
 FIRST_ISSUE = date(2026, 8, 21)
+
+# 회차가 커밋하는 파일. 이 밖의 변경은 발행 커밋에 넣지 않는다 — 회차(LLM)는 웹 본문을 읽은 뒤 main 에 직접 올리고,
+# main 직접 push 는 PR 검사(check)를 거치지 않는다. 절차 문서나 스크립트가 회차 중에 바뀌어도 사이트·다음 회차로 넘어가지 않게 한다.
+PUBLISH_PATHS = ['calibration.json', 'state.json', 'day.json', 'datalog.json', 'archive/index.html',
+                 'fixtures/last-fill.json', 'fixtures/last-perp.json', 'fixtures/last-relay.json']
 
 def arch_paths(html):
     """루트 기준 상대 경로(style.css, ./archive/)를 archive/ 깊이(한 단계)에 맞게 ../ 로"""
@@ -162,7 +168,14 @@ def main():
     # 6) 커밋
     if not git('status', '--porcelain'):
         print('변경 없음 — 커밋 생략'); return 0
-    git('add', '-A')
+    paths = [x for x in PUBLISH_PATHS + ['archive/%s.html' % new_date] if os.path.exists(x)]
+    git('add', '--', *paths)
+    left = [x for x in (git('diff', '--name-only') + '\n' + git('ls-files', '--others', '--exclude-standard')).splitlines() if x.strip()]   # 스테이징 뒤에도 남은 변경(고친 파일·새 파일)
+    if left:
+        print('[주의] 발행 대상이 아닌 변경 %d건 — 커밋에 넣지 않았다. 회차가 바꿀 파일이 아니다. 세션 응답에 그대로 옮길 것:' % len(left))
+        for l in left[:20]: print('   ', l)
+    if not git('diff', '--cached', '--name-only'):
+        print('발행할 변경 없음 — 커밋 생략'); return 0
     git('-c', 'user.name=jisikin-jogan bot', '-c', 'user.email=bot@jisikin.local', 'commit', '-q', '-m', 'brief: %s 발행' % new_date)
     sha = git('rev-parse', '--short', 'HEAD')
     print('커밋 %s — brief: %s 발행' % (sha, new_date))
@@ -190,21 +203,23 @@ def main():
     token = os.environ.get('GH_TOKEN', '').strip()
     if not token:
         raise SystemExit('[실패] push 실패 (루틴에 저장소가 붙어 있지 않거나 권한 없음): %s\n결과물은 out/ 에 남아 있다. 수동 경로(SendUserFile 또는 세션 diff)로 전달할 것' % first_err)
-    # 2차: GH_TOKEN 폴백 (로컬 실행용. 클라우드 프록시는 이 토큰을 통과시키지 않는다)
+    # 2차: GH_TOKEN 폴백 (로컬 실행용. 클라우드 프록시는 이 토큰을 통과시키지 않는다).
+    # 올릴 곳은 처음 정한 target 그대로다 — HOLD 브랜치로 올리려던 회차를 main 에 올리지 않는다(2026-11-10)
     import tempfile
     fd, askpass = tempfile.mkstemp(prefix='askpass-', suffix='.sh')
     os.write(fd, b'#!/bin/sh\ncase "$1" in *sername*) echo x-access-token;; *) echo "$GH_TOKEN";; esac\n'); os.close(fd)
     os.chmod(askpass, 0o700)
     env = dict(os.environ); env['GIT_ASKPASS'] = askpass; env['GIT_TERMINAL_PROMPT'] = '0'
     try:
-        r = subprocess.run(['git', '-c', 'credential.helper=', 'push', 'origin', 'HEAD:main'], capture_output=True, text=True, env=env)
+        r = subprocess.run(['git', '-c', 'credential.helper=', 'push', 'origin', 'HEAD:%s' % target], capture_output=True, text=True, env=env)
     finally:
         try: os.remove(askpass)
         except Exception: pass
     if r.returncode != 0:
         msg = (r.stderr or r.stdout).replace(token, '***')
         raise SystemExit('[실패] push 실패: %s' % msg.strip()[:400])
-    print('push 완료 (GH_TOKEN) — https://charismak89.github.io/jisikin-jogan/ 에 1~2분 뒤 반영')
+    if target == 'main': print('push 완료 (GH_TOKEN) — https://charismak89.github.io/jisikin-jogan/ 에 1~2분 뒤 반영')
+    else: print('push 완료 (GH_TOKEN) — 브랜치 %s 에만 올림. 사람이 GitHub 에서 main 으로 merge 해야 사이트에 반영된다' % target)
     return 0
 
 if __name__ == '__main__':

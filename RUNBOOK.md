@@ -13,10 +13,10 @@
 4. 스크린샷을 찍지 않는다. 레이아웃 검증은 `page.evaluate` 숫자만.
 
 ## 0. 휴장일
-`python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다.
+`python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다. `holidays.json` 에 없어도 토스 장 달력(중계기)이 오늘 휴장이라고 하면 `HOLIDAY 토스 장 달력 휴장…` 이 나온다(2026-11-10) — 그 줄을 그대로 옮기고 종료한다.
 
 ## 1. 준비
-루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py holidays.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
+루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py fetch_relay.py datacheck.py sources.json holidays.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
 모든 작업은 저장소 루트에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
 
 ## 2. 시세 — 병렬 3턴
@@ -52,7 +52,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 - 한국경제 `https://markets.hankyung.com/stock/<코드>` 국내 6종 + 코스피 — `2026.09.11 장마감` 처럼 상태와 기준일이 찍힌다. `장중` 이면 종가가 아니다. 중계기 OK 면 중계기 값과 대조하는 두 번째 소스다.
 - **야간선물** `https://sonmul.co.kr/` — 야간 종가·등락률·기준시각·주간선물 종가. 월요일 값은 금요일 밤 세션이다(일요일 밤 세션은 없다).
   - 휴장일 전날 밤에는 세션이 없다. 직전 영업일과 발행일 사이에 `holidays.json` 휴장일이 끼면(예: 10/6·10/12·12/28·2027-01-04) 페이지에 연휴 전 세션 값이 남아 있을 수 있다. `asof` 가 직전 영업일 밤 세션이 아니면 `K200N.close: null` 로 두고 `asof` 에 `연휴 휴장` 이라고 적는다. render.py 가 이 회차는 야간선물 누락을 경고로만 남기고 게이트에서 뺀다.
-- **미국 지수선물** `https://kr.investing.com/indices/us-spx-500-futures` (ES) · `https://kr.investing.com/indices/nq-100-futures` (NQ) — 현재가·등락률·전일 종가·표시 시각. 등락률은 직전 정산가(미국 현물 마감 무렵) 대비이므로 **야간선물 마감 뒤 ~ 회차 시점의 움직임**이다. `signals.us_fut` 에 `es_pct`·`nq_pct`(%, 페이지 등락률)·`asof`(KST 표시 시각)를 적는다. 못 받으면 null. curl 은 403 이라 WebFetch 로만 받는다(2026-10-01 확인). 2026-10-01 도입, **기록 전용** — 전망 구간을 이 값으로 옮기지 않는다(CALIBRATION.md 후보 3)
+- **미국 지수선물** `https://kr.investing.com/indices/us-spx-500-futures` (ES) · `https://kr.investing.com/indices/nq-100-futures` (NQ) — 현재가·등락률·전일 종가·표시 시각. 이 등락률의 뜻은 철마다 다르다(2026-11-10 확인). 미국 서머타임 기간(3월 둘째 일요일 ~ 11월 첫 일요일)에는 새 세션이 열린 뒤라 **야간선물 마감 뒤 ~ 회차 시점의 움직임**이다. 미국 표준시 기간에는 07:45 KST 가 CME 일일 휴장(07:00~08:00 KST) 중이라 **방금 끝난 미국장 전체의 등락**이 찍힌다(시각 표기 06:59, 월요일은 금요일 값) — 이때는 본문에서 '야간선물 마감 뒤 움직임'이라고 쓰지 않는다. 어느 쪽인지는 render.py 가 `signals.us_fut_basis` 에 남기니 값은 철과 상관없이 페이지 그대로 적는다. `signals.us_fut` 에 `es_pct`·`nq_pct`(%, 페이지 등락률)·`asof`(KST 표시 시각)를 적는다. 못 받으면 null. curl 은 403 이라 WebFetch 로만 받는다(2026-10-01 확인). 2026-10-01 도입, **기록 전용** — 전망 구간을 이 값으로 옮기지 않는다(CALIBRATION.md 후보 3)
 - 주간 선물 `https://markets.hankyung.com/indices/kospi-future` (기준일 확인) · SOX `https://kr.investing.com/indices/phlx-semiconductor`
 - 미국 4종 `https://stockanalysis.com/` — 1순위. 중계기 미국 종가는 대조용이다.
 - WebSearch 1회: 직전 영업일 마감시황 기사 → 원달러 서울 종가(+ 중계기 실패 때는 외국인·기관·개인 순매수, 코스닥 종가). 기사 수급은 장 마감 직후 잠정치라 중계기 확정치와 다를 수 있다 — 중계기 값을 쓴다.
@@ -74,7 +74,9 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 - 검색 결과는 요약문이 아니라 **제목 목록**을 읽는다. 조회 창 안 기사 중 핵심 기업 이름이 제목에 있으면 그중 1건은 본문을 연다.
 - 추종가가 크게 움직였는데 그 시각 뉴스를 못 찾았으면 `checks.scenario` 에 "원인 미확인" 이라고 그대로 쓴다. 이미 아는 다른 뉴스를 원인으로 끌어다 쓰지 않는다.
 
-이슈마다 `checks.issue.src` 에 출처를 적는다(2026-10-31). `t` 이슈 이름 · `origin` 최초 보도 매체 · `at` 그 기사 시각(KST `M/D HH:mm`) · `momentum` 확산(다른 매체·SNS, 없으면 null) · `verify` 확인 출처(공시·회사 발표·공식 통계, 없으면 null).
+이슈마다 `checks.issue.src` 에 출처를 적는다(2026-10-31). `t` 이슈 이름 · `origin` 회차가 실제로 읽은 기사의 매체 · `at` 그 기사 시각(KST `M/D HH:mm`) · `momentum` 확산(다른 매체·SNS, 없으면 null) · `verify` 확인 출처(공시·회사 발표·공식 통계, 없으면 null) · `first` 그 재료의 첫 보도가 더 이르다는 걸 알 때만(예: `"11/9 05:12 CNBC"`, 모르면 뺀다).
+- `origin`·`at` 은 '최초 보도'가 아니다(2026-11-10). 읽은 기사를 적는다. 본문(`sums.issue` 등)에도 확인하지 않은 '첫 보도'·'최초 보도'라는 말을 쓰지 않는다 — 11/10 회차가 01:03 재보도를 첫 보도로 적었고 실제 첫 보도는 전날 05:12 였다.
+- 시세 자체가 재료면(예: '뉴욕 반등·유가 하락') `verify` 에 그 시세 출처를 적는다(stockanalysis·investing 등). 비워 두면 확인된 시세에 '미확인' 꼬리표가 붙는다.
 - `verify` 는 이미 본 것만 적는다. 찾으려고 검색을 늘리지 않는다. 비어 있으면 대시보드에 '미확인' 꼬리표가 붙는다.
 - `at` 이 조회 창 밖이면 render.py 가 경고한다(게이트 무관). 묵은 기사를 오늘 재료로 옮기지 않았는지 보고, 맞으면 그대로 두고 9단계 응답에 적는다.
 
@@ -121,13 +123,14 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
               "alt":{"h":"35자","b":"90자","cond":"전환 신호 — 숫자로 검증 가능, 90자"}},
  "why":["아래로 미는 힘 150자","위로 받치는 힘 150자","왜 이 중심인가 150자","구간 폭 근거 150자"],
  "points":[{"t":"확인할 것 25자","d":"판단 기준 60자"}, ×3],
- "checks":{"global":{"lead":"90자 결론","more":[".."]},"domestic":{..},"scenario":{"lead":"오늘 전망의 가장 약한 고리","more":[".."]},
-           "issue":{"lead":"..","more":[".."],"src":[{"t":"이슈 20자","origin":"CNBC","at":"10/29 21:10","momentum":"로이터·블룸버그 또는 null","verify":"알파벳 실적 발표문 또는 null"}]}},   ← 3절. 접힘 글자수에 들지 않는다
+ "checks":{"global":{"lead":"90자 — 이 영역에서 오늘 전망을 아래로 깰 수 있는 것 한 가지(화면 제목이 '하방 체크'다. 요약을 되풀이하지 않는다. 없으면 없다고 쓰고 근거를 댄다)","more":[".."]},"domestic":{..같은 뜻},"scenario":{"lead":"오늘 전망의 가장 약한 고리","more":[".."]},
+           "issue":{"lead":"..","more":[".."],"src":[{"t":"이슈 20자","origin":"읽은 기사의 매체","at":"10/29 21:10","momentum":"로이터·블룸버그 또는 null","verify":"알파벳 실적 발표문 또는 null","first":"더 이른 첫 보도를 알 때만"}]}},   ← 3절. 접힘 글자수에 들지 않는다
  "score":{"open_source":"Google Finance","actual_open":null,"actual_open_date":null,     ← KOSPI.open 의 날짜가 전망 날짜와 다를 때만 채움
-          "lead":"무엇이 맞고 틀렸는지 + 실제 시가 숫자, 110자","more":["맞은 것 150자","놓친 것 150자","반복 패턴 150자"]},
+          "lead":"무엇이 맞고 틀렸는지 + 실제 시가 숫자, 110자","more":["맞은 것 150자","놓친 것 150자","반복 패턴 150자"]},   ← 숫자로 확인되는 것만(구간 안·밖, 시초가, 종목 구간, 누적 횟수). 왜 그렇게 열렸는지는 쓰지 않는다 — 아래 설명
  "sources":"출처 — 매체·대상·기준일. 종목별로 어느 두 소스를 대조했는지",
  "data_note":{"lead":"대조 결과 한 줄 (전부 일치면 '종가는 중계기(KRX)와 한국경제에서 일치했습니다.')","more":["갈린 항목의 두 값과 채택 근거"],"diverged":<갈린 항목 수, 정수>}}
 ```
+`score.more` 는 채점 숫자만 쓴다(2026-11-10). "○○ 뉴스를 짚었고 실제로 그쪽으로 열렸습니다" 같은 원인 서술은 쓰지 않는다 — 회차는 시초가가 왜 그랬는지 확인할 수 없고, 11/10 회차의 그 문장은 관리 세션 회고(젠슨 황 보도)와 반대였다. 스크립트 이름(score.py 등)과 절차 용어도 본문에 쓰지 않는다(`CONTEXT.md` "내부 용어").
 `cm` 은 모든 종목 필수, "상승 마감" 같은 빈 문장 금지. 회차 번호·날짜 라벨·지난 회차 링크·COVERAGE·채점 띠는 스크립트가 만든다.
 
 ## 7. 실행과 검증
@@ -140,6 +143,9 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 - `FAIL` 이 뜨면 fill.json 을 고쳐 `render.py` 만 다시 돌린다(입력을 안 고치므로 몇 번이든 안전).
 - `시초가 미확보` 경고는 채점이 빠진다는 뜻이다. 시가를 채운 뒤 `score.py` 부터 다시 돌린다(같은 날짜는 두 번 기록하지 않는다).
 - `개장 왜곡 의심` 경고(코스피 시가 갭이 삼전·하닉 시가 갭 평균과 5%p 넘게 다름 — VI·서킷브레이커 날)는 시가를 다른 값으로 고치지 않는다. 기록은 공식 시가 그대로이고 롤백 통계에서만 빠진다. 그 경고 줄을 세션 응답에 그대로 옮긴다(2026-11-07).
+- `직전 회차 기록이 … 것` 경고(직전 영업일 회차가 없던 날)는 등락률 기준 종가가 없다는 뜻이다. render.py 가 화면 등락률(`pct_screen`)을 그대로 쓰고 EWY·ADR 시사 갭을 비운다(2026-11-10). 모든 종목의 `pct_screen` 을 채우고, 본문에서 시사 갭을 말하지 않는다. `같은 날 다시 돌림` 경고는 조치할 것이 없다(발행 커밋 직전 기록을 자동으로 읽는다).
+- `야간선물 기준 시각 … 날짜가 다름`·`야간선물 … 추종가 … 다름` 경고는 게이트에 걸린다(2026-11-10). sonmul 을 다시 열어 값과 시각을 확인하고 fill.json 을 고친다. 다시 봐도 같으면 고치지 말고 HOLD 로 올린다.
+- `내부 용어 "…"` 경고는 그 말을 독자용 말로 바꾼다(`CONTEXT.md` "내부 용어" 표, 게이트 무관).
 - render.py 가 `데이터 누락 n건 — …` 줄을 낸다. 그대로 9단계 "못 구한 데이터" 에 옮긴다. 이 기록은 `out/datalog.json` 에 남고 주간 점검이 센다.
 - 경고를 읽고 고칠 수 있는 것은 고친다. 특히 **금지 표현·글자 초과·등락률 불일치**. 못 고치는 경고(미확보 등)는 8단계 응답에 적는다.
 - 레이아웃: 먼저 `python3 -m pip install -q playwright` 를 한 번 돌린다(루틴 컨테이너에 파이썬 패키지가 없다 — 10/23 회차가 설치 없이 두 번 실패). 브라우저는 `/opt/pw-browsers/chromium` 에 깔려 있으니 `playwright install` 은 하지 않고, 띄울 때 `pw.chromium.launch(executable_path='/opt/pw-browsers/chromium')` 로 경로를 준다. pip 최신판은 깔린 브라우저와 버전이 달라 경로 없이 띄우면 `Executable doesn't exist` 로 실패한다(10/26). Playwright(chromium) 360·390px 두 폭에서 `out/index.html` 을 열고 `page.evaluate` 로 아래만 받는다. `doc`·`tables` 가 0 이 아니면 종목명(`CONTEXT.md` 표기명)을 줄인다. `height` 는 브리핑 탭 기준이다 — `out/index.html#brief` 로 열어 잰다. 8,500 을 넘으면 `more` 로 더 옮긴다(2026-10-15 회차 기준 390px 에서 6,550 안팎). 대시보드(주소 그대로)는 `doc` 만 0 인지 본다. Playwright 가 없거나 실패해도 발행한다.
@@ -150,7 +156,8 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 ```
 
 ## 8. 발행
-게이트 — `render.py` 마지막 줄이 `GATE PASS` 일 때만 자동 발행한다. (조건: FAIL 없음 · 금지 표현·글자 초과 경고 0 · 야간선물 확보(휴장 다음 회차는 면제, `signals.night_skipped`) · `data_note.diverged` ≤ 2). `GATE HOLD` 면 수동 경로다.
+게이트 — `render.py` 마지막 줄이 `GATE PASS` 일 때만 자동 발행한다. (조건: FAIL 없음 · 금지 표현·글자 초과 경고 0 · 야간선물 확보(휴장 다음 회차는 면제, `signals.night_skipped`) · 야간선물 대조 통과(기준 시각이 직전 야간 세션 마감일, 같은 시각 추종가와 차이 1.5%p 또는 야간선물 크기의 20% 안 — 2026-11-10) · `data_note.diverged` ≤ 2). `GATE HOLD` 면 수동 경로다.
+커밋·push 는 `publish.py` 로만 한다. `git add`·`git commit`·`git push` 를 직접 치지 않는다. `publish.py` 는 회차 산출물(archive·day.json·state.json·calibration.json·datalog.json·fixtures)만 커밋하고, 그 밖에 바뀐 파일이 있으면 `[주의] 발행 대상이 아닌 변경` 줄을 낸다(2026-11-10) — 그 줄을 응답에 그대로 옮긴다.
 자격증명 — 토큰을 찾거나 넣지 않는다. 루틴에 저장소 `charismak89/jisikin-jogan` 이 붙어 있으면 git 프록시가 push 에 자격증명을 넣어 준다(클라우드 세션은 PAT 를 통과시키지 않는다).
 - 게이트 통과: `python3 publish.py --push`. `main` 에 올라가면 커밋 SHA 를 응답에 적는다. main 이 거부돼 `claude/publish-<날짜>` 브랜치로 올라갔으면 응답 첫 줄에 **"브랜치 claude/publish-<날짜> — GitHub 에서 main 으로 merge 필요"** 라고 적는다.
 - GATE HOLD: `python3 publish.py --push --branch claude/hold-<날짜>` 로 브랜치에만 올린다(사이트에는 반영되지 않는다). 응답 첫 줄에 HOLD 사유와 브랜치 이름을 적는다. 사람이 세션 diff 를 보고 merge 여부를 정한다.
