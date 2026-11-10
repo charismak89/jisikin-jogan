@@ -16,8 +16,8 @@
 - 화면(9·11): 오늘 회차가 없으면 v6 에 '지난 회차입니다' 띠. 야간 표식·눈금은 실제 마감 시각(`day.json` `t_night` = 평일 06:00, 월요일은 토 06:00). 옛 회차 기록은 05:00 그대로 보인다.
 - 휴장(12): `render.py --today` 가 토스 장 달력을 한 번 더 본다. `holidays.json` 에 2027년 휴장일 9일을 넣었다(토스 달력 확인분). **대체공휴일 후보 2027-08-16·10-04·10-11·12-27 은 토스 달력에 개장으로 나와 넣지 않았다 [검증필요 — KRX 휴장일 공지 뒤].**
 - 그 밖(13·14·15): 중계기 `/v1/daily` 는 한 종목 타임아웃에도 나머지를 준다. `score.py` 는 시초가가 기록과 0.05% 넘게 다르면 기록을 바꿔 쓴다(`corrected_from`). `state.forecast.made_at`(실제 만든 시각)과 개장 뒤 렌더 경고. README 의 Notion 토큰 안내 삭제.
-- **VM 갱신 필요(사용자)**: 중계기 수정은 VM 에서 `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh` 를 돌려야 반영된다. 확인 명령과 기대값: `curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: text/plain' -d '{"text":"x"}' https://129-225-146-153.sslip.io/v1/feedback` → `401`(갱신 전에는 `200`), `curl -s -o /dev/null -w '%{http_code}\n' https://129-225-146-153.sslip.io/v1/live` → `200`.
-- 확인 예약(이 관리 세션 `send_later`): 11/11 08:15 — 11/11 회차의 GATE·경고(내부 용어·야간선물 대조)·`signals.us_fut_basis`·`day.json` `t_night`(11/11 06:00)·`score.more` 문장.
+- **VM 갱신 완료(2026-11-10 13:04 KST 확인, 사용자 수행)**: 키 없는 의견 쓰기 401, `/v1/live` 200, `/healthz` `ok:true`, 키 없는 `/v1/daily` 401, 루틴 키로 `fetch_relay.py --print` → `중계기 OK`. 아래는 갱신 절차 기록 — 중계기 수정은 VM 에서 `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh` 를 돌려야 반영된다. 확인 명령과 기대값: `curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: text/plain' -d '{"text":"x"}' https://129-225-146-153.sslip.io/v1/feedback` → `401`(갱신 전에는 `200`), `curl -s -o /dev/null -w '%{http_code}\n' https://129-225-146-153.sslip.io/v1/live` → `200`.
+- 확인 예약(이 관리 세션 `send_later`, `trig_01NjVww65bzngmX9rvqrpyYn`): 11/11 08:15 — 11/11 회차의 GATE·경고(내부 용어·야간선물 대조)·`signals.us_fut_basis`·`day.json` `t_night`(11/11 06:00)·`score.more` 문장.
 - 되돌리기: 이 PR revert. 야간선물 대조 게이트만 끄려면 `render.py` 의 `night_flags` 를 게이트에서 뺀다.
 
 ## 0-8. 2026-11-09 회고 반영 — 월요일 반폭 확장 · 야간선물 마감 시각 · 뉴스 단서 검색(사용자 결정)
