@@ -1683,6 +1683,56 @@
     "perp_asof": "11/10 07:46"
    },
    "source": "2026-11-11 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-11",
+   "low": 5080.0,
+   "high": 5210.0,
+   "band_width_pct": 2.48,
+   "prev_close": 5239.13,
+   "actual_open": 5209.71,
+   "gap_pct": -0.56,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -1.8,
+   "center_err_pct": 1.24,
+   "signals": {
+    "k200n_pct": -1.74,
+    "k200n_close": 798.0,
+    "k200n_asof": "11/11 06:00",
+    "k200f_close": 812.1,
+    "ewy_implied_pct": -6.83,
+    "adr_implied_pct": -10.26,
+    "news_flag": "미 10월 CPI 예상 상회(+0.4%)·10년물 금리 5% 돌파 보도로 뉴욕이 빠졌고 엔비디아 −5.54%, 모건스탠리 삼전·하닉 목표주가 하향 보도",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.25,
+    "nq_pct": -0.41,
+    "us_fut_asof": "11/11 06:59",
+    "us_fut_basis": "prev_session",
+    "base_stale": false,
+    "perp": {
+     "KOSPI": {
+      "p0500": -2.01,
+      "pnight": -1.61,
+      "snap": -1.52
+     },
+     "005930": {
+      "p0500": -2.81,
+      "pnight": -2.38,
+      "snap": -2.03
+     },
+     "000660": {
+      "p0500": -3.57,
+      "pnight": -3.19,
+      "snap": -2.8
+     }
+    },
+    "perp_night_at": "11/11 06:00",
+    "perp_asof": "11/11 07:45"
+   },
+   "source": "2026-11-12 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -2341,6 +2391,46 @@
    "half_width_pct": 1.36,
    "monday_widen_pct": null,
    "source": "2026-11-11 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-11",
+   "code": "000660",
+   "low": 1166000.0,
+   "high": 1203000.0,
+   "prev_close": 1212000.0,
+   "actual_open": 1206000.0,
+   "gap_pct": -0.5,
+   "in_range": false,
+   "center_pct": -2.27,
+   "center_err_pct": 1.77,
+   "band_width_pct": 3.05,
+   "inputs": {
+    "k200n_pct": -1.74,
+    "perp_pct": -2.8
+   },
+   "half_width_pct": 1.5,
+   "monday_widen_pct": null,
+   "source": "2026-11-12 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-11",
+   "code": "005930",
+   "low": 192400.0,
+   "high": 197900.0,
+   "prev_close": 198900.0,
+   "actual_open": 197100.0,
+   "gap_pct": -0.9,
+   "in_range": true,
+   "center_pct": -1.88,
+   "center_err_pct": 0.98,
+   "band_width_pct": 2.77,
+   "inputs": {
+    "k200n_pct": -1.74,
+    "perp_pct": -2.03
+   },
+   "half_width_pct": 1.36,
+   "monday_widen_pct": null,
+   "source": "2026-11-12 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
