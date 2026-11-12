@@ -388,9 +388,7 @@
   {
    "date": "2026-11-13",
    "relay": "ok",
-   "missing": [
-    "prices.K200N.close"
-   ],
+   "missing": [],
    "relay_filled": [],
    "mismatch": [
     "prices.NVDA.close 회차 166.19 / 중계기 166.07 → 회차 값 유지"

@@ -4,20 +4,20 @@
  "issue_date": "2026-11-13",
  "forecast": {
   "date": "2026-11-13",
-  "low": 5246.0,
-  "high": 5406.0,
+  "low": 5340.0,
+  "high": 5430.0,
   "prev_close": 5342.73,
-  "made_at": "2026-11-13T07:49+09:00",
+  "made_at": "2026-11-13T08:18+09:00",
   "note": "다음 회차가 이 전망을 실제 시초가와 대조해 채점한다"
  },
  "signals": {
-  "k200n_pct": null,
-  "k200n_close": null,
-  "k200n_asof": null,
+  "k200n_pct": 0.78,
+  "k200n_close": 833.95,
+  "k200n_asof": "11/13 06:00",
   "k200f_close": 827.5,
   "ewy_implied_pct": -1.29,
   "adr_implied_pct": -1.66,
-  "news_flag": "야간선물 값을 받지 못한 회차. 엔비디아가 CEO 의혹 보도 뒤 11/12 정규장 −4.34%(166.19달러)",
+  "news_flag": "11/12 22:53 KST 무렵 엔비디아가 젠슨 황 CEO 즉시 사임(임시 CEO 콜렛 크레스)을 발표해 엔비디아 장중 −16%, 마감 −4.34%. 야간선물은 +0.78%로 마감",
   "night_skipped": [],
   "us_holiday": false,
   "es_pct": -0.25,
@@ -49,24 +49,24 @@
   "date": "2026-11-13",
   "items": {
    "005930": {
-    "low": 204000,
-    "high": 211500,
+    "low": 205500,
+    "high": 212000,
     "prev_close": 208000.0,
-    "center_pct": -0.06,
-    "half_width_pct": 1.7,
+    "center_pct": 0.36,
+    "half_width_pct": 1.36,
     "inputs": {
-     "k200n_pct": null,
+     "k200n_pct": 0.78,
      "perp_pct": -0.06
     }
    },
    "000660": {
-    "low": 1228000,
-    "high": 1276000,
+    "low": 1239000,
+    "high": 1277000,
     "prev_close": 1254000.0,
-    "center_pct": -0.14,
-    "half_width_pct": 1.88,
+    "center_pct": 0.32,
+    "half_width_pct": 1.5,
     "inputs": {
-     "k200n_pct": null,
+     "k200n_pct": 0.78,
      "perp_pct": -0.14
     }
    }
