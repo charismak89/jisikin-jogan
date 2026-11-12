@@ -1,95 +1,95 @@
 {
  "schema": 2,
  "note": "회차 간 인수인계 파일. render.py 가 매 회차 통째로 갱신한다. 아카이브 HTML 을 파싱하지 않기 위해 존재한다.",
- "issue_date": "2026-11-12",
+ "issue_date": "2026-11-13",
  "forecast": {
-  "date": "2026-11-12",
-  "low": 5410.0,
-  "high": 5550.0,
-  "prev_close": 5375.36,
-  "made_at": "2026-11-12T07:48+09:00",
+  "date": "2026-11-13",
+  "low": 5246.0,
+  "high": 5406.0,
+  "prev_close": 5342.73,
+  "made_at": "2026-11-13T07:49+09:00",
   "note": "다음 회차가 이 전망을 실제 시초가와 대조해 채점한다"
  },
  "signals": {
-  "k200n_pct": 1.96,
-  "k200n_close": 852.95,
-  "k200n_asof": "11/12 06:00",
-  "k200f_close": 836.55,
-  "ewy_implied_pct": 3.23,
-  "adr_implied_pct": 3.89,
-  "news_flag": "11/12 07:30 무렵 뉴욕타임스가 젠슨 황 CEO의 두 번째 사내 관계 의혹을 보도해 엔비디아가 시간외 −8% 안팎, 코스피200 추종가가 06:00 뒤 −1.01%",
+  "k200n_pct": null,
+  "k200n_close": null,
+  "k200n_asof": null,
+  "k200f_close": 827.5,
+  "ewy_implied_pct": -1.29,
+  "adr_implied_pct": -1.66,
+  "news_flag": "야간선물 값을 받지 못한 회차. 엔비디아가 CEO 의혹 보도 뒤 11/12 정규장 −4.34%(166.19달러)",
   "night_skipped": [],
   "us_holiday": false,
-  "es_pct": 1.3,
-  "nq_pct": 2.19,
-  "us_fut_asof": "11/12 06:59",
+  "es_pct": -0.25,
+  "nq_pct": -0.25,
+  "us_fut_asof": "11/13 06:59",
   "us_fut_basis": "prev_session",
   "base_stale": false,
   "perp": {
    "KOSPI": {
-    "p0500": 2.4,
-    "pnight": 1.59,
-    "snap": 0.56
+    "p0500": -0.24,
+    "pnight": -0.04,
+    "snap": 0.11
    },
    "005930": {
-    "p0500": 3.27,
-    "pnight": 2.39,
-    "snap": 0.44
+    "p0500": -0.91,
+    "pnight": -0.81,
+    "snap": -0.06
    },
    "000660": {
-    "p0500": 2.6,
-    "pnight": 1.87,
-    "snap": 0.46
+    "p0500": -0.93,
+    "pnight": -0.69,
+    "snap": -0.14
    }
   },
-  "perp_night_at": "11/12 06:00",
-  "perp_asof": "11/12 07:45"
+  "perp_night_at": "11/13 06:00",
+  "perp_asof": "11/13 07:46"
  },
  "stock_forecast": {
-  "date": "2026-11-12",
+  "date": "2026-11-13",
   "items": {
    "005930": {
-    "low": 205500,
+    "low": 204000,
     "high": 211500,
-    "prev_close": 206000.0,
-    "center_pct": 1.2,
-    "half_width_pct": 1.36,
+    "prev_close": 208000.0,
+    "center_pct": -0.06,
+    "half_width_pct": 1.7,
     "inputs": {
-     "k200n_pct": 1.96,
-     "perp_pct": 0.44
+     "k200n_pct": null,
+     "perp_pct": -0.06
     }
    },
    "000660": {
-    "low": 1273000,
-    "high": 1312000,
-    "prev_close": 1277000.0,
-    "center_pct": 1.21,
-    "half_width_pct": 1.5,
+    "low": 1228000,
+    "high": 1276000,
+    "prev_close": 1254000.0,
+    "center_pct": -0.14,
+    "half_width_pct": 1.88,
     "inputs": {
-     "k200n_pct": 1.96,
-     "perp_pct": 0.46
+     "k200n_pct": null,
+     "perp_pct": -0.14
     }
    }
   },
   "note": "다음 회차가 삼전·하닉 실제 시초가로 채점한다 (score.py → calibration.json stock_records)"
  },
  "closes": {
-  "as_of": "2026-11-11",
+  "as_of": "2026-11-12",
   "note": "다음 회차의 등락률 계산 기준이 되는 직전 영업일 종가",
-  "KOSPI": 5375.36,
-  "KOSDAQ": 705.1,
-  "SOX": 10564.1,
-  "NVDA": 173.73,
-  "MU": 811.3,
-  "EWY": 147.81,
-  "SKHY": 142.25,
-  "K200F": 836.55,
-  "USDKRW": 1333.95,
-  "005930": 206000.0,
-  "000660": 1277000.0,
-  "402340": 796000.0,
-  "009150": 923000.0,
-  "0167A0": 13200.0,
-  "442580": 75710.0
+  "KOSPI": 5342.73,
+  "KOSDAQ": 696.53,
+  "SOX": 10506.7,
+  "NVDA": 166.19,
+  "MU": 798.44,
+  "EWY": 145.38,
+  "SKHY": 137.71,
+  "K200F": 827.5,
+  "USDKRW": 1330.65,
+  "005930": 208000.0,
+  "000660": 1254000.0,
+  "402340": 791000.0,
+  "009150": 886000.0,
+  "0167A0": 13120.0,
+  "442580": 75830.0
  }
 }

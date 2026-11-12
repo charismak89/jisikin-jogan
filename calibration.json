@@ -1733,6 +1733,56 @@
     "perp_asof": "11/11 07:45"
    },
    "source": "2026-11-12 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-12",
+   "low": 5410.0,
+   "high": 5550.0,
+   "band_width_pct": 2.6,
+   "prev_close": 5375.36,
+   "actual_open": 5385.94,
+   "gap_pct": 0.2,
+   "in_range": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": 1.95,
+   "center_err_pct": -1.75,
+   "signals": {
+    "k200n_pct": 1.96,
+    "k200n_close": 852.95,
+    "k200n_asof": "11/12 06:00",
+    "k200f_close": 836.55,
+    "ewy_implied_pct": 3.23,
+    "adr_implied_pct": 3.89,
+    "news_flag": "11/12 07:30 무렵 뉴욕타임스가 젠슨 황 CEO의 두 번째 사내 관계 의혹을 보도해 엔비디아가 시간외 −8% 안팎, 코스피200 추종가가 06:00 뒤 −1.01%",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 1.3,
+    "nq_pct": 2.19,
+    "us_fut_asof": "11/12 06:59",
+    "us_fut_basis": "prev_session",
+    "base_stale": false,
+    "perp": {
+     "KOSPI": {
+      "p0500": 2.4,
+      "pnight": 1.59,
+      "snap": 0.56
+     },
+     "005930": {
+      "p0500": 3.27,
+      "pnight": 2.39,
+      "snap": 0.44
+     },
+     "000660": {
+      "p0500": 2.6,
+      "pnight": 1.87,
+      "snap": 0.46
+     }
+    },
+    "perp_night_at": "11/12 06:00",
+    "perp_asof": "11/12 07:45"
+   },
+   "source": "2026-11-13 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -2431,6 +2481,46 @@
    "half_width_pct": 1.36,
    "monday_widen_pct": null,
    "source": "2026-11-12 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-12",
+   "code": "000660",
+   "low": 1273000.0,
+   "high": 1312000.0,
+   "prev_close": 1277000.0,
+   "actual_open": 1280000.0,
+   "gap_pct": 0.23,
+   "in_range": true,
+   "center_pct": 1.21,
+   "center_err_pct": -0.98,
+   "band_width_pct": 3.05,
+   "inputs": {
+    "k200n_pct": 1.96,
+    "perp_pct": 0.46
+   },
+   "half_width_pct": 1.5,
+   "monday_widen_pct": null,
+   "source": "2026-11-13 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-12",
+   "code": "005930",
+   "low": 205500.0,
+   "high": 211500.0,
+   "prev_close": 206000.0,
+   "actual_open": 208500.0,
+   "gap_pct": 1.21,
+   "in_range": true,
+   "center_pct": 1.2,
+   "center_err_pct": 0.01,
+   "band_width_pct": 2.91,
+   "inputs": {
+    "k200n_pct": 1.96,
+    "perp_pct": 0.44
+   },
+   "half_width_pct": 1.36,
+   "monday_widen_pct": null,
+   "source": "2026-11-13 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }

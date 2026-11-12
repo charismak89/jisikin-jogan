@@ -1,160 +1,160 @@
 {
  "schema": 1,
  "ok": true,
- "issue_date": "2026-11-12",
- "date": "2026-11-11",
- "fetched_at": "2026-11-12T07:45:51+09:00",
+ "issue_date": "2026-11-13",
+ "date": "2026-11-12",
+ "fetched_at": "2026-11-13T07:46:34+09:00",
  "prices": {
   "KOSPI": {
-   "close": 5375.36,
-   "open": 5209.71,
-   "open_date": "2026-11-11",
-   "high": 5377.99,
-   "low": 5207.44,
+   "close": 5342.73,
+   "open": 5385.94,
+   "open_date": "2026-11-12",
+   "high": 5458.84,
+   "low": 5293.05,
    "src": "toss-index"
   },
   "KOSDAQ": {
-   "close": 705.1,
-   "open": 668.48,
-   "open_date": "2026-11-11",
-   "high": 705.1,
-   "low": 668.48,
+   "close": 696.53,
+   "open": 703.22,
+   "open_date": "2026-11-12",
+   "high": 711.86,
+   "low": 687.4,
    "src": "toss-index"
   },
   "005930": {
-   "close": 206000.0,
-   "open": 197100.0,
-   "open_date": "2026-11-11",
-   "high": 208500.0,
-   "low": 194400.0,
+   "close": 208000.0,
+   "open": 208500.0,
+   "open_date": "2026-11-12",
+   "high": 214000.0,
+   "low": 206000.0,
    "src": "krx-1m",
    "complete": true
   },
   "000660": {
-   "close": 1277000.0,
-   "open": 1206000.0,
-   "open_date": "2026-11-11",
-   "high": 1294000.0,
-   "low": 1175000.0,
+   "close": 1254000.0,
+   "open": 1280000.0,
+   "open_date": "2026-11-12",
+   "high": 1312000.0,
+   "low": 1240000.0,
    "src": "krx-1m",
    "complete": true
   },
   "402340": {
-   "close": 796000.0,
-   "open": 755000.0,
-   "open_date": "2026-11-11",
-   "high": 810000.0,
-   "low": 737000.0,
+   "close": 791000.0,
+   "open": 819000.0,
+   "open_date": "2026-11-12",
+   "high": 828000.0,
+   "low": 770000.0,
    "src": "krx-1m",
    "complete": true
   },
   "009150": {
-   "close": 923000.0,
-   "open": 877000.0,
-   "open_date": "2026-11-11",
-   "high": 944000.0,
-   "low": 856000.0,
+   "close": 886000.0,
+   "open": 930000.0,
+   "open_date": "2026-11-12",
+   "high": 960000.0,
+   "low": 870000.0,
    "src": "krx-1m",
    "complete": true
   },
   "0167A0": {
-   "close": 13200.0,
-   "open": 12370.0,
-   "open_date": "2026-11-11",
-   "high": 13255.0,
-   "low": 12340.0,
+   "close": 13120.0,
+   "open": 13300.0,
+   "open_date": "2026-11-12",
+   "high": 13665.0,
+   "low": 13015.0,
    "src": "krx-1m",
    "complete": false
   },
   "442580": {
-   "close": 75710.0,
-   "open": 72350.0,
-   "open_date": "2026-11-11",
-   "high": 75870.0,
-   "low": 72230.0,
+   "close": 75830.0,
+   "open": 76225.0,
+   "open_date": "2026-11-12",
+   "high": 78660.0,
+   "low": 75155.0,
    "src": "krx-1m",
    "complete": false
   },
   "NVDA": {
-   "close": 173.88,
-   "date": "2026-11-11",
+   "close": 166.07,
+   "date": "2026-11-12",
    "src": "toss-1d"
   },
   "MU": {
-   "close": 811.99,
-   "date": "2026-11-11",
+   "close": 798.44,
+   "date": "2026-11-12",
    "src": "toss-1d"
   },
   "EWY": {
-   "close": 147.81,
-   "date": "2026-11-11",
+   "close": 145.38,
+   "date": "2026-11-12",
    "src": "toss-1d"
   },
   "SKHY": {
-   "close": 142.35,
-   "date": "2026-11-11",
+   "close": 137.755,
+   "date": "2026-11-12",
    "src": "toss-1d"
   },
   "USDKRW": {
-   "close": 1333.95,
-   "asof": "2026-11-11T15:29",
+   "close": 1330.65,
+   "asof": "2026-11-12T15:30",
    "src": "toss-fx-1530",
    "approx": true
   }
  },
  "errors": [],
  "flow": {
-  "foreign": 8917,
-  "inst": -5361,
-  "retail": -8925,
-  "other": 5369,
-  "updatedAt": "2026-11-11T20:06:03.000+09:00",
+  "foreign": 2496,
+  "inst": -6301,
+  "retail": -1481,
+  "other": 5286,
+  "updatedAt": "2026-11-12T20:06:03.000+09:00",
   "final": true
  },
  "stock_flow": {
   "005930": {
-   "foreign": 3681190,
-   "inst": -662471,
-   "retail": -3020820,
-   "other": 3627,
-   "updatedAt": "2026-11-12T06:50:04.000+09:00"
+   "foreign": 4425970,
+   "inst": -950396,
+   "retail": -3342865,
+   "other": -126839,
+   "updatedAt": "2026-11-13T06:50:04.000+09:00"
   },
   "000660": {
-   "foreign": 105940,
-   "inst": -157077,
-   "retail": -290231,
-   "other": 343035,
-   "updatedAt": "2026-11-12T06:50:13.000+09:00"
+   "foreign": -780304,
+   "inst": 363717,
+   "retail": 64815,
+   "other": 347919,
+   "updatedAt": "2026-11-13T06:50:12.000+09:00"
   }
  },
  "calendar": {
-  "date": "2026-11-12",
+  "date": "2026-11-13",
   "errors": [],
   "kr": {
    "previousBusinessDay": {
-    "date": "2026-11-11",
-    "open": true
-   },
-   "today": {
     "date": "2026-11-12",
     "open": true
    },
-   "nextBusinessDay": {
+   "today": {
     "date": "2026-11-13",
+    "open": true
+   },
+   "nextBusinessDay": {
+    "date": "2026-11-16",
     "open": true
    }
   },
   "us": {
    "previousBusinessDay": {
-    "date": "2026-11-11",
-    "open": true
-   },
-   "today": {
     "date": "2026-11-12",
     "open": true
    },
-   "nextBusinessDay": {
+   "today": {
     "date": "2026-11-13",
+    "open": true
+   },
+   "nextBusinessDay": {
+    "date": "2026-11-16",
     "open": true
    }
   }
