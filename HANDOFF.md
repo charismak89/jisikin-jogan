@@ -187,9 +187,11 @@ HOLD 조건: FAIL · 금지 표현/글자 초과 · 접힘 4,000자 초과 · �
     - 2026-11-07 주간 점검: 개장 왜곡 채점 예외(`CALIBRATION.md` 채점 예외, `score.py` `distorted_open`). 11/9 회차가 11/6 코스피를 채점할 때 `개장 왜곡 의심` 줄이 나오고 기록에 `exclude` 가 붙어야 한다. 확인 명령: `python3 analyze.py | head -4` → `제외 2026-11-06 — …` 줄
     - ~~주간 점검 루틴에 예약 도구 붙이기~~ 2026-10-31: 세션(`connectors` 거부)·웹 UI(사용자 시도) 모두 안 됐다. 사용자 승인으로 월요일 08:15 확인 작업 `trig_01966XhBzHkZbYHr2Pg3ecif` 를 만들었다(1절). 주간 점검 루틴은 그대로 켜 두었다. 첫 실질 실행은 11/9. 확인 명령: `get_trigger trig_01966XhBzHkZbYHr2Pg3ecif` → `enabled: true`, 11/9 뒤 `last_run.status` SUCCEEDED. 커넥터를 붙일 방법이 생기면 이 작업을 끄고 `WEEKLY.md` 4절 9번·`routine-scripts.md` 예외 줄을 지운다
 13. 2026-11-13 회차 — sonmul 이 WebFetch 에 403(두 번)이라 07:45 회차가 야간선물 미확보로 HOLD 됐다. 관리 세션이 prekospi(`https://www.prekospi.com/`, 한국투자증권 Open API 1분봉 기록) 종가 833.95 를 받아 다시 렌더 → GATE PASS, main `aeb596f`. prekospi 의 등락률은 **야간 시가 대비**(+0.46%)라 쓰지 않고, 주간 종가 827.50 대비(+0.78%)로 적었다. sonmul 브리핑 문구(검색 결과)의 833.95·+0.78% 와 일치
-    - 토요일 주간 점검: `sources.json` `k200n` 에 prekospi 를 후보 경로로 넣을지 판단한다(등락률 기준이 다르다는 점, 기준 시각 표기 확인). sonmul 403 이 이어지는지 `datalog.json` 으로 본다
+    - ~~토요일 주간 점검: `sources.json` `k200n` 에 prekospi 를 후보 경로로 넣을지 판단~~ 2026-11-14 주간 점검 승인: prekospi 를 k200n 예비 경로(fallback)로 등록, `RUNBOOK.md` 2절 야간선물 항목에 쓰는 법 한 줄(종가만, 등락률은 주간선물 종가 대비 계산). 근거: 지난 밤 기록 종가 4개 일치. sonmul 은 11/14 curl 200(11/13 403 은 WebFetch 만)
+    - ~~검색 배분 반영 판단~~ 2026-11-14 주간 점검 승인: `CONTEXT.md` 검색 배분 5번(날짜 넣은 영문 검색이 '기사 없음'이면 날짜만 빼고 1회 다시). 아래는 원래 기록
     - 같은 회차의 이슈 검색 4회가 '젠슨 황 엔비디아 CEO 사임'(11/12 22:53 KST NBC, 8-K)을 못 찾았다. 영문 검색어에 날짜를 넣으면 검색 도구가 '그날 기사 없음' 으로 답했고, 날짜 없이 'Jensen Huang resigns' 로 찾았다. 주간 점검이 `CONTEXT.md` 검색 배분에 반영할지 판단한다
-    - 원격 `claude/hold-2026-11-13` 브랜치는 필요 없지만, 세션에서 지우는 push 가 git 프록시에서 끊겼다(`remote end hung up`). 사용자가 GitHub 에서 지운다 [검증필요]
+    - ~~원격 `claude/hold-2026-11-13` 브랜치 삭제~~ 2026-11-14 확인: `git ls-remote --heads origin` 에 없다(지워짐)
+    - 다음 주 점검(11/21): H4(하닉 반폭 1.5) 판정을 등록부에 적는다. 11/16 회차가 11/13 을 채점하면 10회가 찬다. 11/14 미리 계산으로는 11/13 이 구간 위로 벗어나 6/10 → 1.5 유지(경계 포함)
 
 ## 8. 작업지시 방법
 - 절차 → `RUNBOOK.md`. 사실·표기·금지 표현·이슈 범위 → `CONTEXT.md`. 휴장일 → `holidays.json`. 예측 규칙 → `calibration.json` 의 `rule`
