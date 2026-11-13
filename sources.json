@@ -39,7 +39,7 @@
   {"id": "k200n", "label": "코스피200 야간선물", "fields": ["prices.K200N.close"],
    "routes": [
     {"id": "sonmul", "status": "primary", "how": "https://sonmul.co.kr/", "verified": "2026-10-21", "note": "9/14 도입 뒤 휴장 회차 말고는 빠진 적 없음. 2026-11-10 부터 render.py 가 기준 시각(직전 야간 세션 마감일)과 같은 시각 코스피200 추종가(pnight, 17회 |차이| 최대 1.00%p)로 대조하고 어긋나면 게이트에 건다"},
-    {"id": "none", "status": "candidate", "how": "대안 없음 — 단일 경로", "verified": null, "note": "investing korea-200-futures 는 기준이 달라 쓰지 말 것(CONTEXT.md). 주간 점검이 대안을 찾는다"}
+    {"id": "prekospi", "status": "fallback", "how": "https://www.prekospi.com/ 의 '지난 밤 기록' 종가(한국투자증권 Open API 1분봉 수집). sonmul 이 막히거나 값이 없을 때만", "verified": "2026-11-14", "note": "2026-11-14 주간 점검 등록. 지난 밤 기록 종가 4개(11/9~11/12 세션)가 회차 기록과 모두 같고 11/13 HOLD 를 이 값(833.95)으로 풀었다. 날짜는 세션 시작일 표기(11/13 = 11/13 18:00 ~ 11/14 06:00). 페이지 등락률은 야간 시가 대비라 쓰지 않고 주간선물 종가 대비로 계산한다. investing korea-200-futures 는 기준이 달라 쓰지 말 것(CONTEXT.md)"}
    ]},
   {"id": "k200f", "label": "코스피200 주간선물", "fields": ["prices.K200F.close"],
    "routes": [
