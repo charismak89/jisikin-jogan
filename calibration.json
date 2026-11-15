@@ -1783,6 +1783,56 @@
     "perp_asof": "11/12 07:45"
    },
    "source": "2026-11-13 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-13",
+   "low": 5340.0,
+   "high": 5430.0,
+   "band_width_pct": 1.68,
+   "prev_close": 5342.73,
+   "actual_open": 5452.41,
+   "gap_pct": 2.05,
+   "in_range": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": 0.79,
+   "center_err_pct": 1.26,
+   "signals": {
+    "k200n_pct": 0.78,
+    "k200n_close": 833.95,
+    "k200n_asof": "11/13 06:00",
+    "k200f_close": 827.5,
+    "ewy_implied_pct": -1.29,
+    "adr_implied_pct": -1.66,
+    "news_flag": "11/12 22:53 KST 무렵 엔비디아가 젠슨 황 CEO 즉시 사임(임시 CEO 콜렛 크레스)을 발표해 엔비디아 장중 −16%, 마감 −4.34%. 야간선물은 +0.78%로 마감",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.25,
+    "nq_pct": -0.25,
+    "us_fut_asof": "11/13 06:59",
+    "us_fut_basis": "prev_session",
+    "base_stale": false,
+    "perp": {
+     "KOSPI": {
+      "p0500": -0.24,
+      "pnight": -0.04,
+      "snap": 0.11
+     },
+     "005930": {
+      "p0500": -0.91,
+      "pnight": -0.81,
+      "snap": -0.06
+     },
+     "000660": {
+      "p0500": -0.93,
+      "pnight": -0.69,
+      "snap": -0.14
+     }
+    },
+    "perp_night_at": "11/13 06:00",
+    "perp_asof": "11/13 07:46"
+   },
+   "source": "2026-11-16 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
