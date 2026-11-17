@@ -1883,6 +1883,56 @@
     "perp_asof": "11/16 07:45"
    },
    "source": "2026-11-17 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-17",
+   "low": 4950.0,
+   "high": 5070.0,
+   "band_width_pct": 2.35,
+   "prev_close": 5100.5,
+   "actual_open": 5008.09,
+   "gap_pct": -1.81,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -1.77,
+   "center_err_pct": -0.04,
+   "signals": {
+    "k200n_pct": -1.76,
+    "k200n_close": 775.45,
+    "k200n_asof": "11/17 06:00",
+    "k200f_close": 789.35,
+    "ewy_implied_pct": -0.85,
+    "adr_implied_pct": 0.61,
+    "news_flag": "11/16(월) 뉴욕 반도체 급락(SOX −5.28%, 마이크론 −7.62%)의 원인 기사를 조회 창 안에서 찾지 못함 — 원인 미확인",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -1.91,
+    "nq_pct": -2.67,
+    "us_fut_asof": "11/17 06:59",
+    "us_fut_basis": "prev_session",
+    "base_stale": false,
+    "perp": {
+     "KOSPI": {
+      "p0500": -0.76,
+      "pnight": -1.77,
+      "snap": -1.2
+     },
+     "005930": {
+      "p0500": -0.31,
+      "pnight": -1.55,
+      "snap": -0.88
+     },
+     "000660": {
+      "p0500": -1.1,
+      "pnight": -2.77,
+      "snap": -2.15
+     }
+    },
+    "perp_night_at": "11/17 06:00",
+    "perp_asof": "11/17 07:46"
+   },
+   "source": "2026-11-18 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -2661,6 +2711,46 @@
    "half_width_pct": 2.83,
    "monday_widen_pct": 1.47,
    "source": "2026-11-17 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-17",
+   "code": "000660",
+   "low": 1081000.0,
+   "high": 1115000.0,
+   "prev_close": 1120000.0,
+   "actual_open": 1098000.0,
+   "gap_pct": -1.96,
+   "in_range": true,
+   "center_pct": -1.95,
+   "center_err_pct": -0.01,
+   "band_width_pct": 3.04,
+   "inputs": {
+    "k200n_pct": -1.76,
+    "perp_pct": -2.15
+   },
+   "half_width_pct": 1.5,
+   "monday_widen_pct": null,
+   "source": "2026-11-18 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-17",
+   "code": "005930",
+   "low": 191500.0,
+   "high": 196900.0,
+   "prev_close": 196800.0,
+   "actual_open": 191400.0,
+   "gap_pct": -2.74,
+   "in_range": false,
+   "center_pct": -1.32,
+   "center_err_pct": -1.42,
+   "band_width_pct": 2.74,
+   "inputs": {
+    "k200n_pct": -1.76,
+    "perp_pct": -0.88
+   },
+   "half_width_pct": 1.36,
+   "monday_widen_pct": null,
+   "source": "2026-11-18 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
