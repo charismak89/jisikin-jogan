@@ -179,6 +179,19 @@ def us_fut_basis(d):
     return 'prev_session' if closed else 'post_close'
 
 NIGHT_XCHECK_PP, NIGHT_XCHECK_REL = 1.5, 0.2   # 야간선물 등락률 vs 같은 시각 추종가(pnight). 10/16~11/9 17회 |차이| 중앙 0.44·최대 1.00%p
+POST_NOTE_PCT = 1.0   # 야간선물 마감 뒤 코스피200 추종가 변화가 이 % 이상이면 화면에 경고 줄(2026-11-18, 엔비디아 실적 06:23 KST)
+
+def post_night_note(k200n, post, lo_pct, hi_pct, night_at, asof, widened=False):
+    """예상 구간 경고 줄 — 구간 중심은 야간선물이라 06:00 뒤 움직임이 빠진다. 큰 움직임이 있었으면 그 방향을 알린다.
+    규칙, 채점, 게이트는 건드리지 않는다. widened 는 월요일 확장(반폭에 |변화|를 더함)이 적용된 날 — 구간이 이미 담고 있어 뺀다. 조건이 아니면 None."""
+    if widened or None in (k200n, post, lo_pct, hi_pct) or abs(post) < POST_NOTE_PCT:
+        return None
+    implied = ((1 + k200n / 100) * (1 + post / 100) - 1) * 100
+    side = '위' if post > 0 else '아래'
+    tail = ('시초가가 구간 %s로 벗어날 수 있습니다' % side) if not (lo_pct <= implied <= hi_pct) else ('시초가가 구간 %s쪽에서 나올 수 있습니다' % side)
+    text = '야간선물 마감(%s) 뒤 코스피200 추종가가 %s%.2f%% 움직였습니다(%s 기준). 예상 구간 중심에는 이 움직임이 들어 있지 않아 %s.' % (
+        night_at, '+' if post > 0 else '−', abs(post), asof, tail)
+    return {'post_pct': round(post, 2), 'implied_pct': round(implied, 2), 'side': side, 'night_at': night_at, 'asof': asof, 'text': text}
 
 def state_before(iso):
     """발행일 iso 의 발행 커밋(brief: <iso> 발행) 직전 state.json. git 이 없거나 못 찾으면 None."""
@@ -846,6 +859,18 @@ def main():
                            'snap': None if perp_at(k, t_snap) is None else round(perp_at(k, t_snap), 2)} for k in pitems}
     signals['perp_night_at'] = datetime.fromtimestamp(night_close_ms(d) / 1000, KST).strftime('%m/%d %H:%M')
     signals['perp_asof'] = datetime.fromtimestamp(t_snap / 1000, KST).strftime('%m/%d %H:%M') if pitems else None
+    # 06:00 뒤 큰 움직임 경고 줄 — 휴장 뒤 회차는 야간선물을 중심에 안 쓰므로 뺀다
+    n_dt = datetime.fromtimestamp(night_close_ms(d) / 1000, KST)
+    post_note = post_night_note(k200n_now, (pn.get('KOSPI') or {}).get('post'),
+                                None if (low is None or not kospi_close) else (low / kospi_close - 1) * 100,
+                                None if (high is None or not kospi_close) else (high / kospi_close - 1) * 100,
+                                n_dt.strftime('%H:%M') if n_dt.date() == d else '%d/%d %s' % (n_dt.month, n_dt.day, n_dt.strftime('%H:%M')),
+                                datetime.fromtimestamp(t_snap / 1000, KST).strftime('%H:%M'),
+                                widened=d.weekday() == 0 and (cal.get('rule') or {}).get('monday_widen') == 'post_night_abs') if pitems else None
+    if post_note:
+        warn('예상 구간 경고 줄 — 06:00 뒤 코스피200 추종가 %+.2f%%, 야간선물 + 변화 %+.2f%% (구간 %+.2f ~ %+.2f%%, 게이트 무관)' % (
+            post_note['post_pct'], post_note['implied_pct'], (low / kospi_close - 1) * 100, (high / kospi_close - 1) * 100))
+    V['POST_NOTE'] = '<div class="pnw">%s</div>' % esc(post_note['text']) if post_note else ''
 
     pl = (lambda iso: md(iso))(fill.get('closes_as_of') or pday.isoformat())
     ents = []
@@ -972,7 +997,7 @@ def main():
             'day': day, 'k20': {'rows': k20_rows, 'close': kospi_close, 'pct': pct.get('KOSPI'), 'cap': plain(V['K20_CAP'])},
             'market': [{'key': k, 'label': lab, 'close': close.get(k), 'pct': pct.get(k), 'asof': (prices.get(k) or {}).get('asof') if k == 'K200N' else None}
                        for k, lab in (('K200N', 'K200 야간'), ('SOX', 'SOX'), ('NVDA', names['NVDA'][0]), ('MU', names['MU'][0]), ('EWY', 'EWY'), ('USDKRW', names['USDKRW'][0]))],
-            'issue_src': issue_src,
+            'issue_src': issue_src, 'post_note': post_note,
             'global_tag': plain(tags.get('global')), 'stock_note': V['STOCK_NOTE'],
             'brief_html': '', 'footer': {'sources': plain(src), 'data_note': plain(dn.get('lead'))}}
 
@@ -991,7 +1016,7 @@ def main():
     body = re.sub(r'<(style|script).*?</\1>', '', out, flags=re.S)
     body = re.sub(r'<div data-panel="dash">.*?<!--/dash-->', '', body, flags=re.S)   # 대시보드는 스크립트가 만든 화면이라 글자수에서 뺀다
     body = re.sub(r'<svg.*?</svg>', '', body, flags=re.S)
-    body = re.sub(r'<div class="fwide (?:fsig num|fconf)">.*?</div>|<div class="sl">.*?</div>|<div class="legend">.*?</div>', '', body, flags=re.S)  # 스크립트가 만든 문구는 글자수에서 뺀다
+    body = re.sub(r'<div class="fwide (?:fsig num|fconf)">.*?</div>|<div class="sl">.*?</div>|<div class="pnw">.*?</div>|<div class="legend">.*?</div>', '', body, flags=re.S)  # 스크립트가 만든 문구는 글자수에서 뺀다
     vis = re.sub(r'<details.*?</details>', '', body, flags=re.S)
     txt = lambda x: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', x)).strip()
     collapsed, full = len(txt(vis)), len(txt(body))
