@@ -193,6 +193,16 @@ def post_night_note(k200n, post, lo_pct, hi_pct, night_at, asof, widened=False):
         night_at, '+' if post > 0 else '−', abs(post), asof, tail)
     return {'post_pct': round(post, 2), 'implied_pct': round(implied, 2), 'side': side, 'night_at': night_at, 'asof': asof, 'text': text}
 
+def stock_post_note(items, has_kospi, night_at, asof):
+    """종목 경고 문장(2026-11-18 사용자 요청). items = [(이름, 06:00 뒤 변화 %)], 이미 조건(|변화| ≥ POST_NOTE_PCT, 평균 중심, 월요일 확장 아님)을 거른 것.
+    종목 중심은 야간선물과 07:45 추종가의 평균이라 이 변화의 절반이 들어 있다. 방향은 말하지 않는다 — 삼성전자는 큰 날에도 잔차 부호가 반반이었다(CALIBRATION.md H9 행)."""
+    if not items:
+        return None
+    moves = ', '.join('%s %s%.2f%%' % (n, '+' if p > 0 else '−', abs(p)) for n, p in items)
+    if has_kospi:
+        return '같은 시각 종목 추종가는 %s 움직였고, 종목 구간 중심에는 이 움직임의 절반만 들어 있습니다.' % moves
+    return '야간선물 마감(%s) 뒤 종목 추종가는 %s 움직였습니다(%s 기준). 종목 구간 중심에는 이 움직임의 절반만 들어 있습니다.' % (night_at, moves, asof)
+
 def state_before(iso):
     """발행일 iso 의 발행 커밋(brief: <iso> 발행) 직전 state.json. git 이 없거나 못 찾으면 None."""
     try:
@@ -861,15 +871,29 @@ def main():
     signals['perp_asof'] = datetime.fromtimestamp(t_snap / 1000, KST).strftime('%m/%d %H:%M') if pitems else None
     # 06:00 뒤 큰 움직임 경고 줄 — 휴장 뒤 회차는 야간선물을 중심에 안 쓰므로 뺀다
     n_dt = datetime.fromtimestamp(night_close_ms(d) / 1000, KST)
-    post_note = post_night_note(k200n_now, (pn.get('KOSPI') or {}).get('post'),
-                                None if (low is None or not kospi_close) else (low / kospi_close - 1) * 100,
-                                None if (high is None or not kospi_close) else (high / kospi_close - 1) * 100,
-                                n_dt.strftime('%H:%M') if n_dt.date() == d else '%d/%d %s' % (n_dt.month, n_dt.day, n_dt.strftime('%H:%M')),
-                                datetime.fromtimestamp(t_snap / 1000, KST).strftime('%H:%M'),
-                                widened=d.weekday() == 0 and (cal.get('rule') or {}).get('monday_widen') == 'post_night_abs') if pitems else None
-    if post_note:
+    n_at = n_dt.strftime('%H:%M') if n_dt.date() == d else '%d/%d %s' % (n_dt.month, n_dt.day, n_dt.strftime('%H:%M'))
+    s_at = datetime.fromtimestamp(t_snap / 1000, KST).strftime('%H:%M')
+    k_note = post_night_note(k200n_now, (pn.get('KOSPI') or {}).get('post'),
+                             None if (low is None or not kospi_close) else (low / kospi_close - 1) * 100,
+                             None if (high is None or not kospi_close) else (high / kospi_close - 1) * 100,
+                             n_at, s_at, widened=d.weekday() == 0 and (cal.get('rule') or {}).get('monday_widen') == 'post_night_abs') if pitems else None
+    if k_note:
         warn('예상 구간 경고 줄 — 06:00 뒤 코스피200 추종가 %+.2f%%, 야간선물 + 변화 %+.2f%% (구간 %+.2f ~ %+.2f%%, 게이트 무관)' % (
-            post_note['post_pct'], post_note['implied_pct'], (low / kospi_close - 1) * 100, (high / kospi_close - 1) * 100))
+            k_note['post_pct'], k_note['implied_pct'], (low / kospi_close - 1) * 100, (high / kospi_close - 1) * 100))
+    # 종목 — 중심이 평균(야간선물과 추종가 둘 다)인 날만. 휴장 뒤(추종가만 씀)와 월요일 확장일은 구간이 이미 움직임을 담아 뺀다
+    s_items = []
+    for code in STOCK_KEYS:
+        f = stock_fc.get(code) or {}
+        mv = (pn.get(code) or {}).get('post')
+        if (not f or None in ((f.get('inputs') or {}).get('k200n_pct'), (f.get('inputs') or {}).get('perp_pct'), mv)
+                or 'monday_widen_pct' in f or abs(mv) < POST_NOTE_PCT):
+            continue
+        s_items.append({'code': code, 'name': names[code][0], 'post_pct': round(mv, 2)})
+    s_text = stock_post_note([(x['name'], x['post_pct']) for x in s_items], bool(k_note), n_at, s_at) if pitems else None
+    if s_items:
+        warn('예상 구간 경고 줄(종목) — 06:00 뒤 추종가 %s (게이트 무관)' % ', '.join('%s %+.2f%%' % (x['name'], x['post_pct']) for x in s_items))
+    post_note = ({'text': ' '.join(t for t in ((k_note or {}).get('text'), s_text) if t), 'kospi': k_note, 'stocks': s_items}
+                 if (k_note or s_items) else None)
     V['POST_NOTE'] = '<div class="pnw">%s</div>' % esc(post_note['text']) if post_note else ''
 
     pl = (lambda iso: md(iso))(fill.get('closes_as_of') or pday.isoformat())
