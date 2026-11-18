@@ -24,8 +24,12 @@ export interface DayData {
   k20: { rows: K20Row[]; close: number | null; pct: number | null; cap: string }
   market: { key: string; label: string; close: number | null; pct: number | null; asof: string | null }[]
   issue_src?: { t: string; origin: string; at: string | null; verify: string | null }[]   // 이슈 출처(B6). 2026-10-31 전 회차에는 없다
-  // 06:00 뒤 코스피200 추종가가 1% 넘게 움직인 날 경고 줄(월요일 확장일 제외). 2026-11-18 전 회차와 조건이 아닌 날은 없거나 null
-  post_note?: { post_pct: number; implied_pct: number; side: string; night_at: string; asof: string; text: string } | null
+  // 06:00 뒤 코스피200 또는 종목(삼전, 하닉) 추종가가 1% 넘게 움직인 날 경고 줄(월요일 확장일 제외). 2026-11-18 전 회차와 조건이 아닌 날은 없거나 null
+  post_note?: {
+    text: string
+    kospi: { post_pct: number; implied_pct: number; side: string; night_at: string; asof: string; text: string } | null
+    stocks: { code: string; name: string; post_pct: number }[]
+  } | null
   global_tag: string; stock_note: string; brief_html: string
   footer: { sources: string; data_note: string }
 }
