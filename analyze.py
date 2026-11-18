@@ -176,6 +176,33 @@ if srule.get('monday_widen'):
             code, since6, len(M6), sum(bool(r['in_range']) for r in M6), len(M6), nowid, len(M6), st.mean(r['monday_widen_pct'] for r in M6)))
         if len(M6) >= 8: print('  → 8회 도달. 실제 구간 안이 반사실보다 많지 않으면 이 종목은 확장을 뺀다(CALIBRATION.md H6)')
 
+# H9 — SK하이닉스만, 06:00 뒤 하닉 추종가 변화 ≥ 1% 인 날 중심 = 07:45 추종가(아니면 현행 평균) (2026-11-18 등록, CALIBRATION.md)
+# 종목 기록은 개장 왜곡 예외 없이 센다(채점 예외 절). 06:00 값은 같은 날 코스피 기록의 signals.perp 에 있다. 휴장 뒤는 이미 추종가만 써서 뺀다
+H9_CODE, H9_MIN, H9_SINCE = '000660', 1.0, '2026-11-18'
+sig9 = {r['date']: (r.get('signals') or {}) for r in recs}
+def h9_rows():
+    out = []
+    for r in SR:
+        s = sig9.get(r['date']) or {}
+        p = (s.get('perp') or {}).get(H9_CODE) or {}
+        n = (r.get('inputs') or {}).get('k200n_pct')
+        if r['code'] != H9_CODE or s.get('night_skipped') or n is None or None in (p.get('pnight'), p.get('snap'), r.get('gap_pct')): continue
+        mv = ((1 + p['snap'] / 100) / (1 + p['pnight'] / 100) - 1) * 100
+        if abs(mv) >= H9_MIN: out.append((r, n, p['snap'], mv))
+    return out
+def h9(rs, label):
+    if not rs: print('%s 0회' % label); return
+    cur = st.mean(abs(r['gap_pct'] - (n + sn) / 2) for r, n, sn, mv in rs)
+    alt = st.mean(abs(r['gap_pct'] - sn) for r, n, sn, mv in rs)
+    same = sum((r['gap_pct'] - (n + sn) / 2) * mv > 0 for r, n, sn, mv in rs)
+    print('%s %d회 — 현행 평균 MAE %.2f, 추종가만 %.2f, 잔차와 변화 부호 같음 %d/%d' % (label, len(rs), cur, alt, same, len(rs)))
+R9 = h9_rows()
+print()
+h9([x for x in R9 if x[0]['date'] <= H9_SINCE], 'H9 하닉 06:00 뒤 1% 넘게 움직인 날 — 등록 전(참고)')
+A9 = [x for x in R9 if x[0]['date'] > H9_SINCE]
+h9(A9, 'H9 등록(11/18) 뒤')
+if len(A9) >= 8: print('  → 8회 도달. 등록 뒤 표본으로 한 번만 판정한다. 추종가만 MAE 가 현행 평균보다 0.20 넘게 작으면 금요일 후보로(CALIBRATION.md H9)')
+
 for code in sorted({r['code'] for r in SR}):
     rr = [r for r in SR if r['code'] == code]
     print('종목 %s %d회 — 구간 안 %d · 중심 오차 MAE %.2f · 평균 폭 %.2f%%p' % (code, len(rr), sum(r['in_range'] for r in rr),
