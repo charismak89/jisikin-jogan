@@ -134,6 +134,21 @@ if rule.get('half_width_mode') == 'scaled' and P:
     h7(A7, 'H7 등록(11/18) 뒤')
     if len(A7) >= 6: print('  → 6회 도달. 반사실 구간 안이 비례 반폭 구간 안보다 2회 이상 많으면 평일 확장을 금요일 후보로(CALIBRATION.md H7)')
 
+# H8 — 06:00 뒤 |KR200 변화| ≥ 1% 인 날만 중심에 0.65×변화 (2026-11-18 등록, CALIBRATION.md). 월요일 포함, 휴장 뒤 제외
+H8_K, H8_MIN, H8_SINCE = 0.65, 1.0, '2026-11-18'
+def h8(rs, label):
+    if not rs: print('%s 0회' % label); return
+    ys = [r['gap_pct'] - r['signals']['k200n_pct'] for r in rs]
+    print('%s %d회 — 야간 단독 MAE %.2f, 야간 + %.2f×변화 %.2f, 야간 + 0.5×변화(H2) %.2f' % (
+        label, len(rs), st.mean(abs(y) for y in ys), H8_K, st.mean(abs(y - H8_K * post(r)) for y, r in zip(ys, rs)),
+        st.mean(abs(y - 0.5 * post(r)) for y, r in zip(ys, rs))))
+print()
+W8 = [r for r in P if abs(post(r)) >= H8_MIN and not r['signals'].get('night_skipped')]
+h8([r for r in W8 if r['date'] <= H8_SINCE], 'H8 06:00 뒤 1% 넘게 움직인 날 — 등록 전(참고)')
+A8 = [r for r in W8 if r['date'] > H8_SINCE]
+h8(A8, 'H8 등록(11/18) 뒤')
+if len(A8) >= 8: print('  → 8회 도달. 야간 + 0.65×변화 MAE 가 비교 대상(CALIBRATION.md H8)보다 0.10 넘게 작으면 금요일 후보로')
+
 # H5 — 월요일 반폭 + |주말 추종가 변화| (2026-11-09 사용자 결정). 적용 뒤 월요일을 확장 없는 반사실과 비교
 if rule.get('monday_widen'):
     since5 = next((h['date'] for h in reversed(rule.get('history') or []) if 'monday_widen' in (h.get('changed') or '')), '')
