@@ -66,7 +66,7 @@ def main():
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
-        print('playwright 가 없음 — pip install playwright (playwright install 은 하지 말 것. %s 를 쓴다)' % CHROMIUM); return 2
+        print('playwright 가 없음 — python3 -m pip install playwright (playwright install 은 하지 말 것. %s 를 쓴다)' % CHROMIUM); return 2
     out = (args('--out') or [tempfile.mkdtemp(prefix='uishots-')])[0]
     os.makedirs(out, exist_ok=True)
     widths = [(int(x), 900) for x in args('--width')] or [(390, 844), (1440, 900)]
