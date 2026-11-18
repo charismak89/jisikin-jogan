@@ -218,6 +218,7 @@ footer{border-top:1px solid var(--line);margin-top:38px;padding-top:16px;font-si
 .fsig span.up{color:var(--up)} .fsig span.down{color:var(--down)} .fsig span.na{color:var(--tx3)}
 .fsig span small{font-weight:600;color:var(--tx3);margin-left:3px}
 .fband{margin-top:10px}
+.pnw{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--warnbg);border:1px solid var(--warnline);color:var(--warntx);font-size:13px;line-height:1.5}
 .fband svg{display:block;width:100%;height:auto;overflow:visible}
 .fconf{font-size:12px;font-weight:700;color:var(--warntx);margin-top:8px}
 .fbanner .fl,.fbanner .fv,.fbanner .fr{grid-column:auto}

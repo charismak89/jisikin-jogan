@@ -27,6 +27,11 @@ export function Hero({ data, past, onBrief }: { data: DayData; past?: boolean; o
         </div>
       ) : <div className="mt-1 text-[16px] text-tx3">구간 없음</div>}
       {hasBand && <Band data={data} />}
+      {data.post_note && (
+        <p role="note" className="mt-3 rounded-xl px-3 py-2 text-[13px] leading-snug text-tx" style={{ background: 'var(--band)', boxShadow: 'inset 0 0 0 1px var(--band-line)' }}>
+          {data.post_note.text}
+        </p>
+      )}
       <div className="mt-4 flex flex-wrap gap-2">
         <Chip label="야간선물" v={s.k200n_pct} sub={s.k200n_asof} />
         <Chip label="EWY 시사" v={s.ewy_implied_pct} />

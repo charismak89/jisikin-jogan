@@ -117,6 +117,23 @@ if len(P) >= 5:
     h2([r for r in P if r['date'] > '2026-10-31'], 'H2 등록(10/31) 뒤')
     h2([r for r in P if date.fromisoformat(r['date']).weekday() == 0], '월요일만(참고)')
 
+# H7 — 평일(월요일 제외) 06:00 뒤 |KR200 변화| ≥ 1% 인 날 반폭 + |변화| (2026-11-18 등록, CALIBRATION.md). 같은 날 화면 경고 줄(render.post_night_note)도 나온다
+if rule.get('half_width_mode') == 'scaled' and P:
+    base7 = lambda r: rule['half_width_q'] * (rule['half_width_base'] + abs(r['signals']['k200n_pct']))
+    def h7(rs, label):
+        if not rs: print('%s 0회' % label); return
+        out_ = sum(abs(r['gap_pct'] - r['signals']['k200n_pct']) > base7(r) for r in rs)
+        wid = sum(abs(r['gap_pct'] - r['signals']['k200n_pct']) <= base7(r) + abs(post(r)) for r in rs)
+        same = sum((r['gap_pct'] - r['signals']['k200n_pct']) * post(r) > 0 for r in rs)
+        print('%s %d회 — 비례 반폭 구간 밖 %d, 반폭 + |변화| 반사실 구간 안 %d/%d, 잔차와 변화 부호 같음 %d/%d' % (
+            label, len(rs), out_, wid, len(rs), same, len(rs)))
+    W7 = [r for r in P if abs(post(r)) >= 1.0 and date.fromisoformat(r['date']).weekday() != 0 and not r['signals'].get('night_skipped')]
+    print()
+    h7([r for r in W7 if r['date'] <= '2026-11-18'], 'H7 06:00 뒤 1% 넘게 움직인 평일 — 등록 전(참고)')
+    A7 = [r for r in W7 if r['date'] > '2026-11-18']
+    h7(A7, 'H7 등록(11/18) 뒤')
+    if len(A7) >= 6: print('  → 6회 도달. 반사실 구간 안이 비례 반폭 구간 안보다 2회 이상 많으면 평일 확장을 금요일 후보로(CALIBRATION.md H7)')
+
 # H5 — 월요일 반폭 + |주말 추종가 변화| (2026-11-09 사용자 결정). 적용 뒤 월요일을 확장 없는 반사실과 비교
 if rule.get('monday_widen'):
     since5 = next((h['date'] for h in reversed(rule.get('history') or []) if 'monday_widen' in (h.get('changed') or '')), '')
