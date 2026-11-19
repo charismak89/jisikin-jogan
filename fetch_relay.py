@@ -105,7 +105,7 @@ def calendar_notes(rel, issue):
         elif s['changed']:
             notes.append('장 시간 — %s 정규장 %s~%s(%s, 토스 달력 일치)' % (dd, s['open_hm'], s['close_hm'], s['why'] or 'market_hours.json'))
     kr = (cal.get('kr') or {}).get('today') or {}
-    if kr.get('date') == issue.isoformat():
+    if kr.get('date') == issue.isoformat() and 'hours_notes' not in rel:   # 오늘 회차는 자동 기록 줄(hours_notes)이 휴장일 불일치도 낸다. 자동 기록이 가드로 건너뛰면 그 경고 줄이 대신 나간다
         hol = holiday_of(issue)
         if kr.get('open') is False and not hol: notes.append('토스 달력은 오늘(%s) 국내 휴장인데 holidays.json 에 없음 — 확인 후 holidays.json 에 추가' % issue)
         if kr.get('open') and hol: notes.append('holidays.json 은 오늘 휴장(%s)인데 토스 달력은 개장 — holidays.json 확인' % hol)
@@ -118,22 +118,24 @@ def calendar_notes(rel, issue):
 
 def fetch(issue):
     base, key = os.environ.get('JJ_RELAY_URL', '').strip(), os.environ.get('JJ_RELAY_TOKEN', '').strip()
-    p = prev_business_day(issue)
     if not (base and key):
-        return {'schema': 1, 'ok': False, 'issue_date': issue.isoformat(), 'date': p.isoformat(), 'reason': 'JJ_RELAY_URL/JJ_RELAY_TOKEN 없음'}
-    try:
-        daily = get(base, key, '/v1/daily?date=%s&us_until=%s' % (p.isoformat(), issue.isoformat()))
-    except Exception as e:
-        return {'schema': 1, 'ok': False, 'issue_date': issue.isoformat(), 'date': p.isoformat(), 'reason': '중계기 /v1/daily 실패 — %s' % str(e)[:120]}
+        return {'schema': 1, 'ok': False, 'issue_date': issue.isoformat(), 'date': prev_business_day(issue).isoformat(), 'reason': 'JJ_RELAY_URL/JJ_RELAY_TOKEN 없음'}
     try: cal = get(base, key, '/v1/calendar?date=%s' % issue.isoformat(), timeout=20)
     except Exception: cal = None   # VM 이 옛 코드면 404. 달력 대조만 건너뛴다
     notes = None
-    if cal and issue == datetime.now(KST).date():   # 장 시간 자동 기록을 normalize(hours_mismatch) 전에 — 직전 영업일 장 시간이 파일에 먼저 들어가야 한다
+    if cal and issue == datetime.now(KST).date():   # 휴장일, 장 시간 자동 기록을 직전 영업일 계산과 normalize(hours_mismatch) 전에 — 파일에 먼저 들어가야 한다
         try:
             from render import sync_market_hours
             notes = sync_market_hours(issue, cal)
         except Exception as e:
             notes = ['장 시간 자동 기록 실패 — %s' % str(e)[:80]]
+    p = prev_business_day(issue)
+    try:
+        daily = get(base, key, '/v1/daily?date=%s&us_until=%s' % (p.isoformat(), issue.isoformat()))
+    except Exception as e:
+        fail = {'schema': 1, 'ok': False, 'issue_date': issue.isoformat(), 'date': p.isoformat(), 'reason': '중계기 /v1/daily 실패 — %s' % str(e)[:120]}
+        if notes: fail['hours_notes'] = notes   # 자동 기록은 이미 파일에 들어갔다 — 실패해도 알린다
+        return fail
     rel = normalize(daily, cal, issue, p)
     if notes is not None: rel['hours_notes'] = notes
     return rel
@@ -147,7 +149,9 @@ def fmt(v, dec=2):
 
 def report(rel):
     if not rel.get('ok'):
-        print('중계기 실패 — %s. RUNBOOK 2단계 기존 경로(웹)로 받는다' % rel.get('reason')); return
+        print('중계기 실패 — %s. RUNBOOK 2단계 기존 경로(웹)로 받는다' % rel.get('reason'))
+        for n in rel.get('hours_notes') or []: print('  달력 ' + n)
+        return
     P, d = rel['prices'], rel['date']
     print('중계기 OK — %s 기준 (발행 %s)' % (d, rel['issue_date']))
     ix = ['%s 종가 %s 시가 %s' % (k, fmt(P[k]['close']), fmt(P[k].get('open'))) for k in ('KOSPI', 'KOSDAQ') if k in P]

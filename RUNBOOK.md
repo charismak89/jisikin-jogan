@@ -13,7 +13,7 @@
 4. 스크린샷을 찍지 않는다. 레이아웃 검증은 `page.evaluate` 숫자만.
 
 ## 0. 휴장일
-`python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다. `holidays.json` 에 없어도 토스 장 달력(중계기)이 오늘 휴장이라고 하면 `HOLIDAY 토스 장 달력 휴장…` 이 나온다(2026-11-10) — 그 줄을 그대로 옮기고 종료한다. `OPEN` 뒤에 `장 시간 …` 줄(자동 기록, 불일치)이 나오면 9단계 응답에 옮기고 계속한다(2026-11-19).
+`python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다. `holidays.json` 에 없어도 토스 장 달력(중계기)이 오늘 휴장이라고 하면 `HOLIDAY 토스 장 달력 휴장…` 이 나온다(2026-11-10) — 그 줄을 그대로 옮기고 종료한다. 첫 줄 뒤에 `휴장일 …`, `장 시간 …` 줄(자동 기록, 불일치)이 나오면 `HOLIDAY` 일 때는 그 한 줄 뒤에 이어 붙여 남기고 종료하고, `OPEN` 이면 9단계 응답에 옮기고 계속한다(2026-11-19).
 
 ## 1. 준비
 루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py fetch_relay.py datacheck.py sources.json holidays.json market_hours.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
@@ -21,13 +21,13 @@
 
 ## 2. 시세 — 병렬 3턴
 **턴 0 · `python3 fetch_perp.py ; python3 fetch_relay.py`** — 둘 다 스크립트라 토큰을 쓰지 않고, 실패해도 종료 코드 0 이다.
-- `fetch_perp.py` — 해외 24시간 추종가(Hyperliquid 코스피200·삼성전자·SK하이닉스) 15분봉을 `perp.json` 에 받는다. 실패하면 render.py 가 경고만 남기고 대시보드는 브라우저가 직접 받는다. 출력 세 줄을 9단계 응답에 옮긴다. 맨 앞에 `장 시간 …` 줄(자동 기록, 불일치, 실패)이 나오면 그 줄도 옮긴다.
+- `fetch_perp.py` — 해외 24시간 추종가(Hyperliquid 코스피200·삼성전자·SK하이닉스) 15분봉을 `perp.json` 에 받는다. 실패하면 render.py 가 경고만 남기고 대시보드는 브라우저가 직접 받는다. 출력 세 줄을 9단계 응답에 옮긴다. 맨 앞에 `휴장일 …`, `장 시간 …` 줄(자동 기록, 불일치, 실패)이 나오면 그 줄도 옮긴다.
   - 마지막 줄은 `뉴스 단서 — …` 또는 `뉴스 단서 없음 — …` 이다(2026-11-09). 야간선물 마감 뒤 코스피200·엔비디아 추종가가 1시간에 1% 넘게 움직인 구간이다. 단서 줄이 나오면 3절 이슈 검색의 첫 1회를 그 시각 뉴스 찾기에 쓴다.
 - `fetch_relay.py` (2026-10-21) — 토스 중계기(`/v1/daily`)에서 직전 영업일의 **국내 6종 종가·시가(KRX 1분봉), 코스피·코스닥 종가·시가, 코스피 투자자별 순매수(외국인·기관·개인·기타법인, 18시 뒤 확정치), 미국 4종 종가, 15:30 환율**을 `relay.json` 에 받는다. 환경 변수 `JJ_RELAY_URL`·`JJ_RELAY_TOKEN` 을 쓴다.
   - 첫 줄이 `중계기 OK` 면 그 값들이 1순위다. fill.json 의 같은 칸에 그대로 적는다. 빈칸으로 둬도 score.py·render.py 가 relay.json 으로 채운다. 적은 값이 다르면 render.py 가 "회차 값과 중계기 값이 다름" 경고를 낸다 — 국내 종가·시가·지수·수급은 중계기 값이 화면에 나가니, 문장·`data_note` 의 숫자를 중계기 값으로 고친다.
   - `중계기 실패` 면 아래 턴 A(Google Finance)부터 예전 경로 그대로 받는다.
   - `연속 누락 n회 — <필드> → 이번 회차에 시도: [경로]` 줄이 나오면 그 경로를 턴 B 에 1회 더한다(필드당 1회). 결과를 9단계 "못 구한 데이터" 에 경로 id 와 같이 적는다. 경로 목록은 `sources.json`, 고치는 일은 토요일 주간 점검이 한다.
-  - `달력` 줄(휴장일 불일치, 장 시간, 미국 휴장)이 나오면 9단계 응답에 옮긴다. holidays.json 은 회차가 고치지 않는다. market_hours.json 은 스크립트가 자동 기록하고 publish.py 가 커밋한다. 회차가 손으로 고치지 않는다.
+  - `달력` 줄(휴장일 불일치, 장 시간, 미국 휴장)이 나오면 9단계 응답에 옮긴다. holidays.json, market_hours.json 은 스크립트가 자동 기록하고 publish.py 가 커밋한다. 회차가 손으로 고치지 않는다.
   - `일부 실패 — 국내 종목 시가, 종가 뺌` 이 나오면 중계기가 직전 영업일 장 시간(수능일 등)을 못 따라간 것이다. 국내 종목 종가는 턴 A(Google Finance)부터 받는다. 지수와 수급은 중계기 값 그대로다(2026-11-19).
 
 **턴 A · 중계기 OK 면 건너뛴다.** 중계기 실패일 때만 Google Finance 12개를 한 턴에 병렬로. 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
