@@ -48,7 +48,10 @@ def normalize(daily, cal, issue, p):
         c = (daily.get('index') or {}).get(k)
         if c and c.get('close') is not None:
             P[k] = {'close': c['close'], 'open': c.get('open'), 'open_date': p.isoformat(), 'high': c.get('high'), 'low': c.get('low'), 'src': 'toss-index'}
-    for k in KR:
+    bad = hours_mismatch(daily.get('hours'), p)
+    if bad:   # 옛 VM 코드이거나 토스 달력을 못 받아 09:00~15:30 봉으로 뽑았다 — 종목 종가가 장중 값이다(2026-11-19 수능일)
+        out['errors'].append('국내 종목 시가, 종가 뺌 — %s. 종목 종가는 웹(RUNBOOK 2단계 기존 경로)에서 받는다' % bad)
+    for k in ([] if bad else KR):
         c = (daily.get('kr') or {}).get(k)
         if c and c.get('close') is not None:
             P[k] = {'close': c['close'], 'open': c.get('open'), 'open_date': p.isoformat(), 'high': c.get('high'), 'low': c.get('low'),
@@ -67,13 +70,40 @@ def normalize(daily, cal, issue, p):
         final = upd[:10] > p.isoformat() or (upd[:10] == p.isoformat() and upd[11:13] >= '18')   # 18시 뒤 갱신이면 확정치
         out['flow'] = dict({k: f.get(k) for k in FLOW_KEYS}, updatedAt=upd, final=final)
     if daily.get('stock_flow'): out['stock_flow'] = daily['stock_flow']
+    if daily.get('hours'): out['hours'] = daily['hours']
     if cal: out['calendar'] = cal
     return out
 
+def hours_mismatch(h, d):
+    """중계기가 d 의 종목 시가, 종가를 뽑은 정규장 시각(h, /v1/daily hours)이 market_hours.json 과 다르면 사유, 같으면 None.
+    market_hours.json 이 평소 시간(09:00~15:30)인 날은 h 가 없어도(옛 VM 코드) None 이다."""
+    from render import session_of
+    s = session_of(d)
+    if not s['changed'] and not h: return None
+    got = (h.get('open'), h.get('close')) if h else None
+    if got == (s['open_hm'], s['close_hm']): return None
+    return '%s 정규장이 market_hours.json 은 %s~%s 인데 중계기는 %s' % (
+        d.isoformat(), s['open_hm'], s['close_hm'], ('%s~%s(%s)' % (got[0], got[1], h.get('src'))) if got else '장 시간 없음(VM 갱신 전 코드)')
+
 def calendar_notes(rel, issue):
-    """토스 장 달력과 holidays.json 이 다르면 알린다. 미국 휴장 여부도 적는다."""
-    from render import holiday_of
+    """토스 장 달력과 holidays.json, market_hours.json 이 다르면 알린다. 미국 휴장 여부도 적는다."""
+    from render import holiday_of, session_of
     cal, notes = rel.get('calendar') or {}, []
+    for k in ('today', 'nextBusinessDay'):   # 장 시간(2026-11-19 수능일): 토스 달력 대 market_hours.json. 다음 영업일까지 봐서 하루 전에 안다
+        day = (cal.get('kr') or {}).get(k) or {}
+        if not day.get('open') or not day.get('date'): continue
+        try: dd = date.fromisoformat(day['date'])
+        except ValueError: continue
+        s, h = session_of(dd), day.get('hours')
+        if 'hours' not in day: continue   # VM 이 옛 코드 — 시각을 안 준다
+        got = (h.get('open'), h.get('close')) if h else None
+        if got and got != (s['open_hm'], s['close_hm']):
+            notes.append('장 시간 불일치 — %s 토스 달력 정규장 %s~%s, market_hours.json %s~%s. 관리 세션이 한국거래소 공지로 확인해 market_hours.json 을 고칠 것' % (
+                dd, got[0], got[1], s['open_hm'], s['close_hm']))
+        elif s['changed'] and not got:
+            notes.append('장 시간 — %s 정규장 %s~%s(%s). 토스 달력은 시각을 주지 않아 대조 못 함' % (dd, s['open_hm'], s['close_hm'], s['why'] or 'market_hours.json'))
+        elif s['changed']:
+            notes.append('장 시간 — %s 정규장 %s~%s(%s, 토스 달력 일치)' % (dd, s['open_hm'], s['close_hm'], s['why'] or 'market_hours.json'))
     kr = (cal.get('kr') or {}).get('today') or {}
     if kr.get('date') == issue.isoformat():
         hol = holiday_of(issue)

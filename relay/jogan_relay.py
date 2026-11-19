@@ -9,12 +9,12 @@
 엔드포인트 (루틴용은 루틴 키를 ?k= 또는 X-Relay-Key 헤더로. 화면용은 키가 없다)
   /healthz                       키 없이. 토큰 상태만
   /v1/live                       코스피·삼전·하닉 현재가 (5초 캐시)                     — 키 없이
-  /v1/intraday?date=YYYY-MM-DD   그날 1분봉 종가 (코스피 09:00~15:30, 두 종목 08:00~20:00) — 키 없이
+  /v1/intraday?date=YYYY-MM-DD   그날 1분봉 종가 (코스피 정규장 — 평소 09:00~15:30, 수능일 10:00~16:30 — 두 종목 08:00~20:00) — 키 없이
   /v1/daily?date=YYYY-MM-DD[&us_until=YYYY-MM-DD]
                                  그날 일봉(시고저종)·환율·코스피 투자자별 매매대금 (루틴용) — 루틴 키
                                  2026-10-21 추가: 미국 일봉은 us_until(발행일) 전날까지 5개, 수급은 그날 것(until=date),
                                  fx_close(그날 15:30 매매기준율), stock_flow(삼전·하닉 투자자별 순매수 주식 수)
-  /v1/calendar?date=YYYY-MM-DD   국내·미국 장 운영(전·당·익 영업일) — 휴장일 대조용 — 루틴 키
+  /v1/calendar?date=YYYY-MM-DD   국내·미국 장 운영(전·당·익 영업일, 국내 정규장 시각 hours) — 휴장일, 장 시간 대조용 — 루틴 키
   POST /v1/feedback              대시보드 '의견' 버튼. 본문 JSON {cat, text, nick, ctx} → STATE_DIR/feedback.jsonl — 키 없이
   2026-11-10 지인 키를 없앴다(사용자 결정). 화면용 셋(live·intraday·의견 쓰기)은 공개 주소에서 누구나 쓴다. 키는 루틴 키 하나만 남는다.
   의견 쓰기는 대시보드 주소(ALLOW_ORIGINS)에서 온 요청만 받는다 — 브라우저는 Origin 을 늘 붙인다. 직접 호출을 막는 장치는 아니다(헤더는 흉내 낼 수 있다).
@@ -182,13 +182,15 @@ def intraday(d):
     end = ms(d, 20, 0)
     if d == datetime.now(KST).date(): end = min(end, int(time.time() * 1000))
     before = (datetime(d.year, d.month, d.day, 20, 0, tzinfo=KST)).isoformat()
+    hrs = kr_hours(d)
+    t_open, t_close = hm_ms(d, hrs['open']), hm_ms(d, hrs['close'])
     items = {}
     for s in STOCKS:
         bars = candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 8, 0), end)
-        items[s] = {'bars': [[t, c] for t, o, c in bars], 'open': next((o for t, o, c in bars if t > ms(d, 9, 0)), None)}
-    bars = candles_1m('/api/v1/market-indicators/%s/candles' % INDEX, {'before': before}, ms(d, 8, 59), min(end, ms(d, 15, 31)))   # 08:59 — 명세대로 09:00 봉이 와도 첫 봉을 잃지 않게
+        items[s] = {'bars': [[t, c] for t, o, c in bars], 'open': next((o for t, o, c in bars if t > t_open), None)}
+    bars = candles_1m('/api/v1/market-indicators/%s/candles' % INDEX, {'before': before}, t_open - 60000, min(end, t_close + 60000))   # 개장 1분 전부터 — 명세대로 개장 시각 봉이 와도 첫 봉을 잃지 않게
     items[INDEX] = {'bars': [[t, c] for t, o, c in bars], 'open': bars[0][1] if bars else None}
-    return {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': items}
+    return {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'hours': hrs, 'items': items}
 
 def day_candle(path, params, d):
     res = toss(path, dict(params, interval='1d', count=10)) or {}
@@ -197,23 +199,27 @@ def day_candle(path, params, d):
             return {k: float(c[k + 'Price']) for k in ('open', 'high', 'low', 'close')}
     return None
 
-def krx_day(s, d):
+def krx_day(s, d, hrs=None):
     """KRX 공식 시가·종가. 토스 종목 일봉은 KRX·NXT 통합(08:00~20:00)이라 1분봉에서 뽑는다.
-    시가 = 09:01 봉(09:00~09:01)의 시가, 종가 = 15:31 봉(15:30~15:31, 종가 단일가)의 종가. 15:31 봉이 없으면 15:31 이전 마지막 봉."""
-    end = ms(d, 15, 31)
+    시가 = 개장 시각 +1분 봉(평소 09:01 봉)의 시가, 종가 = 종가 시각 +1분 봉(평소 15:31 봉, 종가 단일가)의 종가. 그 봉이 없으면 그 전 마지막 봉.
+    개장, 종가 시각은 토스 달력(kr_hours)을 따른다 — 수능일은 10:01 봉, 16:31 봉(2026-11-19)."""
+    hrs = hrs or kr_hours(d)
+    t_open, t_last = hm_ms(d, hrs['open']), hm_ms(d, hrs['close'], 1)
+    end = t_last
     if d == datetime.now(KST).date(): end = min(end, int(time.time() * 1000))
-    before = datetime(d.year, d.month, d.day, 15, 32, tzinfo=KST).isoformat()
-    bars = [b for b in candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 9, 0), end) if ms(d, 9, 0) < b[0] <= ms(d, 15, 31)]   # candles_1m 은 끝 시각 뒤 1분(15:32 봉)까지 주므로 잘라 낸다
+    before = datetime.fromtimestamp((t_last + 60000) / 1000, KST).isoformat()
+    bars = [b for b in candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, t_open, end) if t_open < b[0] <= t_last]   # candles_1m 은 끝 시각 뒤 1분 봉까지 주므로 잘라 낸다
     if not bars: return None
     return {'open': bars[0][1], 'close': bars[-1][2], 'src': 'krx-1m',
-            'complete': bars[0][0] == ms(d, 9, 1) and bars[-1][0] == ms(d, 15, 31)}   # False 면 시가·종가 봉이 비었다 — 쓰기 전에 확인
+            'complete': bars[0][0] == t_open + 60000 and bars[-1][0] == t_last}   # False 면 시가·종가 봉이 비었다 — 쓰기 전에 확인
 
 def daily(d, us_until=None):
-    out = {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'kr': {}, 'us': {}, 'index': {}, 'errors': []}
+    hrs = kr_hours(d)
+    out = {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'hours': hrs, 'kr': {}, 'us': {}, 'index': {}, 'errors': []}
     for s in DAILY_KR:
         try:
             c = day_candle('/api/v1/candles', {'symbol': s}, d)   # 통합 일봉: 고가·저가·거래 범위 참고용
-            k = krx_day(s, d)
+            k = krx_day(s, d, hrs)
             if c and k: c = dict(c, nxt_open=c['open'], nxt_close=c['close'], open=k['open'], close=k['close'], src=k['src'], complete=k['complete'])
             elif c: c['src'] = 'toss-1d'   # 1분봉이 없는 날(보관 기간 지남) — 시가·종가는 NXT 통합값이라 KRX 공식값과 다를 수 있다
             out['kr'][s] = c
@@ -260,16 +266,59 @@ def daily(d, us_until=None):
     except Exception as e: out['errors'].append('flow %s' % e)
     return out
 
+def _hm(iso):
+    """'2026-11-19T10:00:00+09:00' → '10:00'. 못 읽으면 None."""
+    try: return datetime.fromisoformat(str(iso).replace('Z', '+00:00')).astimezone(KST).strftime('%H:%M')
+    except Exception: return None
+
+def kr_session(day):
+    """토스 국내 달력 하루치 → 정규장 시각 {'open', 'close', 'auction', 'pre'} 또는 None(휴장, 정보 없음, 이상한 값).
+    open 은 KRX, NXT 정규장 합집합의 시작, auction 은 KRX 종가단일가 시작이다. close 는 KRX 종가 = auction + 10분이다.
+    합집합 종료(endTime)는 NXT 가 더 늦게 닫는 날 KRX 종가가 아니라 쓰지 않는다. auction 이 없거나 시각이
+    08:30~11:00 개장, 15:00~17:00 종가 밖이면 None 이라 호출한 쪽이 09:00~15:30 으로 돌아간다(2026-11-19 수능일)."""
+    reg = ((day or {}).get('integrated') or {}).get('regularMarket') or {}
+    op, au = _hm(reg.get('startTime')), _hm(reg.get('singlePriceAuctionStartTime'))
+    if not (op and au): return None
+    h, m = (int(x) for x in au.split(':')); m += 10; cl = '%02d:%02d' % (h + m // 60, m % 60)
+    if not ('08:30' <= op <= '11:00' and '15:00' <= cl <= '17:00'): return None
+    return {'open': op, 'close': cl, 'auction': au,
+            'pre': bool(((day or {}).get('integrated') or {}).get('preMarket'))}
+
 def calendar(d):
-    """국내·미국 장 운영. 각 시장의 전·당·익 영업일과 그날 열리는지(open). 미국 date 는 현지 날짜."""
+    """국내·미국 장 운영. 각 시장의 전·당·익 영업일과 그날 열리는지(open). 미국 date 는 현지 날짜.
+    국내는 정규장 시각(hours: open, close, auction, pre)도 싣는다 — 수능일, 새해 첫 거래일처럼 늦게 여는 날(2026-11-19)."""
     out = {'date': d.isoformat(), 'errors': []}
     for mk, key in (('KR', 'integrated'), ('US', 'regularMarket')):
         try:
             r = toss('/api/v1/market-calendar/%s' % mk, {'date': d.isoformat()}) or {}
             out[mk.lower()] = {k: {'date': (r.get(k) or {}).get('date'), 'open': bool((r.get(k) or {}).get(key))}
                                for k in ('previousBusinessDay', 'today', 'nextBusinessDay')}
+            if mk == 'KR':
+                for k, v in out['kr'].items(): v['hours'] = kr_session(r.get(k))
         except Exception as e: out['errors'].append('%s %s' % (mk, e))
     return out
+
+DEFAULT_HOURS = {'open': '09:00', 'close': '15:30', 'auction': '15:20', 'pre': True, 'src': 'default'}
+
+def _kr_today_session(d):
+    r = toss('/api/v1/market-calendar/KR', {'date': d.isoformat()}) or {}
+    t = r.get('today') or {}
+    if not t.get('date'): raise ValueError('market-calendar 빈 응답')   # 빈 응답을 1시간 기억하지 않게 실패로 돌린다(ERR_TTL)
+    return kr_session(t) if t.get('date') == d.isoformat() else None
+
+def kr_hours(d):
+    """그날 KRX 정규장 시각. 토스 달력(1시간 캐시)이 그날을 정규장으로 답하면 그 값, 못 받으면 09:00~15:30(src default).
+    /v1/calendar 캐시와 키를 나눴다 — 그쪽은 실패도 응답(errors)으로 1시간 남지만 여기는 실패를 ERR_TTL 초만 기억한다."""
+    try:
+        h = cached(('kr_hours', d), 3600, lambda: _kr_today_session(d))
+        if h and h.get('open') and h.get('close'): return dict(h, src='toss-calendar')
+    except Exception:
+        pass
+    return dict(DEFAULT_HOURS)
+
+def hm_ms(d, hm, add_min=0):
+    h, m = (int(x) for x in hm.split(':'))
+    return ms(d, h, m) + add_min * 60000
 
 # ---------- 의견 ----------
 # 지인들이 대시보드에서 보낸 글. 원문은 이 VM 에만 둔다(저장소는 Public). IP 는 남기지 않는다.

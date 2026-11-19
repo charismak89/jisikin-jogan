@@ -20,6 +20,7 @@ const BAND_CLS: Record<string, string> = { 안: 'bg-brand-soft text-brand', 아�
 export function LiveChart({ live }: { live: Live }) {
   const ver = useSyncExternalStore((fn) => live.subscribe(fn), () => live.version)
   const D = live.D
+  const SS = D.sess ?? { open: '09:00', close: '15:30', prev_close: '15:30', why: null }
   const [sel, setSel] = useState(0)
   const [[zA, zB], setZ] = useState<[number, number]>([0, 1])
   const [tip, setTip] = useState<{ x: number; t: string; p: number } | null>(null)
@@ -191,7 +192,7 @@ export function LiveChart({ live }: { live: Live }) {
                 <polyline points={poly(ses)} fill="none" stroke={col} strokeWidth={2} strokeLinejoin="round" />
                 {op != null && <circle cx={xo} cy={Y(op)} r={4.5} fill="var(--card)" stroke={col} strokeWidth={2} />}
               </g> : <text x={(xo + L + PW) / 2} y={(T + H - B) / 2} textAnchor="middle" fontSize={11} fill="var(--tx3)">
-              {live.isPast && !live.liveOK ? '장중 기록 없음' : '09:00 개장 후 실시간'}</text>}
+              {live.isPast && !live.liveOK ? '장중 기록 없음' : `${SS.open} 개장 후 실시간`}</text>}
             {tip && <line x1={tip.x} x2={tip.x} y1={T} y2={H - B} stroke="var(--tx3)" strokeWidth={0.8} />}
           </g>
           {/* 끝 점·끝값은 잘림 영역 밖에 그린다 — 15:30 점이 그래프 오른쪽 끝에 붙어도 반쪽으로 잘리지 않게 */}
@@ -205,7 +206,7 @@ export function LiveChart({ live }: { live: Live }) {
           {grid.map((g) => <text key={g} x={L - 5} y={Y(g) + 3.5} textAnchor="end" fontSize={9} fill="var(--tx3)">{Math.abs(g) < 1e-9 ? '0' : (g > 0 ? '+' : '') + g}</text>)}
           <text x={xo - 4} y={T - 8} textAnchor="end" fontSize={9} fill="var(--tx3)">장외</text>
           <text x={xo + 4} y={T - 8} fontSize={9} fill="var(--tx3)">장중</text>
-          {([[D.t_open, '09:00'], [D.t_prev, '15:30'], [D.t_night, nightLabel], [D.t_open + 108e5, '12:00'], [D.t_close, '15:30']] as [number, string][])
+          {([[D.t_open, SS.open], [D.t_prev, SS.prev_close], [D.t_night, nightLabel], [D.t_open + 108e5, hm(D.t_open + 108e5)], [D.t_close, SS.close]] as [number, string][])
             .filter(([t]) => inX(X(t)))
             .filter(([t, s], i, arr) => arr.slice(0, i).every(([u, v]) => Math.abs(X(u) - X(t)) >= (s.length + v.length) * 2.35 + 6))   // 겹치는 시각 글자는 뒤의 것을 뺀다(09:00 우선). 글자 폭은 9px 숫자 한 자 4.7px 로 잡고 6px 띄운다
             .map(([t, s]) => <text key={s + t} x={X(t)} y={H - 6} textAnchor={X(t) > L + PW - 14 ? 'end' : 'middle'} fontSize={9} fill="var(--tx3)">{s}</text>)}
@@ -221,13 +222,13 @@ export function LiveChart({ live }: { live: Live }) {
         {e.prev_label} 종가 <b className="num text-tx">{nf(e.prev, e.dec || 0)}</b>
         {e.lo != null && e.hi != null && e.lo_v != null && e.hi_v != null && <> · 예측 <b className="num text-tx">{nf(e.lo_v, 0)} ~ {nf(e.hi_v, 0)}</b> ({sg(e.lo)} ~ {sg(e.hi)})</>}
         {op != null && e.lo != null && <> · 시가{kx ? '' : '(추종가)'} <b className="num text-tx">{sg(op)}</b> → 구간 <b className="text-tx">{band(e, op)}</b></>}
-        {live.preOpen(e) && ' · 09:00 개장 전(지수는 장 전 거래가 없습니다)'}
+        {live.preOpen(e) && ` · ${SS.open} 개장 전(지수는 장 전 거래가 없습니다)`}
         {!live.preOpen(e) && op == null && last != null && e.lo != null && <> · {kx ? '지금(NXT)' : live.liveOK ? '지금 추정' : '07:45 추정'} <b className="num text-tx">{sg(last)}</b> → 구간 {band(e, last)}</>}
         {e.approx && !kx && ' · 코스피200 추종가 기준이라 지수와 차이가 있습니다'}
-        {afterClose && ' · 종가는 KRX 기준입니다(15:40 이후 NXT 애프터마켓 가격은 반영하지 않음)'}
+        {afterClose && ' · 종가는 KRX 기준입니다(장 마감 뒤 NXT 애프터마켓 가격은 반영하지 않음)'}
       </p>
       <Cap>
-        왼쪽 — 전일 15:30 ~ 07:45 밤사이 해외 24시간 추종가(07:45 회차 기록, 예측 근거) · 세로 점선 — 야간선물 마감 · 08:00 부터 종목은 NXT 실제가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 토스(KRX) 실제 시세. 중계기가 끊긴 동안만 추종가로 대신 그립니다 ·
+        왼쪽 — 전일 {SS.prev_close} ~ 07:45 밤사이 해외 24시간 추종가(07:45 회차 기록, 예측 근거) · 세로 점선 — 야간선물 마감 · 08:00 부터 종목은 NXT 실제가 · 노란 막대 — 07:45 예측 구간 · 오른쪽 — {SS.open} ~ {SS.close} 토스(KRX) 실제 시세. 중계기가 끊긴 동안만 추종가로 대신 그립니다 ·
         오른쪽 위 + · − 로 확대·축소하고, 확대한 뒤에는 좌우로 끌어 옮깁니다. PC 는 마우스 휠도 되고, 더블클릭하면 원래대로 돌아갑니다.
         맨 오른쪽 버튼은 차트를 화면 가득 크게 보여 줍니다(Esc 또는 같은 버튼으로 닫기).
       </Cap>

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """fetch_perp.py — 해외 24시간 추종가(Hyperliquid 무기한선물) 스냅샷 → perp.json
 
-대시보드 "예측 → 실시간" 차트의 장외 구간(직전 영업일 15:30 ~ 지금)과 종목 예측 구간의 입력을 받는다.
+대시보드 "예측 → 실시간" 차트의 장외 구간(직전 영업일 종가 시각, 평소 15:30 ~ 지금)과 종목 예측 구간의 입력을 받는다.
 LLM 이 아니라 이 스크립트가 받는다. 회차 토큰을 쓰지 않는다.
 
   python3 fetch_perp.py            perp.json 을 쓴다 (실패해도 종료 코드 0 — 발행을 막지 않는다)
@@ -61,8 +61,9 @@ def main():
     now = datetime.now(KST)
     d = now.date()
     p = prev_business_day(d)
-    t_prev = ms(p, 15, 30)
-    start, end = ms(p, 15, 0), int(now.timestamp() * 1000)
+    from render import session_of
+    t_prev = ms(p, *session_of(p)['close'])   # 직전 영업일 KRX 종가 시각. 수능일은 16:30(market_hours.json, 2026-11-19)
+    start, end = t_prev - 1800000, int(now.timestamp() * 1000)
     out = {'fetched_at': now.strftime('%Y-%m-%dT%H:%M:%S+09:00'), 'fetched_ms': end, 'issue_date': d.isoformat(),
            'prev_day': p.isoformat(), 't_prev': t_prev, 'source': 'Hyperliquid xyz 15분봉 종가', 'items': {}, 'errors': []}
     for key, coin in load_codes().items():
@@ -71,7 +72,7 @@ def main():
             pts = [[c['t'] + 900000, float(c['c'])] for c in cs if c['t'] + 900000 <= end]   # 봉 마감 시각 기준, 아직 안 닫힌 봉은 뺀다
             base = [c for t, c in pts if t <= t_prev]
             if not pts or not base:
-                raise ValueError('15:30 기준 봉 없음 (%d봉)' % len(pts))
+                raise ValueError('종가 시각 기준 봉 없음 (%d봉)' % len(pts))
             out['items'][key] = {'coin': coin, 'base': base[-1], 'candles': [x for x in pts if x[0] >= t_prev]}
         except Exception as e:
             out['errors'].append('%s(%s): %s' % (key, coin, str(e)[:120]))
