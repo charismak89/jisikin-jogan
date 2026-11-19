@@ -50,6 +50,7 @@
 ## 작업 규칙
 - main 에 머지 = 발행. GitHub Pages 가 1~2분 뒤 사이트에 반영한다. PR 검사는 `check / render`, `check / web` 이고, 통과하면 위 "PR 머지"대로 바로 머지한다.
 - 화면(`template-v5.html`, `web/`, `style*.css`)을 바꾼 PR 은 머지 전에 `python3 uicheck.py` 를 돌린다. 경로 규칙(web.md)은 Bash 로 고칠 때 늦게 읽힐 수 있다.
+- 세션 브랜치 PR 이 머지된 뒤 `origin/main` 에서 다시 시작한 브랜치는 일반 push 로 올라간다(머지 커밋이 이전 head 를 포함). `-f` 를 쓰지 않는다.
 - 머지 예외: `claude/hold-<날짜>` 회차 브랜치. 게이트가 막은 회차라 HOLD 사유와 diff 요약을 한 줄로 알리고 내 판단을 받는다. `claude/publish-<날짜>`(게이트 통과, main push 만 거부된 회차)는 바로 머지한다.
 - `relay/` 를 바꾼 PR 은 머지해도 VM 에 반영되지 않는다. 머지 뒤 VM 에서 돌릴 명령과 정상 응답을 준다(`.claude/rules/relay.md`).
 
