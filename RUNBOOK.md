@@ -16,7 +16,7 @@
 `python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다. `holidays.json` 에 없어도 토스 장 달력(중계기)이 오늘 휴장이라고 하면 `HOLIDAY 토스 장 달력 휴장…` 이 나온다(2026-11-10) — 그 줄을 그대로 옮기고 종료한다.
 
 ## 1. 준비
-루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py fetch_relay.py datacheck.py sources.json holidays.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
+루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py fetch_relay.py datacheck.py sources.json holidays.json market_hours.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
 모든 작업은 저장소 루트에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
 
 ## 2. 시세 — 병렬 3턴
@@ -27,7 +27,8 @@
   - 첫 줄이 `중계기 OK` 면 그 값들이 1순위다. fill.json 의 같은 칸에 그대로 적는다. 빈칸으로 둬도 score.py·render.py 가 relay.json 으로 채운다. 적은 값이 다르면 render.py 가 "회차 값과 중계기 값이 다름" 경고를 낸다 — 국내 종가·시가·지수·수급은 중계기 값이 화면에 나가니, 문장·`data_note` 의 숫자를 중계기 값으로 고친다.
   - `중계기 실패` 면 아래 턴 A(Google Finance)부터 예전 경로 그대로 받는다.
   - `연속 누락 n회 — <필드> → 이번 회차에 시도: [경로]` 줄이 나오면 그 경로를 턴 B 에 1회 더한다(필드당 1회). 결과를 9단계 "못 구한 데이터" 에 경로 id 와 같이 적는다. 경로 목록은 `sources.json`, 고치는 일은 토요일 주간 점검이 한다.
-  - `달력` 줄(휴장일 불일치·미국 휴장)이 나오면 9단계 응답에 옮긴다. holidays.json 은 회차가 고치지 않는다.
+  - `달력` 줄(휴장일 불일치, 장 시간, 미국 휴장)이 나오면 9단계 응답에 옮긴다. holidays.json, market_hours.json 은 회차가 고치지 않는다.
+  - `일부 실패 — 국내 종목 시가, 종가 뺌` 이 나오면 중계기가 직전 영업일 장 시간(수능일 등)을 못 따라간 것이다. 국내 종목 종가는 턴 A(Google Finance)부터 받는다. 지수와 수급은 중계기 값 그대로다(2026-11-19).
 
 **턴 A · 중계기 OK 면 건너뛴다.** 중계기 실패일 때만 Google Finance 12개를 한 턴에 병렬로. 프롬프트: "현재가, Previous close, Open, Day range, 시점 표기(GMT+9)만 값으로. 설명 없이."
 `KOSPI:KRX` `005930:KRX` `000660:KRX` `402340:KRX` `009150:KRX` `0167A0:KRX` `442580:KRX` `NVDA:NASDAQ` `MU:NASDAQ` `EWY:NYSEARCA` `SKHY:NASDAQ` `USD-KRW` (`https://www.google.com/finance/quote/…`)
@@ -61,7 +62,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 **턴 C · 빠진 것만 보충.** 없으면 생략한다.
 
 판정 규칙
-- 국내 종목·ETF·지수는 Google Finance 시각이 **15:30 대**여야 종가다. 09:00~15:20 이면 장중값이라 쓰지 않는다.
+- 국내 종목·ETF·지수는 Google Finance 시각이 **15:30 대**여야 종가다. 09:00~15:20 이면 장중값이라 쓰지 않는다. render.py 가 `장 시간 — 직전 영업일 … 정규장 10:00~16:30` 처럼 내면 그 종료 시각대(예: 16:30 대)가 종가다.
 - 두 소스가 일치하면 확정. 어긋나면 기준일이 명시된 쪽을 채택하고 `data_note.more` 에 두 값과 채택 근거를 쓴다. 한 소스뿐이면 그렇게 밝힌다.
 - 중계기(KRX 1분봉·지수·확정 수급)는 기준일이 명시된 소스다. 국내 종가·시가·지수·수급이 웹과 갈리면 중계기 값을 채택한다. 기사 잠정치와 확정치의 수급 차이는 `diverged` 에 세지 않는다. 미국 종가·환율은 웹(stockanalysis·investing·기사) 값을 채택한다.
 - 끝내 못 찾으면 `close: null`. **추정값 금지.** 몇 종목이 비어도 발행한다.

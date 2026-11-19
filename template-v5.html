@@ -262,6 +262,7 @@ html.js5 [data-panel][hidden]{display:none!important}
 .h5{padding-top:14px}.h5 h1{font-size:24px}
 .hero5{margin-top:12px;padding:15px 16px;border-radius:14px;background:var(--warnbg);border:1px solid var(--warnline);border-left:5px solid var(--warnstrong)}
 .hero5 .hl{font-size:11.5px;font-weight:800;color:var(--warnstrong);letter-spacing:.06em}
+.hero5 .hl .sessn{margin-left:6px;font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--tx2)}
 .hrow{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin-top:2px}
 .hv5{font-size:26px;font-weight:900;color:var(--warnstrong);letter-spacing:-.04em}
 .hr5{font-size:19px;font-weight:900;color:var(--warntx);letter-spacing:-.03em}
@@ -390,7 +391,7 @@ html.js5 [data-panel][hidden]{display:none!important}
   </header>
 
   <section class="hero5" aria-label="시초가 전망">
-    <div class="hl">09:00 코스피 시초가 전망</div>
+    <div class="hl">{{OPEN_HM}} 코스피 시초가 전망{{SESS_NOTE}}</div>
     <div class="hrow"><span class="hv5">{{OPEN_FORECAST}}</span><span class="hr5 num">{{OPEN_RANGE5}}</span></div>
     <div class="fband" aria-label="예상 구간과 전일 종가">{{BAND_BAR}}</div>
     {{POST_NOTE}}
@@ -408,7 +409,7 @@ html.js5 [data-panel][hidden]{display:none!important}
         <div class="verd5" id="verd5"></div>
       </div>
     </div>
-    <div class="cap">왼쪽 — 전일 15:30 ~ 09:00 해외 24시간 추종가(밤사이 압축) · 노란 막대 — 07:45 예측 구간 · 오른쪽 — 09:00 ~ 15:30 장중 · 오른쪽 위 표시가 KRX 면 실제 시세, 아니면 해외 추종가(실제가와 ±0.5% 안팎 차이) · 15초마다 갱신</div>
+    <div class="cap">왼쪽 — 전일 {{PREV_CLOSE_HM}} ~ {{OPEN_HM}} 해외 24시간 추종가(밤사이 압축) · 노란 막대 — 07:45 예측 구간 · 오른쪽 — {{OPEN_HM}} ~ {{CLOSE_HM}} 장중 · 오른쪽 위 표시가 KRX 면 실제 시세, 아니면 해외 추종가(실제가와 ±0.5% 안팎 차이) · 15초마다 갱신</div>
   </section>
 
   <section class="card5" aria-label="코스피 최근 20거래일과 예측 기록">
@@ -495,7 +496,7 @@ html.js5 [data-panel][hidden]{display:none!important}
   </section>
 
   <section id="s-scen">
-    <div class="sh"><h2>장중 시나리오</h2><span class="stag">09:00 → 15:30</span></div>
+    <div class="sh"><h2>장중 시나리오</h2><span class="stag">{{SESS_SPAN}}</span></div>
     <div class="sum">{{SCEN_SUM}}</div>
     <div class="ladder">
 {{LADDER}}
@@ -616,6 +617,7 @@ html.js5 [data-panel][hidden]{display:none!important}
   /* ---------- 예측 → 실시간 ---------- */
   var el=document.getElementById('day-data'); if(!el)return;
   var D; try{D=JSON.parse(el.textContent);}catch(e){return;}
+  var SS=D.sess||{open:'09:00',close:'15:30',prev_close:'15:30'};   // 그날 정규장 시각(수능일 10:00~16:30 등, 2026-11-19)
   var API=D.api||'https://api.hyperliquid.xyz/info', S={}, sel=0, liveOK=null, stat=document.getElementById('lvStat');
   D.ent.forEach(function(e){S[e.key]={pts:[],openPx:null,base:e.base,path:e.path||[],krx:null};});
   /* KRX 실제 시세 — 중계기를 키 없이 부른다(지인 키는 2026-11-10 없앴다). 중계기가 실패하면 추종가로 그린다 */
@@ -793,12 +795,12 @@ html.js5 [data-panel][hidden]{display:none!important}
       var ep=ses[ses.length-1]; o.push('<circle class="end '+col+'" cx="'+X(ep[0])+'" cy="'+Y(ep[1])+'" r="4"/>');
       o.push('<text x="'+(X(ep[0])+7)+'" y="'+(Y(ep[1])+3.5)+'" class="lab">'+sg(ep[1])+'</text>');
     }else{
-      o.push('<text x="'+((xo+L+PW)/2)+'" y="'+((T+H-B)/2)+'" class="ph" text-anchor="middle">'+(isPast&&!liveOK?'장중 기록 없음':'09:00 개장 후 실시간')+'</text>');
+      o.push('<text x="'+((xo+L+PW)/2)+'" y="'+((T+H-B)/2)+'" class="ph" text-anchor="middle">'+(isPast&&!liveOK?'장중 기록 없음':SS.open+' 개장 후 실시간')+'</text>');
       var lp=tail.length?tail[tail.length-1]:(pre.length?pre[pre.length-1]:null);
       if(lp)o.push('<circle class="end '+(lp[1]<0?'dn':'upl')+'" cx="'+X(lp[0])+'" cy="'+Y(lp[1])+'" r="3.5"/>');
     }
     o.push('</g>');
-    [[D.t_prev,'15:30'],[D.t_night,hm(D.t_night)],[D.t_open,'09:00'],[D.t_open+108e5,'12:00'],[D.t_close,'15:30']].forEach(function(a){
+    [[D.t_prev,SS.prev_close],[D.t_night,hm(D.t_night)],[D.t_open,SS.open],[D.t_open+108e5,hm(D.t_open+108e5)],[D.t_close,SS.close]].forEach(function(a){
       if(a[0]===D.t_night&&Math.abs(X(D.t_open)-X(a[0]))<30)return;   // 06:00 눈금은 09:00 과 붙는다 — 시각은 야간 표식 글자에 있다
       if(inX(X(a[0])))o.push('<text x="'+X(a[0])+'" y="'+(H-6)+'" class="tick" text-anchor="middle">'+a[1]+'</text>');});
     if(zB-zA<0.999)o.push('<text x="'+(L+PW)+'" y="'+(T-8)+'" class="lab" text-anchor="end">더블클릭: 원래대로</text>');

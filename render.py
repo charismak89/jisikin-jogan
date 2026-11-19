@@ -25,6 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)) or '.'
 TEMPLATE = os.path.join(HERE, 'template-v5.html')   # v4 로 되돌리려면 이 줄만 바꾼다
 CONTEXT = os.path.join(HERE, 'CONTEXT.md')
 HOLIDAYS = os.path.join(HERE, 'holidays.json')
+MARKET_HOURS = os.path.join(HERE, 'market_hours.json')
 FIRST_ISSUE = date(2026, 8, 21)   # 제1호
 
 # 표기명·코드. CONTEXT.md 의 "표기용 종목명" 표가 있으면 그 표기가 우선한다.
@@ -154,6 +155,31 @@ def prev_business_day(d):
 def kst_ms(d, h, m):
     return int(datetime(d.year, d.month, d.day, h, m, tzinfo=KST).timestamp() * 1000)
 
+DEFAULT_SESSION = ('09:00', '15:30')
+
+def session_of(d):
+    """그날 KRX 정규장 {'open': (시, 분), 'close': (시, 분), 'open_hm': 'HH:MM', 'close_hm': 'HH:MM', 'why': 사유 또는 None}.
+    market_hours.json(사람 관리, 한국거래소 공지 출처)에 없는 날은 09:00~15:30. 수능일은 10:00~16:30, 새해 첫 거래일은 10:00 개장(2026-11-19)."""
+    try:
+        r = json.load(io.open(MARKET_HOURS, encoding='utf-8')).get(d.isoformat()) or {}
+    except Exception:
+        r = {}
+    out = {'why': r.get('why')}
+    for k, dv in zip(('open', 'close'), DEFAULT_SESSION):
+        hm = str(r.get(k) or dv)
+        try:
+            h, m = (int(x) for x in hm.split(':'))
+        except Exception:
+            hm = dv; h, m = (int(x) for x in dv.split(':'))
+        out[k], out[k + '_hm'] = (h, m), '%02d:%02d' % (h, m)
+    out['changed'] = (out['open_hm'], out['close_hm']) != DEFAULT_SESSION
+    return out
+
+def next_business_day(d):
+    x = d + timedelta(days=1)
+    while holiday_of(x): x += timedelta(days=1)
+    return x
+
 NIGHT_CLOSE = (6, 0)   # KRX 야간 파생상품시장 18:00 ~ 익일 06:00 (2025-06-09 부터. 그 전 유렉스 연계는 05:00)
 
 def night_close_ms(d):
@@ -268,9 +294,10 @@ def perp_post_night(perp, d, t_snap=None):
     return out
 
 def issue_window(d):
-    """CONTEXT.md '조회 창' — 직전 영업일 15:30 ~ 발행일 07:45 (KST). 월요일·연휴 뒤도 prev_business_day 가 마지막 영업일을 준다."""
+    """CONTEXT.md '조회 창' — 직전 영업일 종가 시각(평소 15:30) ~ 발행일 07:45 (KST). 월요일·연휴 뒤도 prev_business_day 가 마지막 영업일을 준다."""
     p = prev_business_day(d)
-    return datetime(p.year, p.month, p.day, 15, 30, tzinfo=KST), datetime(d.year, d.month, d.day, 7, 45, tzinfo=KST)
+    h, m = session_of(p)['close']   # 수능일처럼 늦게 닫은 날은 그 종료 시각부터(2026-11-19)
+    return datetime(p.year, p.month, p.day, h, m, tzinfo=KST), datetime(d.year, d.month, d.day, 7, 45, tzinfo=KST)
 
 def parse_at(s, d):
     """기사 시각 'M/D HH:mm'(KST) → datetime. 연도는 발행일 기준(발행일보다 뒤 달이면 전년). 못 읽으면 None."""
@@ -396,15 +423,27 @@ def main():
     elif prev_status == 'stale':
         warn('직전 회차 기록이 %s 것 — 직전 영업일(%s) 회차가 없다. 등락률은 화면값(pct_screen)을 쓰고 EWY·ADR 시사 갭은 비운다. '
              'pct_screen 이 빠진 종목은 등락률이 미확보로 나가니 모두 채울 것 (게이트 무관)' % (prev.get('issue_date'), prev_business_day(d).isoformat()))
+    sess, psess = session_of(d), session_of(prev_business_day(d))
+    if sess['changed']:
+        print('장 시간 — 오늘 정규장 %s~%s(%s). 화면 제목과 장중 차트가 이 시각을 쓴다' % (sess['open_hm'], sess['close_hm'], sess['why'] or 'market_hours.json'))
+    if psess['changed']:
+        print('장 시간 — 직전 영업일(%s) 정규장 %s~%s(%s). 종가와 추종가 기준이 %s 다' % (prev_business_day(d).isoformat(), psess['open_hm'], psess['close_hm'], psess['why'] or 'market_hours.json', psess['close_hm']))
+    nsess = session_of(next_business_day(d))
+    if nsess['changed']:
+        print('장 시간 — 다음 영업일(%s) 정규장 %s~%s(%s). 응답에 한 줄로 옮긴다' % (next_business_day(d).isoformat(), nsess['open_hm'], nsess['close_hm'], nsess['why'] or 'market_hours.json'))
     made_at = datetime.now(KST)
-    if d == made_at.date() and (made_at.hour, made_at.minute) >= (9, 0):
-        warn('개장(09:00) 뒤에 만든 회차 — %s. 전망이 시초가를 본 뒤의 값일 수 있다. state.forecast.made_at 에 남긴다 (게이트 무관)' % made_at.strftime('%H:%M'))
+    if d == made_at.date() and (made_at.hour, made_at.minute) >= sess['open']:
+        warn('개장(%s) 뒤에 만든 회차 — %s. 전망이 시초가를 본 뒤의 값일 수 있다. state.forecast.made_at 에 남긴다 (게이트 무관)' % (sess['open_hm'], made_at.strftime('%H:%M')))
     DOW = '월화수목금토일'
     V = {}
     V['GENERATED'] = '%sT07:45+09:00' % issue_date
     V['ISSUE'] = str(weekday_ordinal(d))
     V['DATE_LABEL'] = '%d년 %d월 %d일 (%s)' % (d.year, d.month, d.day, DOW[d.weekday()])
     V['SUBTITLE'] = '07:45 KST · 전일 종가 &amp; 간밤 미국장 반영'
+    V['OPEN_HM'] = sess['open_hm']
+    V['CLOSE_HM'], V['PREV_CLOSE_HM'] = sess['close_hm'], psess['close_hm']
+    V['SESS_SPAN'] = '%s → %s' % (sess['open_hm'], sess['close_hm'])
+    V['SESS_NOTE'] = ('' if not sess['changed'] else ' <small class="sessn">(%s, 정규장 %s~%s)</small>' % (esc(sess['why'] or '장 시간 변경'), sess['open_hm'], sess['close_hm']))
 
     # ----- 중계기(토스) 보완 — relay.json 으로 빈칸을 채우고 회차 값과 다르면 알린다. 입력 파일은 고치지 않는다 -----
     try:
@@ -804,7 +843,7 @@ def main():
 
     # ----- v5 대시보드 (첫 화면). 회차(LLM)가 쓰는 값은 없다 — 전부 위에서 만든 값과 perp.json 으로 만든다 -----
     pday = prev_business_day(d)
-    t_prev, t_open, t_close = kst_ms(pday, 15, 30), kst_ms(d, 9, 0), kst_ms(d, 15, 30)
+    t_prev, t_open, t_close = kst_ms(pday, *psess['close']), kst_ms(d, *sess['open']), kst_ms(d, *sess['close'])   # 수능일 등은 market_hours.json
     t_night, t_0500 = night_close_ms(d), kst_ms(d, 5, 0)   # 차트 야간 표식은 실제 마감(평일 06:00, 월요일은 토 06:00). 05:00 은 옛 p0500 기록용
     try:
         perp = json.load(io.open('perp.json', encoding='utf-8'))
@@ -914,7 +953,8 @@ def main():
                      'lo_v': f.get('low'), 'hi_v': f.get('high'), 'night': None})
     rm = re.search(r'^- 중계기 주소:\s*`?(https://[^\s`]+)', context_section('KRX 중계기'), re.M)
     day = {'issue': issue_date, 'api': 'https://api.hyperliquid.xyz/info', 'relay': rm.group(1).rstrip('/') if rm else None, 't_prev': t_prev, 't_snap': t_snap,
-           't_open': t_open, 't_close': t_close, 't_night': t_night, 'ent': [e for e in ents if e['prev']]}
+           't_open': t_open, 't_close': t_close, 't_night': t_night, 'ent': [e for e in ents if e['prev']],
+           'sess': {'open': sess['open_hm'], 'close': sess['close_hm'], 'prev_close': psess['close_hm'], 'why': sess['why']}}   # 화면 눈금, 제목(2026-11-19 수능일)
     V['DAY_DATA'] = json.dumps(day, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 
     def sgn(p): return ('+' if p > 0 else '−' if p < 0 else '') + '%.2f%%' % abs(p)

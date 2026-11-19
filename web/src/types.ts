@@ -10,6 +10,8 @@ export interface DayCfg {
   issue: string; api: string; relay: string | null
   t_prev: number; t_snap: number; t_open: number; t_close: number; t_night: number
   ent: Ent[]
+  // 그날 정규장 시각(HH:MM). 수능일은 10:00~16:30. 2026-11-19 전 회차에는 없다 — 09:00~15:30 으로 본다
+  sess?: { open: string; close: string; prev_close: string; why: string | null }
 }
 export interface K20Row {
   date: string; today: boolean; close: number | null; low: number | null; high: number | null
