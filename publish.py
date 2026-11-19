@@ -37,7 +37,8 @@ FIRST_ISSUE = date(2026, 8, 21)
 # 회차가 커밋하는 파일. 이 밖의 변경은 발행 커밋에 넣지 않는다 — 회차(LLM)는 웹 본문을 읽은 뒤 main 에 직접 올리고,
 # main 직접 push 는 PR 검사(check)를 거치지 않는다. 절차 문서나 스크립트가 회차 중에 바뀌어도 사이트·다음 회차로 넘어가지 않게 한다.
 PUBLISH_PATHS = ['calibration.json', 'state.json', 'day.json', 'datalog.json', 'archive/index.html',
-                 'fixtures/last-fill.json', 'fixtures/last-perp.json', 'fixtures/last-relay.json']
+                 'fixtures/last-fill.json', 'fixtures/last-perp.json', 'fixtures/last-relay.json',
+                 'market_hours.json']   # 장 시간 자동 기록(render.sync_market_hours, 2026-11-19)
 
 def arch_paths(html):
     """루트 기준 상대 경로(style.css, ./archive/)를 archive/ 깊이(한 단계)에 맞게 ../ 로"""

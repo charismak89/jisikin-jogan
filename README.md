@@ -14,7 +14,7 @@
 | `CONTEXT.md` | 종목 사실·표기명·소스 우선순위·금지 표현·이슈 수집 범위 | 사람 |
 | `CALIBRATION.md` / `calibration.json` | 채점 규칙·기록. records 는 score.py 가 append | score.py |
 | `holidays.json` | 휴장일. 임시공휴일이 생기면 한 줄 추가. 휴장 다음 회차의 야간선물 게이트 면제도 이 파일로 판정 | 사람 |
-| `market_hours.json` | 정규장 시간이 평소(09:00~15:30)와 다른 날(수능일, 새해 첫 거래일). 한국거래소 공지를 보고 한 줄 추가. 화면 제목, 차트 시각, 추종가 기준 시각이 이 파일을 따른다 | 사람 |
+| `market_hours.json` | 정규장 시간이 평소(09:00~15:30)와 다른 날(수능일, 새해 첫 거래일). 회차 스크립트가 토스 장 달력으로 하루 전에 자동 기록한다. 화면 제목, 차트 시각, 추종가 기준 시각이 이 파일을 따른다 | 회차 자동(사람은 고칠 때만) |
 | `template-v5.html` / `style.css` | render.py 가 쓰는 HTML 뼈대·디자인(인라인 CSS 와 style.css 는 같은 내용). `/v5/` 화면은 2026-10-22 삭제했지만 브리핑 탭 본문(`day.json.brief_html`)·접힘 4,000자 게이트·지난 회차(`archive/`) 화면이 여기서 나온다. 이름에 v5 가 남았어도 지우지 않는다 | 사람 |
 | `template-v4.html` | v4 뼈대. 되돌릴 때 render.py 의 TEMPLATE 한 줄만 바꾼다 | — |
 | `fetch_perp.py` | 해외 24시간 추종가(Hyperliquid) → `perp.json`. 대시보드 장외 구간·종목 예측 입력 | — |

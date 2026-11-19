@@ -88,8 +88,8 @@ def hours_mismatch(h, d):
 def calendar_notes(rel, issue):
     """토스 장 달력과 holidays.json, market_hours.json 이 다르면 알린다. 미국 휴장 여부도 적는다."""
     from render import holiday_of, session_of
-    cal, notes = rel.get('calendar') or {}, []
-    for k in ('today', 'nextBusinessDay'):   # 장 시간(2026-11-19 수능일): 토스 달력 대 market_hours.json. 다음 영업일까지 봐서 하루 전에 안다
+    cal, notes = rel.get('calendar') or {}, list(rel.get('hours_notes') or [])
+    for k in ([] if 'hours_notes' in rel else ('today', 'nextBusinessDay')):   # 오늘 회차는 fetch() 의 자동 기록 줄을 쓴다. 지난 날짜(--date)만 여기서 대조한다
         day = (cal.get('kr') or {}).get(k) or {}
         if not day.get('open') or not day.get('date'): continue
         try: dd = date.fromisoformat(day['date'])
@@ -127,7 +127,16 @@ def fetch(issue):
         return {'schema': 1, 'ok': False, 'issue_date': issue.isoformat(), 'date': p.isoformat(), 'reason': '중계기 /v1/daily 실패 — %s' % str(e)[:120]}
     try: cal = get(base, key, '/v1/calendar?date=%s' % issue.isoformat(), timeout=20)
     except Exception: cal = None   # VM 이 옛 코드면 404. 달력 대조만 건너뛴다
-    return normalize(daily, cal, issue, p)
+    notes = None
+    if cal and issue == datetime.now(KST).date():   # 장 시간 자동 기록을 normalize(hours_mismatch) 전에 — 직전 영업일 장 시간이 파일에 먼저 들어가야 한다
+        try:
+            from render import sync_market_hours
+            notes = sync_market_hours(issue, cal)
+        except Exception as e:
+            notes = ['장 시간 자동 기록 실패 — %s' % str(e)[:80]]
+    rel = normalize(daily, cal, issue, p)
+    if notes is not None: rel['hours_notes'] = notes
+    return rel
 
 def sg(v):
     return '—' if v is None else '{:+,.0f}'.format(v)

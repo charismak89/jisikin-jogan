@@ -159,7 +159,7 @@ DEFAULT_SESSION = ('09:00', '15:30')
 
 def session_of(d):
     """그날 KRX 정규장 {'open': (시, 분), 'close': (시, 분), 'open_hm': 'HH:MM', 'close_hm': 'HH:MM', 'why': 사유 또는 None}.
-    market_hours.json(사람 관리, 한국거래소 공지 출처)에 없는 날은 09:00~15:30. 수능일은 10:00~16:30, 새해 첫 거래일은 10:00 개장(2026-11-19)."""
+    market_hours.json(sync_market_hours 자동 기록, 사람이 공지로 고침)에 없는 날은 09:00~15:30. 수능일은 10:00~16:30, 새해 첫 거래일은 10:00 개장(2026-11-19)."""
     try:
         r = json.load(io.open(MARKET_HOURS, encoding='utf-8')).get(d.isoformat()) or {}
     except Exception:
@@ -179,6 +179,82 @@ def next_business_day(d):
     x = d + timedelta(days=1)
     while holiday_of(x): x += timedelta(days=1)
     return x
+
+AUTO_SRC = '토스 장 달력 자동 기록'
+_synced = {}
+
+def write_market_hours(data):
+    """market_hours.json 을 사람이 읽기 좋게 쓴다. '_' 로 시작하는 키 먼저, 날짜는 한 줄에 하나씩 오름차순."""
+    head = [k for k in data if k.startswith('_')]
+    days = sorted(k for k in data if not k.startswith('_'))
+    lines = ['  %s: %s' % (json.dumps(k, ensure_ascii=False), json.dumps(data[k], ensure_ascii=False)) for k in head + days]
+    tmp = MARKET_HOURS + '.tmp'
+    with io.open(tmp, 'w', encoding='utf-8', newline='\n') as f: f.write('{\n' + ',\n'.join(lines) + '\n}\n')
+    os.replace(tmp, MARKET_HOURS)   # 쓰다 만 파일이 남지 않게
+
+def sync_market_hours(issue=None, cal=None, verbose=False):
+    """예외를 밖으로 내지 않는다(07:45 회차를 막지 않게). verbose 면 토스와 일치한 변경일도 한 줄 낸다(render --today 만)."""
+    try:
+        return _sync_market_hours(issue, cal, verbose)
+    except Exception as e:
+        return ['장 시간 자동 기록 실패 — %s. market_hours.json 그대로 쓴다' % str(e)[:80]]
+
+def _sync_market_hours(issue, cal, verbose):
+    """토스 장 달력(중계기 /v1/calendar)으로 market_hours.json 을 자동으로 채운다(2026-11-19 사용자 결정 "자동화").
+    실제 오늘(KST) 날짜로 조회한 전일, 당일, 익일만 쓴다 — 토스는 기준일이 오늘보다 뒤면 모레 이후를 오늘 장 시간으로 채운다.
+    평소(09:00~15:30)와 다른 날이 파일에 없으면 적고, 자동 기록 줄이 토스와 다르면 고친다. 사람이 적은 줄은 고치지 않고 불일치만 알린다.
+    반환: 출력할 줄 목록. 중계기 키가 없거나 실패하면 []. 한 프로세스에서 한 번만 조회한다."""
+    d = issue or kst_today()
+    if d != kst_today(): return []
+    if d in _synced: return []
+    if cal is None:
+        try:
+            from fetch_relay import get
+            base, key = os.environ.get('JJ_RELAY_URL', '').strip(), os.environ.get('JJ_RELAY_TOKEN', '').strip()
+            if not (base and key): return []
+            cal = get(base, key, '/v1/calendar?date=%s' % d.isoformat(), timeout=15)
+        except Exception as e:
+            return ['장 시간 — 토스 장 달력 조회 실패(%s). market_hours.json 그대로 쓴다' % str(e)[:80]]
+    kr = (cal or {}).get('kr') or {}
+    if (kr.get('today') or {}).get('date') != d.isoformat(): return []
+    _synced[d] = True
+    if os.path.exists(MARKET_HOURS):
+        try:
+            data = json.load(io.open(MARKET_HOURS, encoding='utf-8'))
+            if not isinstance(data, dict): raise ValueError('최상위가 객체가 아님')
+        except Exception as e:   # 깨진 파일을 뼈대로 덮으면 사람 줄이 사라진다 — 쓰지 않고 알린다
+            return ['장 시간 — market_hours.json 을 읽지 못해 자동 기록을 건너뜀(%s). 관리 세션이 파일을 고칠 것' % str(e)[:80]]
+    else:
+        data = {'_note': '한국거래소 정규장 시간이 평소(09:00~15:30)와 다른 날', '_default': {'open': DEFAULT_SESSION[0], 'close': DEFAULT_SESSION[1]}}
+    out, dirty = [], False
+    for k in ('previousBusinessDay', 'today', 'nextBusinessDay'):
+        day = kr.get(k) or {}
+        h, iso = day.get('hours'), str(day.get('date') or '')
+        if not (day.get('open') and isinstance(h, dict) and h.get('open') and h.get('close')): continue   # 휴장, 옛 VM(시각 없음), 이상한 값
+        try: dd = date.fromisoformat(iso)
+        except ValueError: continue
+        # 전일은 오늘 전 7일 안, 익일은 오늘 뒤 7일 안만 믿는다 — 토스가 먼 날짜를 오늘 값으로 채우는 류의 오류를 막는다
+        if (k == 'previousBusinessDay' and not (d - timedelta(days=7) <= dd < d)) or (k == 'nextBusinessDay' and not (d < dd <= d + timedelta(days=7))): continue
+        got, e = (h['open'], h['close']), data.get(iso)
+        if e is not None and not isinstance(e, dict): continue
+        auto = {'open': got[0], 'close': got[1], 'why': '장 시간 변경', 'src': '%s(%s 조회)' % (AUTO_SRC, d.isoformat())}
+        if not e:
+            if got != DEFAULT_SESSION:
+                data[iso] = auto; dirty = True
+                out.append('장 시간 자동 기록 — %s 정규장 %s~%s(토스 장 달력). market_hours.json 에 적었다' % (iso, got[0], got[1]))
+        elif (e.get('open'), e.get('close')) != got:
+            if str(e.get('src') or '').startswith(AUTO_SRC):
+                if got == DEFAULT_SESSION: data.pop(iso)
+                else: data[iso] = auto
+                dirty = True
+                out.append('장 시간 자동 기록 수정 — %s 정규장 %s~%s → %s~%s(토스 장 달력)' % (iso, e.get('open'), e.get('close'), got[0], got[1]))
+            else:
+                out.append('장 시간 불일치 — %s 토스 장 달력 %s~%s, market_hours.json %s~%s(사람 기록, 그대로 둠). 관리 세션이 한국거래소 공지로 확인할 것' % (
+                    iso, got[0], got[1], e.get('open'), e.get('close')))
+        elif got != DEFAULT_SESSION and verbose:
+            out.append('장 시간 — %s 정규장 %s~%s(%s, 토스 달력 일치)' % (iso, got[0], got[1], e.get('why') or 'market_hours.json'))
+    if dirty: write_market_hours(data)
+    return out
 
 NIGHT_CLOSE = (6, 0)   # KRX 야간 파생상품시장 18:00 ~ 익일 06:00 (2025-06-09 부터. 그 전 유렉스 연계는 05:00)
 
@@ -392,6 +468,8 @@ def main():
         d = kst_today()
         h = holiday_of(d) or relay_closed_today(d)
         print(('HOLIDAY %s' % h) if h else 'OPEN', d.isoformat())
+        if not h:
+            for line in sync_market_hours(d, verbose=True): print(line)   # 장 시간 자동 기록(2026-11-19). 첫 줄(OPEN/HOLIDAY)은 그대로
         return 0
 
     check_only = '--check' in sys.argv
