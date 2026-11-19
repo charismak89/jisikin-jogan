@@ -200,7 +200,7 @@ def sync_market_hours(issue=None, cal=None, verbose=False):
         return ['장 시간 자동 기록 실패 — %s. market_hours.json 그대로 쓴다' % str(e)[:80]]
 
 def _sync_market_hours(issue, cal, verbose):
-    """토스 장 달력(중계기 /v1/calendar)으로 market_hours.json 을 자동으로 채운다(2026-11-19 사용자 결정 "자동화").
+    """토스 장 달력(중계기 /v1/calendar)으로 holidays.json(_sync_holidays)과 market_hours.json(_sync_hours)을 자동으로 채운다(2026-11-19 사용자 결정 "자동화").
     실제 오늘(KST) 날짜로 조회한 전일, 당일, 익일만 쓴다 — 토스는 기준일이 오늘보다 뒤면 모레 이후를 오늘 장 시간으로 채운다.
     평소(09:00~15:30)와 다른 날이 파일에 없으면 적고, 자동 기록 줄이 토스와 다르면 고친다. 사람이 적은 줄은 고치지 않고 불일치만 알린다.
     반환: 출력할 줄 목록. 중계기 키가 없거나 실패하면 []. 한 프로세스에서 한 번만 조회한다."""
@@ -218,6 +218,77 @@ def _sync_market_hours(issue, cal, verbose):
     kr = (cal or {}).get('kr') or {}
     if (kr.get('today') or {}).get('date') != d.isoformat(): return []
     _synced[d] = True
+    out = []
+    for fn in (_sync_holidays, _sync_hours):   # 휴장일 먼저 — 장 시간의 전일, 익일 판단이 휴장일 파일에 기대지는 않지만 회차 순서대로 둔다
+        try: out += fn(d, kr, verbose)
+        except Exception as e: out.append('%s 자동 기록 실패 — %s' % ('휴장일' if fn is _sync_holidays else '장 시간', str(e)[:80]))
+    return out
+
+HOL_AUTO = '휴장(토스 장 달력 자동 기록'
+
+def _sync_holidays(d, kr, verbose):
+    """휴장일 자동 기록(2026-11-19 사용자 결정). 실제 오늘 날짜 조회의 전 영업일 ~ 다음 영업일 사이에 빠진 평일과,
+    오늘이 휴장(open false)이면 오늘을 holidays.json 에 적는다. 10/8 조회의 다음 영업일 10/12 → 10/9 한글날, 9/23 → 9/28 → 추석 9/24, 9/25 로 확인했다.
+    자동 기록 줄은 토스가 그날을 개장으로 답하면 지운다. 사람이 적은 줄은 고치지 않고 불일치만 알린다."""
+    t, pv, nx = kr.get('today') or {}, kr.get('previousBusinessDay') or {}, kr.get('nextBusinessDay') or {}
+    try:
+        pd_, nd_ = date.fromisoformat(str(pv.get('date'))), date.fromisoformat(str(nx.get('date')))
+    except ValueError:
+        return []
+    # 전, 다음 영업일은 오늘에서 14일 안만 믿는다(설, 추석 연휴에 주말이 붙어도 그 안이다)
+    if not (d - timedelta(days=14) <= pd_ < d < nd_ <= d + timedelta(days=14)) or not (pv.get('open') and nx.get('open')):
+        return ['휴장일 — 토스 장 달력의 전, 다음 영업일(%s, %s)이 이상해 자동 기록을 건너뜀' % (pv.get('date'), nx.get('date'))]
+    today_open = t.get('open')
+    closed, opened = [], [pd_, nd_] + ([d] if today_open else [])
+    x = pd_ + timedelta(days=1)
+    while x < nd_:
+        if x.weekday() < 5 and (x != d or today_open is False): closed.append(x)
+        x += timedelta(days=1)
+    if len(closed) > 5:   # 실제 연휴는 평일 5일 안쪽이다. 더 많으면 토스 응답 오류로 보고 적지 않는다
+        return ['휴장일 — 토스 장 달력이 평일 %d일을 한꺼번에 휴장으로 줬다(%s~%s). 자동 기록을 건너뜀. 관리 세션이 확인할 것' % (len(closed), closed[0], closed[-1])]
+    if os.path.exists(HOLIDAYS):
+        try:
+            data = json.load(io.open(HOLIDAYS, encoding='utf-8'))
+            if not isinstance(data, dict): raise ValueError('최상위가 객체가 아님')
+        except Exception as e:
+            return ['휴장일 — holidays.json 을 읽지 못해 자동 기록을 건너뜀(%s). 관리 세션이 파일을 고칠 것' % str(e)[:80]]
+    else:
+        data = {}
+    out, dirty = [], False
+    for x in closed:
+        iso, e = x.isoformat(), data.get(x.isoformat())
+        if e is None:
+            data[iso] = '%s %s 조회)' % (HOL_AUTO, d.isoformat()); dirty = True
+            out.append('휴장일 자동 기록 — %s(%s, 토스 장 달력). holidays.json 에 적었다' % (iso, '월화수목금'[x.weekday()]))
+        elif verbose:
+            out.append('휴장일 — %s %s(토스 달력 일치)' % (iso, e))
+    for x in opened:
+        iso, e = x.isoformat(), data.get(x.isoformat())
+        if e is None: continue
+        if str(e).startswith(HOL_AUTO):
+            data.pop(iso); dirty = True
+            out.append('휴장일 자동 기록 삭제 — %s 토스 장 달력은 개장' % iso)
+        else:
+            out.append('휴장일 불일치 — %s holidays.json 은 휴장(%s)인데 토스 장 달력은 개장(사람 기록, 그대로 둠). 관리 세션이 한국거래소 공지로 확인할 것' % (iso, e))
+    if dirty: write_holidays(data)
+    return out
+
+def write_holidays(data):
+    """holidays.json 을 키 순서를 지켜 쓴다. 새 날짜는 그보다 뒤 날짜 키 바로 앞에 넣는다('_note' 류 위치는 그대로)."""
+    try:
+        old = list(json.load(io.open(HOLIDAYS, encoding='utf-8')).keys())
+    except Exception:
+        old = []
+    keys = [k for k in old if k in data]
+    for k in sorted(k for k in data if k not in keys):
+        i = next((j for j, o in enumerate(keys) if not o.startswith('_') and o > k), len(keys))
+        keys.insert(i, k)
+    tmp = HOLIDAYS + '.tmp'
+    with io.open(tmp, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(json.dumps({k: data[k] for k in keys}, ensure_ascii=False, indent=2) + '\n')
+    os.replace(tmp, HOLIDAYS)
+
+def _sync_hours(d, kr, verbose):
     if os.path.exists(MARKET_HOURS):
         try:
             data = json.load(io.open(MARKET_HOURS, encoding='utf-8'))
@@ -345,7 +416,7 @@ def relay_closed_today(d):
         kr = (get(base, key, '/v1/calendar?date=%s' % d.isoformat(), timeout=15) or {}).get('kr') or {}
         t, n = kr.get('today') or {}, kr.get('nextBusinessDay') or {}
         if t.get('date') == d.isoformat() and t.get('open') is False and n.get('open') is True and str(n.get('date') or '') > d.isoformat():
-            return '토스 장 달력 휴장(holidays.json 에 없음 — 관리 세션이 추가할 것)'
+            return '토스 장 달력 휴장(holidays.json 에 없던 날 — 다음 줄에서 자동 기록)'
     except Exception:
         pass
     return None
@@ -468,8 +539,7 @@ def main():
         d = kst_today()
         h = holiday_of(d) or relay_closed_today(d)
         print(('HOLIDAY %s' % h) if h else 'OPEN', d.isoformat())
-        if not h:
-            for line in sync_market_hours(d, verbose=True): print(line)   # 장 시간 자동 기록(2026-11-19). 첫 줄(OPEN/HOLIDAY)은 그대로
+        for line in sync_market_hours(d, verbose=True): print(line)   # 휴장일, 장 시간 자동 기록(2026-11-19). 첫 줄(OPEN/HOLIDAY)은 그대로
         return 0
 
     check_only = '--check' in sys.argv

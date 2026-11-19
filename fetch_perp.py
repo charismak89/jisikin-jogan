@@ -60,12 +60,12 @@ def post(body, tries=3):
 def main():
     now = datetime.now(KST)
     d = now.date()
-    p = prev_business_day(d)
     from render import session_of, sync_market_hours
     try:
-        for line in sync_market_hours(d): print(line)   # 장 시간 자동 기록(2026-11-19) — 아래 종가 시각이 이 파일을 읽는다
+        for line in sync_market_hours(d): print(line)   # 휴장일, 장 시간 자동 기록(2026-11-19) — 아래 직전 영업일과 종가 시각이 이 파일들을 읽는다
     except Exception as e:
         print('장 시간 자동 기록 실패 — %s' % str(e)[:80])
+    p = prev_business_day(d)
     t_prev = ms(p, *session_of(p)['close'])   # 직전 영업일 KRX 종가 시각. 수능일은 16:30(market_hours.json, 2026-11-19)
     start, end = t_prev - 1800000, int(now.timestamp() * 1000)
     out = {'fetched_at': now.strftime('%Y-%m-%dT%H:%M:%S+09:00'), 'fetched_ms': end, 'issue_date': d.isoformat(),

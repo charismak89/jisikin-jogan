@@ -9,7 +9,7 @@
 ## Claude Code 에 맡기는 일 / 사람만 하는 일
 | 일 | 누가 |
 |---|---|
-| RUNBOOK, CONTEXT, holidays.json 수정 (임시공휴일은 날짜만 알려 주면 됨). market_hours.json 은 회차가 자동 기록, 틀렸을 때만 고침 | Claude Code 세션 — 수정 → PR → 머지 |
+| RUNBOOK, CONTEXT 수정. holidays.json, market_hours.json 은 회차가 자동 기록, 틀렸을 때만 고침 | Claude Code 세션 — 수정 → PR → 머지 |
 | 회차 결과 확인·HOLD 원인 분석 ("오늘 회차 봐줘") | Claude Code 세션 |
 | 브랜치로 올라온 회차 PR 머지 | Claude Code 세션 또는 사람(아래) |
 | 루틴 편집·Run now·저장소 부착·Network access | **사람, 웹 UI(claude.ai/code/routines)에서만** |
