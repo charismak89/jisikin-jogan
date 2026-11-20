@@ -354,16 +354,18 @@ def us_fut_basis(d):
 NIGHT_XCHECK_PP, NIGHT_XCHECK_REL = 1.5, 0.2   # 야간선물 등락률 vs 같은 시각 추종가(pnight). 10/16~11/9 17회 |차이| 중앙 0.44·최대 1.00%p
 POST_NOTE_PCT = 1.0   # 야간선물 마감 뒤 코스피200 추종가 변화가 이 % 이상이면 화면에 경고 줄(2026-11-18, 엔비디아 실적 06:23 KST)
 
-def post_night_note(k200n, post, lo_pct, hi_pct, night_at, asof, widened=False):
-    """예상 구간 경고 줄 — 구간 중심은 야간선물이라 06:00 뒤 움직임이 빠진다. 큰 움직임이 있었으면 그 방향을 알린다.
+def post_night_note(k200n, post, lo_pct, hi_pct, night_at, asof, widened=False, post_k=None):
+    """예상 구간 경고 줄 — 06:00 뒤 움직임이 구간 중심에 다 들어 있지 않다. 큰 움직임이 있었으면 그 방향을 알린다.
+    post_k 는 calibration.json rule.center_post_k(2026-11-21 H2 채택) — 중심에 이 배수만큼 들어 있다. 없으면 중심은 야간선물 그대로.
     규칙, 채점, 게이트는 건드리지 않는다. widened 는 월요일 확장(반폭에 |변화|를 더함)이 적용된 날 — 구간이 이미 담고 있어 뺀다. 조건이 아니면 None."""
     if widened or None in (k200n, post, lo_pct, hi_pct) or abs(post) < POST_NOTE_PCT:
         return None
     implied = ((1 + k200n / 100) * (1 + post / 100) - 1) * 100
     side = '위' if post > 0 else '아래'
     tail = ('시초가가 구간 %s로 벗어날 수 있습니다' % side) if not (lo_pct <= implied <= hi_pct) else ('시초가가 구간 %s쪽에서 나올 수 있습니다' % side)
-    text = '야간선물 마감(%s) 뒤 코스피200 추종가가 %s%.2f%% 움직였습니다(%s 기준). 예상 구간 중심에는 이 움직임이 들어 있지 않아 %s.' % (
-        night_at, '+' if post > 0 else '−', abs(post), asof, tail)
+    part = '이 움직임이 들어 있지 않아' if not post_k else ('이 움직임의 절반만 들어 있어' if abs(post_k - 0.5) < 1e-9 else '이 움직임의 %d%%만 들어 있어' % round(post_k * 100))
+    text = '야간선물 마감(%s) 뒤 코스피200 추종가가 %s%.2f%% 움직였습니다(%s 기준). 예상 구간 중심에는 %s %s.' % (
+        night_at, '+' if post > 0 else '−', abs(post), asof, part, tail)
     return {'post_pct': round(post, 2), 'implied_pct': round(implied, 2), 'side': side, 'night_at': night_at, 'asof': asof, 'text': text}
 
 def stock_post_note(items, has_kospi, night_at, asof):
@@ -1049,7 +1051,7 @@ def main():
             night_flags.append('추종가 대조')
             warn('야간선물 %+.2f%% 와 같은 시각 코스피200 추종가 %+.2f%% 가 %.2f%%p 다름(허용 %.2f%%p) — sonmul 값·기준 시각을 다시 확인. 자동 발행 게이트에 걸린다' % (
                 k200n_now, kpn, abs(k200n_now - kpn), lim))
-    # 기록 전용 — 야간선물 마감 뒤(pnight → 스냅샷) 추종가 움직임. 코스피 중심에는 쓰지 않는다 (CALIBRATION.md H2).
+    # 야간선물 마감 뒤(pnight → 스냅샷) 추종가 움직임. 코스피 중심 보정(rule.center_post_k, 2026-11-21 H2 채택)은 score.py 가 계산하고 회차가 forecast 에 옮긴다. 여기서는 기록과 경고 줄만.
     # p0500 은 2026-11-09 전 방식(발행일 05:00) 그대로 남긴다 — 옛 기록과 이어 보기용
     signals['perp'] = {k: {'p0500': None if perp_at(k, t_0500) is None else round(perp_at(k, t_0500), 2),
                            'pnight': (pn.get(k) or {}).get('pnight'),
@@ -1063,7 +1065,8 @@ def main():
     k_note = post_night_note(k200n_now, (pn.get('KOSPI') or {}).get('post'),
                              None if (low is None or not kospi_close) else (low / kospi_close - 1) * 100,
                              None if (high is None or not kospi_close) else (high / kospi_close - 1) * 100,
-                             n_at, s_at, widened=d.weekday() == 0 and (cal.get('rule') or {}).get('monday_widen') == 'post_night_abs') if pitems else None
+                             n_at, s_at, widened=d.weekday() == 0 and (cal.get('rule') or {}).get('monday_widen') == 'post_night_abs',
+                             post_k=(cal.get('rule') or {}).get('center_post_k')) if pitems else None
     if k_note:
         warn('예상 구간 경고 줄 — 06:00 뒤 코스피200 추종가 %+.2f%%, 야간선물 + 변화 %+.2f%% (구간 %+.2f ~ %+.2f%%, 게이트 무관)' % (
             k_note['post_pct'], k_note['implied_pct'], (low / kospi_close - 1) * 100, (high / kospi_close - 1) * 100))

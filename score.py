@@ -27,6 +27,10 @@
   rule.monday_widen 이 있으면 월요일 코스피 반폭에 |야간선물 마감(토 06:00) 뒤 코스피200 추종가 변화|(perp.json)를 더한다.
   추종가가 없으면 반폭 × monday_widen_fallback. 중심은 그대로. 매 회차 '야간선물 마감 뒤 추종가' 줄도 낸다.
 
+중심 보정 (2026-11-21, CALIBRATION.md H2 채택)
+  rule.center_post_k 가 있으면 코스피 구간 중심 = 야간선물 + k × (야간선물 마감 뒤 코스피200 추종가 변화). 반폭은 그대로.
+  추종가가 없으면 보정 0. 되돌리기 = center_post_k 를 지운다.
+
 개장 왜곡 예외 (2026-11-07)
   코스피 시가 갭이 삼전·하닉 시초가 갭 평균과 5%p 넘게 다르면 기록에 exclude(open_distorted)를 붙인다.
   기록·판정은 공식 시가 그대로 두고, analyze.py 의 롤백·규칙 통계에서만 뺀다.
@@ -235,6 +239,18 @@ def monday_widen(rule, fill, post):
         return ('x', f), '× %.2f (월요일, 추종가 없음)' % f
     return ('+', abs(post)), '+ 월요일 주말 추종가 변화 |%+.2f%%|' % post
 
+def center_post(rule, k200n, post):
+    """코스피 구간 중심(%)과 설명. 2026-11-21 주간 점검 H2 채택(CALIBRATION.md 등록부).
+    중심 = 야간선물 + center_post_k × (야간선물 마감 뒤 코스피200 추종가 변화). 반폭은 야간선물 크기로만 정한다(그대로).
+    center_post_k 가 없으면(롤백) 또는 추종가가 없으면 야간선물 그대로."""
+    k = num(rule.get('center_post_k'))
+    if not k:
+        return k200n, '야간선물 %+.2f%%' % k200n
+    if post is None:
+        return k200n, '야간선물 %+.2f%% (06:00 뒤 추종가 없음 — 보정 0)' % k200n
+    c = k200n + k * post
+    return c, '%+.2f%% (= 야간선물 %+.2f%% + %s × 06:00 뒤 추종가 %+.2f%%)' % (c, k200n, k, post)
+
 def print_rule(cal, fill):
     rule = cal.get('rule') or {}
     cs = rule.get('center_signal')
@@ -260,9 +276,10 @@ def print_rule(cal, fill):
             base_hw = hw
             hw = hw * mw[1] if mw[0] == 'x' else hw + mw[1]
             how = '%s %.2f %s' % (how, base_hw, mtxt)
-        lo, hi = prev * (1 + (k200n - hw) / 100), prev * (1 + (k200n + hw) / 100)
-        print('규칙 적용 — 구간 중심 = 야간선물 %+.2f%%, 반폭 %.2f%% (%s) → %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
-            k200n, hw, how, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))
+        c, ctxt = center_post(rule, k200n, post)
+        lo, hi = prev * (1 + (c - hw) / 100), prev * (1 + (c + hw) / 100)
+        print('규칙 적용 — 구간 중심 = %s, 반폭 %.2f%% (%s) → %s ~ %s (이 값을 forecast 에 그대로 쓴다)' % (
+            ctxt, hw, how, '{:,.0f}'.format(round(lo, -1)), '{:,.0f}'.format(round(hi, -1))))
     else:
         print('규칙 적용 실패 — center_signal=%s 인데 야간선물 값 또는 반폭이 없음. RUNBOOK 4절 폴백(사람 판단, 반폭 1.5%% 이상, EWY·ADR 단독 방향 금지)으로 전망하고 세션 응답에 "규칙 폴백" 이라고 밝힌다.' % cs)
 
