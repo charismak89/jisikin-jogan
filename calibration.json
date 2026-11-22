@@ -2043,6 +2043,56 @@
     "perp_asof": "11/19 07:45"
    },
    "source": "2026-11-20 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-20",
+   "low": 4840.0,
+   "high": 5060.0,
+   "band_width_pct": 4.28,
+   "prev_close": 5137.89,
+   "actual_open": 4928.51,
+   "gap_pct": -4.08,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -3.66,
+   "center_err_pct": -0.42,
+   "signals": {
+    "k200n_pct": -3.66,
+    "k200n_close": 766.85,
+    "k200n_asof": "11/20 06:00",
+    "k200f_close": 796.0,
+    "ewy_implied_pct": -3.16,
+    "adr_implied_pct": -6.11,
+    "news_flag": "11/19 23:30 앤트로픽 나스닥 상장(공모가 83달러) 뒤 엔비디아 −3.30%, 나스닥100 선물 −2.51%",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -2.15,
+    "nq_pct": -2.51,
+    "us_fut_asof": "11/20 06:59",
+    "us_fut_basis": "prev_session",
+    "base_stale": false,
+    "perp": {
+     "KOSPI": {
+      "p0500": -3.33,
+      "pnight": -4.03,
+      "snap": -3.87
+     },
+     "005930": {
+      "p0500": -4.58,
+      "pnight": -5.29,
+      "snap": -4.82
+     },
+     "000660": {
+      "p0500": -5.07,
+      "pnight": -6.29,
+      "snap": -5.67
+     }
+    },
+    "perp_night_at": "11/20 06:00",
+    "perp_asof": "11/20 07:46"
+   },
+   "source": "2026-11-23 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -2981,6 +3031,46 @@
    "half_width_pct": 1.36,
    "monday_widen_pct": null,
    "source": "2026-11-20 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-20",
+   "code": "000660",
+   "low": 1110000.0,
+   "high": 1146000.0,
+   "prev_close": 1183000.0,
+   "actual_open": 1117000.0,
+   "gap_pct": -5.58,
+   "in_range": true,
+   "center_pct": -4.66,
+   "center_err_pct": -0.92,
+   "band_width_pct": 3.04,
+   "inputs": {
+    "k200n_pct": -3.66,
+    "perp_pct": -5.67
+   },
+   "half_width_pct": 1.5,
+   "monday_widen_pct": null,
+   "source": "2026-11-23 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-20",
+   "code": "005930",
+   "low": 185800.0,
+   "high": 191300.0,
+   "prev_close": 196900.0,
+   "actual_open": 188100.0,
+   "gap_pct": -4.47,
+   "in_range": true,
+   "center_pct": -4.24,
+   "center_err_pct": -0.23,
+   "band_width_pct": 2.79,
+   "inputs": {
+    "k200n_pct": -3.66,
+    "perp_pct": -4.82
+   },
+   "half_width_pct": 1.36,
+   "monday_widen_pct": null,
+   "source": "2026-11-23 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
