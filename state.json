@@ -1,97 +1,95 @@
 {
  "schema": 2,
  "note": "회차 간 인수인계 파일. render.py 가 매 회차 통째로 갱신한다. 아카이브 HTML 을 파싱하지 않기 위해 존재한다.",
- "issue_date": "2026-11-23",
+ "issue_date": "2026-11-24",
  "forecast": {
-  "date": "2026-11-23",
-  "low": 4260.0,
-  "high": 4980.0,
-  "prev_close": 4869.96,
-  "made_at": "2026-11-23T07:50+09:00",
+  "date": "2026-11-24",
+  "low": 4890.0,
+  "high": 5220.0,
+  "prev_close": 4708.54,
+  "made_at": "2026-11-24T07:48+09:00",
   "note": "다음 회차가 이 전망을 실제 시초가와 대조해 채점한다"
  },
  "signals": {
-  "k200n_pct": -7.01,
-  "k200n_close": 700.0,
-  "k200n_asof": "11/21 06:00",
-  "k200f_close": 752.75,
-  "ewy_implied_pct": -2.93,
-  "adr_implied_pct": -7.22,
-  "news_flag": "11/20(금) 로이터 SEC 엔비디아 회계 조사 보도 뒤 엔비디아 −14.01%, SOX −10.73%",
+  "k200n_pct": 7.06,
+  "k200n_close": 777.95,
+  "k200n_asof": "11/24 06:00",
+  "k200f_close": 726.65,
+  "ewy_implied_pct": 14.72,
+  "adr_implied_pct": 24.0,
+  "news_flag": "11/23(월) 엔비디아 이사회 젠슨 황 CEO 복귀 결정 뒤 엔비디아 +31.48%, SOX +14.03%",
   "night_skipped": [],
   "us_holiday": false,
-  "es_pct": -3.64,
-  "nq_pct": -5.54,
-  "us_fut_asof": "11/21 06:59",
+  "es_pct": 4.84,
+  "nq_pct": 6.84,
+  "us_fut_asof": "11/24 06:59",
   "us_fut_basis": "prev_session",
   "base_stale": false,
   "perp": {
    "KOSPI": {
-    "p0500": -3.45,
-    "pnight": -7.48,
-    "snap": -3.93
+    "p0500": 6.36,
+    "pnight": 6.72,
+    "snap": 7.28
    },
    "005930": {
-    "p0500": -5.06,
-    "pnight": -9.51,
-    "snap": -5.74
+    "p0500": 9.14,
+    "pnight": 9.39,
+    "snap": 11.17
    },
    "000660": {
-    "p0500": -5.63,
-    "pnight": -11.09,
-    "snap": -6.61
+    "p0500": 9.05,
+    "pnight": 9.13,
+    "snap": 10.72
    }
   },
-  "perp_night_at": "11/21 06:00",
-  "perp_asof": "11/23 07:46"
+  "perp_night_at": "11/24 06:00",
+  "perp_asof": "11/24 07:46"
  },
  "stock_forecast": {
-  "date": "2026-11-23",
+  "date": "2026-11-24",
   "items": {
    "005930": {
-    "low": 161300,
-    "high": 181600,
-    "prev_close": 183100.0,
-    "center_pct": -6.38,
-    "half_width_pct": 5.52,
+    "low": 191200,
+    "high": 196100,
+    "prev_close": 177500.0,
+    "center_pct": 9.12,
+    "half_width_pct": 1.36,
     "inputs": {
-     "k200n_pct": -7.01,
-     "perp_pct": -5.74
-    },
-    "monday_widen_pct": 4.16
+     "k200n_pct": 7.06,
+     "perp_pct": 11.17
+    }
    },
    "000660": {
-    "low": 964000,
-    "high": 1110000,
-    "prev_close": 1113000.0,
-    "center_pct": -6.81,
-    "half_width_pct": 6.54,
+    "low": 1165000,
+    "high": 1198000,
+    "prev_close": 1085000.0,
+    "center_pct": 8.89,
+    "half_width_pct": 1.5,
     "inputs": {
-     "k200n_pct": -7.01,
-     "perp_pct": -6.61
-    },
-    "monday_widen_pct": 5.04
+     "k200n_pct": 7.06,
+     "perp_pct": 10.72
+    }
    }
   },
   "note": "다음 회차가 삼전·하닉 실제 시초가로 채점한다 (score.py → calibration.json stock_records)"
  },
  "closes": {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "note": "다음 회차의 등락률 계산 기준이 되는 직전 영업일 종가",
-  "KOSPI": 4869.96,
-  "KOSDAQ": 645.68,
-  "SOX": 8408.6,
-  "NVDA": 125.53,
-  "MU": 594.51,
-  "EWY": 123.26,
-  "SKHY": 103.57,
-  "K200F": 752.75,
-  "USDKRW": 1336.25,
-  "005930": 183100.0,
-  "000660": 1113000.0,
-  "402340": 677000.0,
-  "009150": 774000.0,
-  "0167A0": 11395.0,
-  "442580": 66100.0
+  "KOSPI": 4708.54,
+  "KOSDAQ": 635.45,
+  "SOX": 9588.1,
+  "NVDA": 165.05,
+  "MU": 707.7,
+  "EWY": 135.72,
+  "SKHY": 124.28,
+  "K200F": 726.65,
+  "USDKRW": 1346.05,
+  "005930": 177500.0,
+  "000660": 1085000.0,
+  "402340": 680000.0,
+  "009150": 778000.0,
+  "0167A0": 11270.0,
+  "442580": 63630.0
  }
 }
