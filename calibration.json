@@ -2143,6 +2143,61 @@
     "perp_asof": "11/23 07:46"
    },
    "source": "2026-11-24 회차 채점 (score.py, prices.KOSPI.open)"
+  },
+  {
+   "date": "2026-11-24",
+   "low": 4890.0,
+   "high": 5220.0,
+   "band_width_pct": 7.01,
+   "prev_close": 4708.54,
+   "actual_open": 4880.16,
+   "gap_pct": 3.64,
+   "in_range": false,
+   "verdict": "miss",
+   "sign_hit": true,
+   "center_pct": 7.36,
+   "center_err_pct": -3.71,
+   "signals": {
+    "k200n_pct": 7.06,
+    "k200n_close": 777.95,
+    "k200n_asof": "11/24 06:00",
+    "k200f_close": 726.65,
+    "ewy_implied_pct": 14.72,
+    "adr_implied_pct": 24.0,
+    "news_flag": "11/23(월) 엔비디아 이사회 젠슨 황 CEO 복귀 결정 뒤 엔비디아 +31.48%, SOX +14.03%",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": 4.84,
+    "nq_pct": 6.84,
+    "us_fut_asof": "11/24 06:59",
+    "us_fut_basis": "prev_session",
+    "base_stale": false,
+    "perp": {
+     "KOSPI": {
+      "p0500": 6.36,
+      "pnight": 6.72,
+      "snap": 7.28
+     },
+     "005930": {
+      "p0500": 9.14,
+      "pnight": 9.39,
+      "snap": 11.17
+     },
+     "000660": {
+      "p0500": 9.05,
+      "pnight": 9.13,
+      "snap": 10.72
+     }
+    },
+    "perp_night_at": "11/24 06:00",
+    "perp_asof": "11/24 07:46"
+   },
+   "source": "2026-11-25 회차 채점 (score.py, prices.KOSPI.open)",
+   "exclude": {
+    "why": "open_distorted",
+    "stock_gap_mean": 9.77,
+    "detail": "코스피 시가 갭 +3.64% vs 삼전 +8.85%·하닉 +10.69% 평균 +9.77% (차이 6.12%p > 5%p)"
+   }
   }
  ],
  "stock_records": [
@@ -3161,6 +3216,46 @@
    "half_width_pct": 5.52,
    "monday_widen_pct": 4.16,
    "source": "2026-11-24 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-24",
+   "code": "000660",
+   "low": 1165000.0,
+   "high": 1198000.0,
+   "prev_close": 1085000.0,
+   "actual_open": 1201000.0,
+   "gap_pct": 10.69,
+   "in_range": false,
+   "center_pct": 8.89,
+   "center_err_pct": 1.8,
+   "band_width_pct": 3.04,
+   "inputs": {
+    "k200n_pct": 7.06,
+    "perp_pct": 10.72
+   },
+   "half_width_pct": 1.5,
+   "monday_widen_pct": null,
+   "source": "2026-11-25 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-24",
+   "code": "005930",
+   "low": 191200.0,
+   "high": 196100.0,
+   "prev_close": 177500.0,
+   "actual_open": 193200.0,
+   "gap_pct": 8.85,
+   "in_range": true,
+   "center_pct": 9.12,
+   "center_err_pct": -0.27,
+   "band_width_pct": 2.76,
+   "inputs": {
+    "k200n_pct": 7.06,
+    "perp_pct": 11.17
+   },
+   "half_width_pct": 1.36,
+   "monday_widen_pct": null,
+   "source": "2026-11-25 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
