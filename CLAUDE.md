@@ -41,6 +41,7 @@
 ### 세션 마무리
 - PR 머지, 머지 뒤 확인, 내가 서버에서 할 명령까지 끝나면 남은 일을 저장소의 이어가기 기록(열린 항목, HANDOFF.md 등)에 적고 머지한다.
 - 그다음 마지막 답변 끝에 이 문장을 그대로 쓴다: "이 세션에서 할 일은 끝났습니다. 새 작업은 새 세션에서 시작하세요."
+- 이 세션에서 PR 을 3개 이상 머지했으면 그 문장 바로 앞에 "하네스 회고를 권합니다(/harness-retro)." 한 줄을 쓴다.
 - 내 확인이 있어야 이어갈 수 있는 일이 남았으면 그 문장 대신 무엇을 확인해 달라는지 한 줄로 쓴다.
 
 ### 용어와 기록
@@ -50,7 +51,7 @@
 ## 작업 규칙
 - main 에 머지 = 발행. GitHub Pages 가 1~2분 뒤 사이트에 반영한다. PR 검사는 `check / render`, `check / web` 이고, 통과하면 위 "PR 머지"대로 바로 머지한다.
 - 화면(`template-v5.html`, `web/`, `style*.css`)을 바꾼 PR 은 머지 전에 `python3 uicheck.py` 를 돌린다. 경로 규칙(web.md)은 Bash 로 고칠 때 늦게 읽힐 수 있다.
-- 세션 브랜치 PR 이 머지된 뒤 `origin/main` 에서 다시 시작한 브랜치는 일반 push 로 올라간다(머지 커밋이 이전 head 를 포함). `-f` 를 쓰지 않는다.
+- 세션 브랜치 PR 이 머지된 뒤 `origin/main` 에서 다시 시작한 브랜치는 일반 push 로 올라간다(머지 커밋이 이전 head 를 포함). `-f` 를 쓰지 않는다. `git push -f`, `--force` 는 `.claude/settings.json` 의 `ask` 규칙이 확인 창을 띄운다.
 - 머지 예외: `claude/hold-<날짜>` 회차 브랜치. 게이트가 막은 회차라 HOLD 사유와 diff 요약을 한 줄로 알리고 내 판단을 받는다. `claude/publish-<날짜>`(게이트 통과, main push 만 거부된 회차)는 바로 머지한다.
 - `relay/` 를 바꾼 PR 은 머지해도 VM 에 반영되지 않는다. 머지 뒤 VM 에서 돌릴 명령과 정상 응답을 준다(`.claude/rules/relay.md`).
 
@@ -61,5 +62,7 @@
 - 급한 일, 몇 번이면 끝나는 작은 일, 결정과 원본 수정은 메인이 직접 한다.
 - 여러 파일을 뒤져 위치를 찾는 일은 finder에게 맡긴다.
 - 코드 수정이 끝나면 커밋 전에 reviewer에게 검수를 맡기고, [반드시 수정] 항목을 고친 뒤 나에게 보고한다.
+- 회차 경로(`fetch_*.py`, `score.py`, `render.py`, `datacheck.py`, `analyze.py`, `sources.json`, `calibration.json`, `RUNBOOK.md`, `WEEKLY.md`)를 바꾼 PR 은 머지 전에 routine-reviewer 로도 검토한다.
+- PR 본문에 `reviewer: 반드시 수정 n건(고침), 권장 n건(반영 n)` 한 줄을 남긴다. 회차 경로는 `routine-reviewer:` 줄도 남긴다. 문서만 바꾼 PR 은 `reviewer: 해당 없음(문서)`.
 - 서브에이전트 결과 중 핵심 1~2개는 메인이 직접 확인한다.
 - 삭제, 외부 공유는 실행 전에 나에게 확인받는다. 커밋, push, PR, 머지는 이 파일의 기존 규칙을 따르고, 규칙이 없으면 실행 전에 확인받는다.
