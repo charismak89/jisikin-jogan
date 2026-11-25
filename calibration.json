@@ -2198,6 +2198,56 @@
     "stock_gap_mean": 9.77,
     "detail": "코스피 시가 갭 +3.64% vs 삼전 +8.85%·하닉 +10.69% 평균 +9.77% (차이 6.12%p > 5%p)"
    }
+  },
+  {
+   "date": "2026-11-25",
+   "low": 4660.0,
+   "high": 4910.0,
+   "band_width_pct": 4.99,
+   "prev_close": 5006.03,
+   "actual_open": 4809.0,
+   "gap_pct": -3.94,
+   "in_range": true,
+   "verdict": "hit",
+   "sign_hit": true,
+   "center_pct": -4.42,
+   "center_err_pct": 0.48,
+   "signals": {
+    "k200n_pct": -4.56,
+    "k200n_close": 742.6,
+    "k200n_asof": "11/25 06:00",
+    "k200f_close": 778.1,
+    "ewy_implied_pct": -9.67,
+    "adr_implied_pct": -15.81,
+    "news_flag": "11/24(화) 엔비디아 −5.86%, 마이크론 −11.01%, SOX −7.88%. 전날 급등 뒤 차익 실현과 12월 금리 인상 전망",
+    "night_skipped": [],
+    "us_holiday": false,
+    "es_pct": -0.6,
+    "nq_pct": -2.02,
+    "us_fut_asof": "11/25 06:59",
+    "us_fut_basis": "prev_session",
+    "base_stale": false,
+    "perp": {
+     "KOSPI": {
+      "p0500": -4.75,
+      "pnight": -4.77,
+      "snap": -4.49
+     },
+     "005930": {
+      "p0500": -6.54,
+      "pnight": -5.99,
+      "snap": -5.8
+     },
+     "000660": {
+      "p0500": -6.29,
+      "pnight": -6.16,
+      "snap": -5.61
+     }
+    },
+    "perp_night_at": "11/25 06:00",
+    "perp_asof": "11/25 07:45"
+   },
+   "source": "2026-11-26 회차 채점 (score.py, prices.KOSPI.open)"
   }
  ],
  "stock_records": [
@@ -3256,6 +3306,46 @@
    "half_width_pct": 1.36,
    "monday_widen_pct": null,
    "source": "2026-11-25 회차 채점 (score.py, prices.005930.open)"
+  },
+  {
+   "date": "2026-11-25",
+   "code": "000660",
+   "low": 1081000.0,
+   "high": 1117000.0,
+   "prev_close": 1158000.0,
+   "actual_open": 1094000.0,
+   "gap_pct": -5.53,
+   "in_range": true,
+   "center_pct": -5.08,
+   "center_err_pct": -0.45,
+   "band_width_pct": 3.11,
+   "inputs": {
+    "k200n_pct": -4.56,
+    "perp_pct": -5.61
+   },
+   "half_width_pct": 1.5,
+   "monday_widen_pct": null,
+   "source": "2026-11-26 회차 채점 (score.py, prices.000660.open)"
+  },
+  {
+   "date": "2026-11-25",
+   "code": "005930",
+   "low": 177000.0,
+   "high": 182200.0,
+   "prev_close": 189400.0,
+   "actual_open": 178500.0,
+   "gap_pct": -5.76,
+   "in_range": true,
+   "center_pct": -5.18,
+   "center_err_pct": -0.58,
+   "band_width_pct": 2.75,
+   "inputs": {
+    "k200n_pct": -4.56,
+    "perp_pct": -5.8
+   },
+   "half_width_pct": 1.36,
+   "monday_widen_pct": null,
+   "source": "2026-11-26 회차 채점 (score.py, prices.005930.open)"
   }
  ]
 }
