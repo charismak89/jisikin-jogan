@@ -9,6 +9,8 @@
                                          예: git show <월요일 brief 커밋>:day.json > /tmp/day-mon.json (2026-11-10 — 이 옵션이 없어 일회용 스크립트를 네 개 짰다)
   python3 uishots.py --hash '#brief'     주소 뒤에 붙인다 (옛 지인 링크 '#k=…' 가 정리되는지 볼 때 등)
   python3 uishots.py --out <폴더>        사진을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
+  python3 uishots.py --perp              해외 추종가(Hyperliquid candleSnapshot) 응답을 가짜 봉으로 채운다 — 밤 추종가 카드를 볼 때. 실제 값이 아니다.
+  python3 uishots.py --top               첫 화면(스크롤 전)만 찍는다. 시간대별 첫 카드를 빨리 볼 때
   python3 uishots.py --page stg/         루트 대신 그 주소를 연다 (시험 화면 stg/ 등)
   python3 uishots.py --clock 23:00       브라우저 시계를 그 시각(KST)으로 놓고 연다. HH:MM 은 day.json 발행일, 날짜는 2026-11-28T12:00 처럼.
                                          여러 번 쓰면 시각마다 찍는다. 첫 카드가 시간대마다 바뀌는지 볼 때(2026-11-26). 시세 응답은 지금 값 그대로다.
@@ -40,7 +42,24 @@ def clock_at(v, issue):
     t = dt.datetime.fromisoformat(v if 'T' in v else '%sT%s' % (issue, v))
     return t.replace(tzinfo=KST) if t.tzinfo is None else t
 
-def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None):
+IV = {'1m': 6e4, '5m': 3e5, '15m': 9e5, '1h': 36e5}
+
+def fake_perp(day, req_body):
+    """Hyperliquid candleSnapshot 과 같은 모양의 가짜 봉. 기준가(ent.base) ± 사인파, 시각은 요청 범위 그대로"""
+    try: req = json.loads(req_body or '{}').get('req', {})
+    except ValueError: return '[]'
+    e = next((x for x in day['ent'] if x['coin'] == req.get('coin')), None)
+    if not e or not e.get('base'): return '[]'
+    ms = IV.get(req.get('interval'), 6e4)
+    t, end, out = int(req['startTime'] // ms * ms), int(req['endTime']), []
+    while t <= end:
+        k = (t - day['t_prev']) / 36e5
+        c = e['base'] * (1 + 0.006 * math.sin(k / 2.5) + 0.002 * math.sin(k * 3))
+        out.append({'t': t, 'T': t + ms - 1, 's': e['coin'], 'i': req.get('interval'), 'o': str(c), 'c': str(c), 'h': str(c), 'l': str(c), 'v': '1', 'n': 1})
+        t += int(ms)
+    return json.dumps(out)
+
+def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None, perp=None):
     ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme='dark' if dark else 'light', timezone_id='Asia/Seoul', locale='ko-KR')
     p = ctx.new_page()
     if clock: p.clock.install(time=clock)
@@ -48,6 +67,8 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         u = r.request.url
         if day_body and u.split('?')[0].endswith('/day.json'):
             return r.fulfill(status=200, content_type='application/json', body=day_body)
+        if perp and u.startswith(perp[0]) and r.request.method == 'POST':
+            return r.fulfill(status=200, content_type='application/json', body=fake_perp(perp[1], r.request.post_data), headers={'Access-Control-Allow-Origin': '*'})
         if body and relay and u.startswith(relay):
             return r.fulfill(status=200, content_type='application/json', body=body, headers={'Access-Control-Allow-Origin': '*'})
         if u.startswith((origin,) + ALLOW): return r.continue_()
@@ -59,6 +80,9 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
     shots = []
     def snap(name, full):
         f = os.path.join(out, '%s-%s.png' % (name, sfx)); p.screenshot(path=f, full_page=full); shots.append(os.path.basename(f))
+    if '--top' in sys.argv:
+        snap('top', False); ctx.close()
+        print('%5dpx %-5s %s%s' % (w, 'dark' if dark else 'light', (clock.strftime('%m/%d %H:%M ') if clock else ''), ' · '.join(shots))); return
     snap('dash', True)
     live = p.locator('section[aria-label="예측과 실시간"]')
     if live.count():
@@ -89,6 +113,7 @@ def main():
     dj = json.loads(day_body or open(os.path.join(ROOT, 'day.json'), encoding='utf-8').read())
     day = dj['day']
     clocks = [clock_at(v, dj['issue']) for v in args('--clock')] or [None]
+    perp = (day['api'], day) if '--perp' in sys.argv and day.get('api') else None
     relay, body = day.get('relay'), None
     if '--intraday' in sys.argv:
         if relay: body = fake_intraday(day)
@@ -101,11 +126,11 @@ def main():
             b = pw.chromium.launch(**({'executable_path': CHROMIUM} if os.path.exists(CHROMIUM) else {}))
             for w, h in widths:
                 for clock in clocks:
-                    for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag, page, clock)
+                    for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag, page, clock, perp)
             b.close()
     finally:
         srv.shutdown(); srv.server_close()
-    print('UISHOTS %s%s사진 %s' % ('가짜 장중 봉 · ' if body else '', ('day=%s · ' % day_file) if day_file else '', out))
+    print('UISHOTS %s%s%s사진 %s' % ('가짜 장중 봉 · ' if body else '', '가짜 추종가 · ' if perp else '', ('day=%s · ' % day_file) if day_file else '', out))
     return 0
 
 if __name__ == '__main__':

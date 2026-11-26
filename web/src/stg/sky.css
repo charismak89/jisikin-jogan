@@ -1,0 +1,25 @@
+/* 첫 카드 시간대 배경(시험 화면, 2026-11-26). 카드 안 글자는 index.css 토큰을 그대로 쓰고, 밤 카드만 토큰을 밤 값으로 덮는다.
+   라이트 하늘 위 캡션(--tx3)은 흰 카드보다 대비가 낮아 조금 진하게 덮는다(#5b6573: 가장 진한 하늘 #e6f0ff 위 5.6:1). */
+.sky { background: var(--sky, var(--card)); }
+[data-sky] { --tx3: #5b6573; }
+[data-sky="dawn"] { --sky: linear-gradient(180deg, #efe9ff 0%, #fff5ee 100%); --card2: rgba(255,255,255,.7); }
+[data-sky="day"]  { --sky: linear-gradient(180deg, #e6f0ff 0%, #ffffff 75%); --card2: rgba(255,255,255,.75); }
+[data-sky="dusk"] { --sky: linear-gradient(180deg, #ffeedd 0%, #f2ecff 100%); --card2: rgba(255,255,255,.7); }
+[data-sky="night"], :root[data-jj="dark"] [data-sky] {
+  --card: #1b2140; --card2: rgba(255,255,255,.08); --tx: #f2f4f6; --tx2: #c3c9d6; --tx3: #9aa3b5; --line: rgba(255,255,255,.14);
+  --up: #ff6b77; --dn: #6aa6ff; --brand: #7fb0ff; --band: #4a3b10; --band-line: #d9a400; --shadow: none;
+}
+[data-sky="night"] { --sky: linear-gradient(180deg, #0e1430 0%, #1d2244 100%); }
+:root[data-jj="dark"] [data-sky="dawn"] { --sky: linear-gradient(180deg, #221c36 0%, #1b1d22 100%); --card: #23262c; }
+:root[data-jj="dark"] [data-sky="day"]  { --sky: linear-gradient(180deg, #14263f 0%, #1b1d22 100%); --card: #23262c; }
+:root[data-jj="dark"] [data-sky="dusk"] { --sky: linear-gradient(180deg, #2c1f1c 0%, #1e1b2b 100%); --card: #23262c; }
+:root[data-jj="dark"] [data-sky="night"] { --sky: linear-gradient(180deg, #0b1027 0%, #161b36 100%); }
+[data-sky] { color: var(--tx); }
+
+.sky-dot-live { background: var(--up); }
+.sky-dot-calm { background: #8b6cf0; }
+.sky-dot-night { background: #ff9f43; }
+@media (prefers-reduced-motion: no-preference) {
+  .sky-dot-live, .sky-pulse { animation: sky-pulse 1.6s ease-in-out infinite; }
+}
+@keyframes sky-pulse { 50% { opacity: .35; } }
