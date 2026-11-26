@@ -109,20 +109,21 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
   // 코스피 + 야간선물(중계기 /v1/night, 이 발행일 밤 세션)이 있으면 실제 야간선물로 그린다. 주말과 회차 없는 날은 추종가(야간선물이 없는 시간까지 이어서 본다)
   const useFut = isK && futOK
   if (useFut && fu) {
-    const x1 = F.nightEnd, done = fu.state === 'closed'
+    const x1 = F.nightEnd, done = fu.state === 'closed' && now >= F.nightEnd   // 밤 도중 closed(조기 종료 등)는 '06:00 마감'이라 쓰지 않는다
+    const endLabel = (now - F.nightEnd > 864e5 / 2 ? dayLabel(F.nightEnd) + ' ' : '') + hm(F.nightEnd) + ' 마감'   // 월요일 새벽은 토 06:00 에 끝난 금요일 세션
     const postP = feed!.S[E.key].last, at6 = feed!.at(E.key, F.nightEnd)
     const post = done && postP != null && at6 != null ? postP - at6 : null
     return { ...base,
-      label: `코스피200 야간선물 · 주간 종가 ${nf(fu.base as number, 2)} 대비${done ? ' · 06:00 마감' : ''}`, badge: '야간선물',
+      label: done ? `코스피200 야간선물 · ${endLabel}` : `코스피200 야간선물 · 주간 종가 ${nf(fu.base as number, 2)} 대비`, badge: '야간선물',
       big: sg(fu.pct as number), bigDir: fu.pct, level: nf(fu.last as number, 2),
-      note: post != null ? `마감 뒤 해외 추종가 ${sg(post)}p` : done ? '06:00 마감값' : `${fu.name} · 한국거래소 야간시장`,
+      note: post != null ? `마감 뒤 해외 추종가 ${sg(post)}p` : done ? `${endLabel}값` : fu.state === 'closed' ? '야간선물 거래가 끝났습니다' : `${fu.name} · 한국거래소 야간시장`,
       foot: ph === 'night' ? `${dayLabel(F.nextBrief)} 07:45 전망은 이 야간선물 마감값으로 시작합니다. 삼성전자, SK하이닉스는 야간시장이 없어 해외 추종가입니다` : null,
       lines: fu.pts, x0: F.nightStart, x1,
       band: null,
       marks: [{ t: F.nightStart, label: '18:00' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '06:00' }],
       pin: null,
       tiles: tiles((e) => (e.key === KEY ? fu.pct : feed?.S[e.key].last ?? null), () => null),
-      fresh: done ? '06:00 마감' : fu.asof ? `${hm(fu.asof)} 기준 · 10초마다` : null,
+      fresh: done ? endLabel : fu.asof ? `${hm(fu.asof)} 기준${fu.state === 'live' ? ' · 10초마다' : ''}` : null,
     }
   }
   // proxy — 발행일 마감 대비 밤 추종가

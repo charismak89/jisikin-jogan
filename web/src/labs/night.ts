@@ -61,10 +61,15 @@ export class NightFeed {
     return fetch(this.D.relay + '/v1/night', { cache: 'no-store' })
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
       .then((d) => {
-        const base = typeof d.base === 'number' ? d.base : null
-        this.fut = { session: d.session, state: d.state, name: d.name, base, last: d.last ?? null, pct: d.pct ?? null, asof: d.asof ?? null,
-          pts: base ? (d.bars || []).map((b: [number, number]) => [b[0], (b[1] / base - 1) * 100] as Pt) : [] }
-      }, () => { this.fut = null })   // 중계기 실패는 추종가로 그린다
+        const base = typeof d.base === 'number' && d.base > 0 ? d.base : null
+        const last = typeof d.last === 'number' ? d.last : null
+        const bars: [number, number][] = Array.isArray(d.bars) ? d.bars.filter((b: unknown) => Array.isArray(b) && b.length >= 2) : []
+        // 큰 숫자도 그래프와 같은 계산(현재가 / 주간 종가)으로 맞춘다. 중계기 pct 는 2자리 반올림이라 끝점과 어긋날 수 있다
+        this.fut = { session: d.session, state: d.state, name: d.name, base, last, asof: d.asof ?? null,
+          pct: base && last != null ? (last / base - 1) * 100 : (typeof d.pct === 'number' ? d.pct : null),
+          pts: base ? bars.map((b) => [b[0], (b[1] / base - 1) * 100] as Pt) : [] }
+      })
+      .catch(() => { this.fut = null })   // 중계기 실패나 이상한 응답은 추종가로 그린다(추종가 '지연' 표시와 섞지 않는다)
   }
   tick = () => {
     if (document.hidden) return
