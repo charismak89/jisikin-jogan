@@ -1,7 +1,7 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 
@@ -17,9 +17,22 @@ const rootShell = (): Plugin => ({
   },
 })
 
-// 산출물은 저장소 루트의 v6/ 로 낸다. 루틴은 이 앱을 빌드하지 않는다 — UI 를 바꿀 때만 빌드해 커밋한다.
-export default defineConfig({
-  base: './',
-  plugins: [react(), tailwindcss(), rootShell()],
-  build: { outDir: '../v6', emptyOutDir: true, sourcemap: false },
+// 시험 화면(2026-11-26): `vite build --mode stg` 는 web/stg.html 을 저장소 루트 stg/ 로 낸다.
+// 주소는 /jisikin-jogan/stg/. 메인(v6/, 루트 index.html)은 건드리지 않는다. 다 보면 메인 진입점을 바꿔 전환한다
+const stgIndex = (): Plugin => ({
+  name: 'jogan-stg-index',
+  closeBundle() { renameSync(here('../stg/stg.html'), here('../stg/index.html')) },
 })
+
+// 산출물은 저장소 루트의 v6/ 로 낸다. 루틴은 이 앱을 빌드하지 않는다 — UI 를 바꿀 때만 빌드해 커밋한다.
+export default defineConfig(({ mode }) => mode === 'stg'
+  ? {
+      base: './',
+      plugins: [react(), tailwindcss(), stgIndex()],
+      build: { outDir: '../stg', emptyOutDir: true, sourcemap: false, rollupOptions: { input: here('stg.html') } },
+    }
+  : {
+      base: './',
+      plugins: [react(), tailwindcss(), rootShell()],
+      build: { outDir: '../v6', emptyOutDir: true, sourcemap: false },
+    })
