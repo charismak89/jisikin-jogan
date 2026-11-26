@@ -1,5 +1,5 @@
 {
   "_note": "화면 버전. 메인(web/src/App.tsx, main.tsx, index.html)과 공용(components, lib, types.ts, index.css, brief.css)이 바뀌면 main 을, 실험실(web/src/labs, labs.html)과 공용이 바뀌면 labs 를 올린다. versioncheck.py 가 PR 에서 확인한다. 실험실을 메인으로 전환하면 두 값을 같게 둔다(실험실 띠에 '메인과 같은 화면').",
   "main": "6.1",
-  "labs": "7.0-beta.1"
+  "labs": "7.0-beta.2"
 }

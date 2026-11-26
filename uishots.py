@@ -9,7 +9,7 @@
                                          예: git show <월요일 brief 커밋>:day.json > /tmp/day-mon.json (2026-11-10 — 이 옵션이 없어 일회용 스크립트를 네 개 짰다)
   python3 uishots.py --hash '#brief'     주소 뒤에 붙인다 (옛 지인 링크 '#k=…' 가 정리되는지 볼 때 등)
   python3 uishots.py --out <폴더>        사진을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
-  python3 uishots.py --perp              해외 추종가(Hyperliquid candleSnapshot) 응답을 가짜 봉으로 채운다 — 밤 추종가 카드를 볼 때. 실제 값이 아니다.
+  python3 uishots.py --perp              해외 추종가(Hyperliquid candleSnapshot)와 중계기 /v1/night(야간선물) 응답을 가짜 봉으로 채운다 — 밤 카드를 볼 때. 실제 값이 아니다.
   python3 uishots.py --top               첫 화면(스크롤 전)만 찍는다. 시간대별 첫 카드를 빨리 볼 때
   python3 uishots.py --tap 삼성전자        찍기 전에 그 이름의 탭이나 버튼을 누른다(첫 카드 종목 선택 등). 파일 이름에 붙는다
   python3 uishots.py --page labs/        루트 대신 그 주소를 연다 (실험실 labs/ 등)
@@ -60,7 +60,22 @@ def fake_perp(day, req_body):
         t += int(ms)
     return json.dumps(out)
 
-def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None, perp=None):
+def fake_night(day, issue, clock):
+    """중계기 /v1/night 와 같은 모양의 가짜 야간선물(발행일 18:00 ~ min(시계, 다음날 06:00), 1분봉). 실제 값이 아니다"""
+    t0 = int(dt.datetime.fromisoformat(issue + 'T18:00:00+09:00').timestamp() * 1000)
+    end = t0 + 12 * 3600 * 1000
+    now = int(clock.timestamp() * 1000) if clock else end
+    base, bars, t = 726.75, [], t0 + 60000
+    while t <= min(now, end):
+        k = (t - t0) / 36e5
+        bars.append([t, round(base * (1 + 0.004 * math.sin(k / 1.7) - 0.002 * math.sin(k * 2.3)), 2)])
+        t += 60000
+    st = 'none' if not bars else ('live' if now < end else 'closed')
+    last = bars[-1][1] if bars else None
+    return json.dumps({'session': issue, 'code': 'A01612', 'name': 'F 202612', 'state': st, 'base': base, 'last': last,
+                       'pct': round((last / base - 1) * 100, 2) if last else None, 'asof': bars[-1][0] if bars else None, 'bars': bars, 'error': None})
+
+def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None, perp=None, issue=None):
     ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme='dark' if dark else 'light', timezone_id='Asia/Seoul', locale='ko-KR')
     p = ctx.new_page()
     if clock: p.clock.install(time=clock)
@@ -68,6 +83,8 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         u = r.request.url
         if day_body and u.split('?')[0].endswith('/day.json'):
             return r.fulfill(status=200, content_type='application/json', body=day_body)
+        if perp and relay and issue and u.split('?')[0] == relay + '/v1/night':
+            return r.fulfill(status=200, content_type='application/json', body=fake_night(perp[1], issue, clock), headers={'Access-Control-Allow-Origin': '*'})
         if perp and u.startswith(perp[0]) and r.request.method == 'POST':
             return r.fulfill(status=200, content_type='application/json', body=fake_perp(perp[1], r.request.post_data), headers={'Access-Control-Allow-Origin': '*'})
         if body and relay and u.startswith(relay):
@@ -130,7 +147,7 @@ def main():
             b = pw.chromium.launch(**({'executable_path': CHROMIUM} if os.path.exists(CHROMIUM) else {}))
             for w, h in widths:
                 for clock in clocks:
-                    for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag, page, clock, perp)
+                    for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag, page, clock, perp, dj['issue'])
             b.close()
     finally:
         srv.shutdown(); srv.server_close()
