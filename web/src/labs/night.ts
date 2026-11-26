@@ -1,14 +1,18 @@
 // 밤 추종가(해외 24시간 추종가, Hyperliquid) — 발행일 정규장 마감(15:30) 대비 등락. 시험 화면 첫 카드용(2026-11-26).
 // 실제 야간선물 시세가 아니다. 06:00 마감 시점 대조 29회(10/16~11/25)에서 평균 0.36%p, 최대 1.00%p 차이, 방향 27회 일치.
-// 한국투자증권 API 로 실제 야간선물을 받게 되면 이 파일만 바꾼다(카드는 같은 Series 를 그린다).
+// 코스피200 야간선물(실제 값)은 중계기 /v1/night(한국투자증권, 2026-11-26)에서 받아 fut 에 둔다. 카드는 코스피에서 fut 를 먼저 쓰고,
+// 없거나(중계기 실패, 휴장일 밤, 첫 체결 전) 다른 세션이면 추종가로 그린다. 종목(삼전, 하닉)은 야간시장이 없어 언제나 추종가다.
 import type { DayCfg, Pt } from '../types'
 
 export interface Series { base: number | null; pts: Pt[]; last: number | null; lastT: number | null }
+/** 중계기 /v1/night. pts 는 [봉 끝 ms, 그날 주간 종가 대비 %] */
+export interface Fut { session: string; state: 'live' | 'waiting' | 'closed' | 'none'; name: string; base: number | null; last: number | null; pct: number | null; asof: number | null; pts: Pt[] }
 
 const POLL = 30e3
 
 export class NightFeed {
   S: Record<string, Series> = {}
+  fut: Fut | null = null
   ok: boolean | null = null
   fails = 0               // 연속 실패 횟수. 3번 넘으면 화면에 '지연'
   version = 0
@@ -52,9 +56,24 @@ export class NightFeed {
         this.next[key] = cs[cs.length - 1].t   // 마지막 봉(진행 중)부터 다시 받는다
       })
   }
+  private loadFut() {
+    if (!this.D.relay) return Promise.resolve()
+    return fetch(this.D.relay + '/v1/night', { cache: 'no-store' })
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
+      .then((d) => {
+        const base = typeof d.base === 'number' && d.base > 0 ? d.base : null
+        const last = typeof d.last === 'number' ? d.last : null
+        const bars: [number, number][] = Array.isArray(d.bars) ? d.bars.filter((b: unknown) => Array.isArray(b) && b.length >= 2) : []
+        // 큰 숫자도 그래프와 같은 계산(현재가 / 주간 종가)으로 맞춘다. 중계기 pct 는 2자리 반올림이라 끝점과 어긋날 수 있다
+        this.fut = { session: d.session, state: d.state, name: d.name, base, last, asof: d.asof ?? null,
+          pct: base && last != null ? (last / base - 1) * 100 : (typeof d.pct === 'number' ? d.pct : null),
+          pts: base ? bars.map((b) => [b[0], (b[1] / base - 1) * 100] as Pt) : [] }
+      })
+      .catch(() => { this.fut = null })   // 중계기 실패나 이상한 응답은 추종가로 그린다(추종가 '지연' 표시와 섞지 않는다)
+  }
   tick = () => {
     if (document.hidden) return
-    return Promise.all(this.D.ent.map((e) => this.load(e.key, e.coin)))
+    return Promise.all([...this.D.ent.map((e) => this.load(e.key, e.coin)), this.loadFut()])
       .then(() => { this.ok = true; this.fails = 0 }, () => { this.ok = false; this.fails++ })
       .then(() => this.emit())
   }
