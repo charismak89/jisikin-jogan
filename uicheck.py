@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 """uicheck.py — 화면 검사. 저장소를 GitHub Pages 와 같은 주소(/jisikin-jogan/)로 잠깐 띄우고 브라우저로 연다.
 
-  python3 uicheck.py                     루트(v6) · v6/ · archive/(지난 회차 목록) 를 390px·1440px 로
+  python3 uicheck.py                     루트(v6) · v6/ · stg/(시험 화면) · archive/(지난 회차 목록) 를 390px·1440px 로
   python3 uicheck.py --out <폴더>        스크린샷을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
   python3 uicheck.py --path '#brief'     검사할 주소를 하나 더 (루트 기준, 여러 번 써도 된다)
 
 결과: 화면마다 h1, 가로 넘침(px), 콘솔 오류, 저장소 파일 4xx·실패. 하나라도 있으면 종료 코드 1, 없으면 0,
       playwright 가 없으면 2. 글꼴(jsdelivr) 말고 외부 요청은 막는다 — 실시간 칸은 비어 보이는 게 정상이다.
       (중계기는 Pages 주소만 받아서 로컬에서 부르면 CORS 오류만 난다.)
-web/ 을 고쳤으면 먼저 `cd web && npm run build`. 이 스크립트는 빌드하지 않고 커밋될 산출물(v6/, index.html)을 연다.
+web/ 을 고쳤으면 먼저 `cd web && npm run build`. 이 스크립트는 빌드하지 않고 커밋될 산출물(v6/, stg/, index.html)을 연다.
 서버는 이 프로세스 안에서 돌고 끝나면 같이 닫힌다(pkill 이 필요 없다). 저장소 파일을 바꾸지 않는다.
 """
 import functools, http.server, os, subprocess, sys, tempfile, threading
 from urllib.parse import urlsplit
 
 BASE = '/jisikin-jogan/'
-PAGES = ['', 'v6/', 'archive/']   # v5/ 는 2026-10-22 삭제
+PAGES = ['', 'v6/', 'stg/', 'archive/']   # v5/ 는 2026-10-22 삭제, stg/(시험 화면)는 2026-11-26 추가
 WIDTHS = [(390, 844), (1440, 900)]
 CHROMIUM = '/opt/pw-browsers/chromium'  # 클라우드 세션에 깔린 브라우저. playwright install 로 받지 않는다
 ALLOW = ('https://cdn.jsdelivr.net/',)  # Pretendard 글꼴. 글꼴이 바뀌면 줄바꿈·넘침이 달라져서 받는다

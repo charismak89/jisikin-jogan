@@ -14,6 +14,7 @@ paths:
 
 - 색, 글자, 숫자 표기, 배치 규칙은 루트 `DESIGN.md`. 토큰이나 `fmt.ts` 를 바꾸면 그 표와 대비 값을 같은 PR 에서 고친다. 1절(공통)은 코인 집사 `DESIGN.md` 1절과 같은 글이다. 코인 집사 저장소는 세션에 기본으로 붙어 있지 않다. 1절을 대조하거나 고칠 일이면 첫 턴에 add_repo 허용을 사용자에게 받는다(2026-10-28 첫 시도는 auto mode 가 거부, 허용 뒤 성공).
 - `v6/` 와 루트 `index.html` 은 `web/` 빌드 산출물이다. 직접 고치지 않는다. `cd web && npm ci && npm run build` 후 `v6/`, `index.html` 을 소스와 같은 커밋에 넣는다. PR 의 `check / web` 잡이 둘이 맞는지 본다.
+- 시험 화면 `stg/`(2026-11-26): `web/stg.html` 과 `web/src/stg/` 를 `vite build --mode stg` 로 빌드한 산출물이다. `npm run build` 가 v6 와 stg 를 같이 낸다. 메인 화면은 `web/src/stg/` 를 고쳐도 바뀌지 않는다. 공용 파일(`App.tsx`, `components/`, `lib/`)을 고치면 두 화면이 같이 바뀐다. 다 보면 `web/index.html` 의 진입점을 stg 앱으로 바꿔 전환하고 `stg/` 정리는 사용자에게 확인받는다. 시간대별 사진은 `python3 uishots.py --page stg/ --clock 23:00`.
 - 지난 회차 HTML(`archive/`)은 `../style.css` 를 공유한다. 기존 클래스 이름을 새 뜻으로 쓰지 않는다. 새 화면은 새 클래스, 새 스타일시트로(2026-10-15 `.hv/.hr` 충돌).
 - `template-v5.html`, `style.css` 는 이름에 v5 가 남았지만 지우지 않는다. `/v5/` 화면은 2026-10-22 삭제했어도, render.py 가 이 템플릿으로 만든 HTML 에서 브리핑 본문(`day.json.brief_html`, `brief_m`)을 잘라내고 접힘 4,000자 게이트도 이 HTML 로 잰다. `archive/<날짜>.html` 도 이 HTML 이다.
 - `render.py`, `template-v5.html` 을 바꾸면 `python3 regress.py` 로 고치기 전, 후 GATE 와 바뀐 줄 수를 확인한다. PR 의 `check / render` 잡이 같은 검사를 돈다.

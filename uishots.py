@@ -9,13 +9,16 @@
                                          예: git show <월요일 brief 커밋>:day.json > /tmp/day-mon.json (2026-11-10 — 이 옵션이 없어 일회용 스크립트를 네 개 짰다)
   python3 uishots.py --hash '#brief'     주소 뒤에 붙인다 (옛 지인 링크 '#k=…' 가 정리되는지 볼 때 등)
   python3 uishots.py --out <폴더>        사진을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
+  python3 uishots.py --page stg/         루트 대신 그 주소를 연다 (시험 화면 stg/ 등)
+  python3 uishots.py --clock 23:00       브라우저 시계를 그 시각(KST)으로 놓고 연다. HH:MM 은 day.json 발행일, 날짜는 2026-11-28T12:00 처럼.
+                                         여러 번 쓰면 시각마다 찍는다. 첫 카드가 시간대마다 바뀌는지 볼 때(2026-11-26). 시세 응답은 지금 값 그대로다.
 
 판정은 하지 않는다. 가로 넘침·콘솔 오류·4xx 는 uicheck.py 로 본다. 이 스크립트는 눈으로 볼 사진만 만든다.
 web/ 을 고쳤으면 먼저 `cd web && npm run build`. 커밋될 산출물(루트 index.html·v6/)을 연다. 저장소 파일을 바꾸지 않는다.
 로컬에서는 중계기가 Pages 주소만 받아서 장중 선이 그려지지 않는다. --intraday 는 그 응답을 가짜로 채운다:
 day.json 의 종목마다 09:01~15:31 5분 봉, 전일 종가 −1.2% ± 0.6% 사인파. 실제 값이 아니다.
 """
-import functools, http.server, json, math, os, sys, tempfile, threading
+import datetime as dt, functools, http.server, json, math, os, sys, tempfile, threading
 from uicheck import ALLOW, BASE, CHROMIUM, Handler, args
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -30,9 +33,17 @@ def fake_intraday(day):
         items[e['key']] = {'bars': bars, 'open': bars[0][1], 'last': bars[-1][1]}
     return json.dumps({'items': items})
 
-def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag=''):
-    ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme='dark' if dark else 'light')
+KST = dt.timezone(dt.timedelta(hours=9))
+
+def clock_at(v, issue):
+    """'23:00' → 발행일 23:00 KST, '2026-11-28T12:00' → 그 시각 KST"""
+    t = dt.datetime.fromisoformat(v if 'T' in v else '%sT%s' % (issue, v))
+    return t.replace(tzinfo=KST) if t.tzinfo is None else t
+
+def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None):
+    ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme='dark' if dark else 'light', timezone_id='Asia/Seoul', locale='ko-KR')
     p = ctx.new_page()
+    if clock: p.clock.install(time=clock)
     def route(r):
         u = r.request.url
         if day_body and u.split('?')[0].endswith('/day.json'):
@@ -43,8 +54,9 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag=''):
         r.abort()
     p.route('**/*', route)
     p.on('pageerror', lambda e: print('       pageerror: %s' % str(e)[:200]))
-    p.goto(origin + BASE + frag, wait_until='load'); p.wait_for_timeout(1500)
-    sfx, shots = '%d%s' % (w, '-dark' if dark else ''), []
+    p.goto(origin + BASE + page + frag, wait_until='load'); p.wait_for_timeout(1500)
+    sfx = '%s%d%s%s' % (page.strip('/').replace('/', '_') + '-' if page else '', w, '-dark' if dark else '', clock.strftime('-%m%d%H%M') if clock else '')
+    shots = []
     def snap(name, full):
         f = os.path.join(out, '%s-%s.png' % (name, sfx)); p.screenshot(path=f, full_page=full); shots.append(os.path.basename(f))
     snap('dash', True)
@@ -60,7 +72,7 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag=''):
     p.get_by_role('button', name='전부 펼치기').click(); p.wait_for_timeout(300)
     snap('brief-open', True)
     ctx.close()
-    print('%5dpx %-5s %s' % (w, 'dark' if dark else 'light', ' · '.join(shots)))
+    print('%5dpx %-5s %s%s' % (w, 'dark' if dark else 'light', (clock.strftime('%m/%d %H:%M ') if clock else ''), ' · '.join(shots)))
 
 def main():
     try:
@@ -73,7 +85,10 @@ def main():
     day_file = (args('--day') or [None])[0]
     day_body = open(day_file, encoding='utf-8').read() if day_file else None
     frag = (args('--hash') or [''])[0]
-    day = json.loads(day_body or open(os.path.join(ROOT, 'day.json'), encoding='utf-8').read())['day']
+    page = (args('--page') or [''])[0]
+    dj = json.loads(day_body or open(os.path.join(ROOT, 'day.json'), encoding='utf-8').read())
+    day = dj['day']
+    clocks = [clock_at(v, dj['issue']) for v in args('--clock')] or [None]
     relay, body = day.get('relay'), None
     if '--intraday' in sys.argv:
         if relay: body = fake_intraday(day)
@@ -85,7 +100,8 @@ def main():
         with sync_playwright() as pw:
             b = pw.chromium.launch(**({'executable_path': CHROMIUM} if os.path.exists(CHROMIUM) else {}))
             for w, h in widths:
-                for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag)
+                for clock in clocks:
+                    for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag, page, clock)
             b.close()
     finally:
         srv.shutdown(); srv.server_close()
