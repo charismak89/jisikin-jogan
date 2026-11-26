@@ -1,24 +1,26 @@
-/* 첫 카드 시간대 배경(시험 화면, 2026-11-26). 카드 안 글자는 index.css 토큰을 그대로 쓰고, 밤 카드만 토큰을 밤 값으로 덮는다.
-   라이트 하늘 위 캡션(--tx3)은 흰 카드보다 대비가 낮아 조금 진하게 덮는다(#5b6573: 가장 진한 하늘 #e6f0ff 위 5.6:1). */
-.sky { background: var(--sky, var(--card)); }
-[data-sky] { --tx3: #5b6573; }
-[data-sky="dawn"] { --sky: linear-gradient(180deg, #efe9ff 0%, #fff5ee 100%); --card2: rgba(255,255,255,.7); }
-[data-sky="day"]  { --sky: linear-gradient(180deg, #e6f0ff 0%, #ffffff 75%); --card2: rgba(255,255,255,.75); }
-[data-sky="dusk"] { --sky: linear-gradient(180deg, #ffeedd 0%, #f2ecff 100%); --card2: rgba(255,255,255,.7); }
-[data-sky="night"], :root[data-jj="dark"] [data-sky] {
-  --card: #1b2140; --card2: rgba(255,255,255,.08); --tx: #f2f4f6; --tx2: #c3c9d6; --tx3: #9aa3b5; --line: rgba(255,255,255,.14);
-  --up: #ff6b77; --dn: #6aa6ff; --brand: #7fb0ff; --band: #4a3b10; --band-line: #d9a400; --shadow: none;
-}
+/* 첫 카드 시간대 배경(DESIGN.md 2-1 첫 카드 예외). 몽타주에 하늘 그라데이션이 없어 이 파일에만 값을 적는다.
+   카드 안 글자와 등락색은 몽타주 토큰을 그대로 쓴다. 밤 카드(라이트 테마에서도 남색)는 montage-night.css 가 몽타주 다크 값을 카드 안에만 덮는다.
+   색 글자(등락)가 하늘 위에 바로 놓이는 곳은 30px 숫자뿐이다(3:1 기준). 작은 등락 숫자는 흰 칸(bg-card) 위에 둔다. */
+.sky { background: var(--sky, var(--mt-surface-elevated-primary)); color: var(--mt-foreground-neutral-primary); }
+[data-sky="dawn"] { --sky: linear-gradient(180deg, #efe9ff 0%, #fff5ee 100%); }
+[data-sky="day"]  { --sky: linear-gradient(180deg, #e6f0ff 0%, #ffffff 75%); }
+[data-sky="dusk"] { --sky: linear-gradient(180deg, #ffeedd 0%, #f2ecff 100%); }
 [data-sky="night"] { --sky: linear-gradient(180deg, #0e1430 0%, #1d2244 100%); }
-:root[data-jj="dark"] [data-sky="dawn"] { --sky: linear-gradient(180deg, #221c36 0%, #1b1d22 100%); --card: #23262c; }
-:root[data-jj="dark"] [data-sky="day"]  { --sky: linear-gradient(180deg, #14263f 0%, #1b1d22 100%); --card: #23262c; }
-:root[data-jj="dark"] [data-sky="dusk"] { --sky: linear-gradient(180deg, #2c1f1c 0%, #1e1b2b 100%); --card: #23262c; }
-:root[data-jj="dark"] [data-sky="night"] { --sky: linear-gradient(180deg, #0b1027 0%, #161b36 100%); }
-[data-sky] { color: var(--tx); }
+:root[data-theme="dark"] [data-sky="dawn"] { --sky: linear-gradient(180deg, #221c36 0%, #1b1c1e 100%); }
+:root[data-theme="dark"] [data-sky="day"]  { --sky: linear-gradient(180deg, #14263f 0%, #1b1c1e 100%); }
+:root[data-theme="dark"] [data-sky="dusk"] { --sky: linear-gradient(180deg, #2c1f1c 0%, #1e1b2b 100%); }
+:root[data-theme="dark"] [data-sky="night"] { --sky: linear-gradient(180deg, #0b1027 0%, #161b36 100%); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) [data-sky="dawn"] { --sky: linear-gradient(180deg, #221c36 0%, #1b1c1e 100%); }
+  :root:not([data-theme="light"]) [data-sky="day"]  { --sky: linear-gradient(180deg, #14263f 0%, #1b1c1e 100%); }
+  :root:not([data-theme="light"]) [data-sky="dusk"] { --sky: linear-gradient(180deg, #2c1f1c 0%, #1e1b2b 100%); }
+  :root:not([data-theme="light"]) [data-sky="night"] { --sky: linear-gradient(180deg, #0b1027 0%, #161b36 100%); }
+}
 
-.sky-dot-live { background: var(--up); }
-.sky-dot-calm { background: #8b6cf0; }
-.sky-dot-night { background: #ff9f43; }
+/* 상태 점: 장중 빨강(상승색), 그 밖 보라, 밤 주황. 점은 글자와 같이 나온다(색만으로 뜻을 전하지 않는다) */
+.sky-dot-live { background: var(--mt-fin-up); }
+.sky-dot-calm { background: var(--mt-foreground-accent-violet); }
+.sky-dot-night { background: var(--mt-foreground-cautionary-primary); }
 @media (prefers-reduced-motion: no-preference) {
   .sky-dot-live, .sky-pulse { animation: sky-pulse 1.6s ease-in-out infinite; }
 }

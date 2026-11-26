@@ -20,9 +20,10 @@
 - 되돌리기: 실험실 관련 PR revert. 메인의 실험실 버튼, 버전 표시는 2026-11-26 labs 이름 변경 PR 에서 들어갔다.
 
 - 표준 A(몽타주) 이전(사용자 결정 2026-11-26 "추천대로 복사 방식"): 실험실 화면 전체를 표준 A 로 만들고 첫 카드는 그 안의 컴포넌트로 둔다(C 표준은 만들지 않는다). 메인 v6 는 건드리지 않고, 실험실이 쓰던 공유 컴포넌트 5개(`K20Chart`, `Market`, `BriefTab`, `Feedback`, `ui/card`)를 `web/src/labs/components/` 로 복사해 고친다. 옛 컴포넌트는 전환 PR 에서 지운다.
-  - 진행(브랜치 `claude/great-goodall-i6lh6f`): 1단계 복사 끝(산출물 해시 같음). 2단계부터 원본이 필요하다: `charismak89/mock-invest-bot` 의 `DESIGN.md` 1절, `web/scripts/gen-tokens.mjs`, `web/src/components/ui/`. 이 세션은 그 저장소를 못 붙였다(권한 검사 거부). 5단계는 `charismak89/coin-butler` `DESIGN.md` 1절을 같은 날 같은 글로 맞추는 PR 이 하나 더 필요하다.
-  - 남은 단계: 2) `@montage-ui/theme` 4.4.0, `npm run tokens`, `tokens:check` 3) 실험실 진입점은 `montage.css` 만, 복사본을 몽타주 토큰으로 4) `NowCard`, `sky.css` 를 첫 카드 전용 확장 토큰으로(하늘 위 18px 미만 글자 4.5:1 이상) 5) `DESIGN.md` 1절 교체와 2절 첫 카드 예외, 코인 집사 1절 6) 실험실 7.0-beta.3.
-  - 끝 기준: 실험실 소스와 빌드에 옛 토큰 참조 0건, `tokens:check` diff 없음, 대비 AA, `uicheck.py` 통과와 390px 가로 스크롤 0, 시간대 5종 라이트와 다크 사진, 메인 v6 사진 그대로, CI `check / render`, `check / web` 통과.
+  - 결과(PR charismak89/jisikin-jogan#93, 실험실 7.0-beta.3): 실험실 화면 전체가 몽타주 토큰이다. 토큰은 `web/scripts/gen-tokens.mjs`(원본 그대로) → `web/src/styles/montage.css`, 밤 카드용 `web/scripts/gen-night.mjs` → `web/src/labs/montage-night.css`. `npm run build` 가 `tokens:check` 를 먼저 돈다. 컴포넌트는 `web/src/labs/components/ui/`(원본 Button, Card, Badge, Tabs). 메인 v6 산출물은 그대로. 규칙과 대비 값은 `DESIGN.md` 2-1.
+  - 코인 집사 `DESIGN.md` 1절도 같은 날 표준 A 글로 맞췄다(charismak89/coin-butler#69). 코인 집사 화면 코드는 그대로다.
+  - 원본 버그: 모의투자 봇 `cn()` 이 몽타주 글자 크기 클래스를 지운다. 실험실은 `web/src/labs/lib/cn.ts` 로 피했고, 원본 수정은 별도 작업 제안으로 남겼다.
+  - 남은 일: 사용자가 폰으로 `/labs/` 를 보고 고칠 점을 준다. 전환 PR 에서 `DESIGN.md` 2-2(옛 토스풍)와 메인 옛 컴포넌트를 지우고 versions.json 두 값을 7.0 으로 같게 둔다.
 
 ## 0-14. 2026-11-19 휴장일 자동 기록(사용자 결정 "휴장일도 토스 장 달력으로 자동화")
 - `render._sync_holidays`: `sync_market_hours` 가 같은 조회로 부른다. 실제 오늘 날짜 조회의 전 영업일 ~ 다음 영업일 사이에 빠진 평일과, 오늘이 휴장(open false)이면 오늘을 `holidays.json` 에 적는다(값 `휴장(토스 장 달력 자동 기록 YYYY-MM-DD 조회)`). 자동 기록 줄은 토스가 개장으로 바꾸면 지우고, 사람이 적은 줄은 고치지 않고 `휴장일 불일치` 줄만 낸다. 전, 다음 영업일이 오늘에서 14일 밖이면 건너뛴다.
