@@ -12,7 +12,7 @@
   python3 uishots.py --perp              해외 추종가(Hyperliquid candleSnapshot) 응답을 가짜 봉으로 채운다 — 밤 추종가 카드를 볼 때. 실제 값이 아니다.
   python3 uishots.py --top               첫 화면(스크롤 전)만 찍는다. 시간대별 첫 카드를 빨리 볼 때
   python3 uishots.py --tap 삼성전자        찍기 전에 그 이름의 탭이나 버튼을 누른다(첫 카드 종목 선택 등). 파일 이름에 붙는다
-  python3 uishots.py --page stg/         루트 대신 그 주소를 연다 (시험 화면 stg/ 등)
+  python3 uishots.py --page labs/        루트 대신 그 주소를 연다 (실험실 labs/ 등)
   python3 uishots.py --clock 23:00       브라우저 시계를 그 시각(KST)으로 놓고 연다. HH:MM 은 day.json 발행일, 날짜는 2026-11-28T12:00 처럼.
                                          여러 번 쓰면 시각마다 찍는다. 첫 카드가 시간대마다 바뀌는지 볼 때(2026-11-26). 시세 응답은 지금 값 그대로다.
 

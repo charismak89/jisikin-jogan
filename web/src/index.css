@@ -1,5 +1,5 @@
 @import "tailwindcss" source(none);
-/* 클래스를 찾는 범위는 메인 화면 소스만. 시험 화면(src/stg/)은 stg.css 가 따로 더한다 — stg 클래스가 메인 CSS 에 섞이면 메인 산출물이 바뀐다(2026-11-26) */
+/* 클래스를 찾는 범위는 메인 화면 소스만. 실험실(src/labs/)은 labs.css 가 따로 더한다 — 실험실 클래스가 메인 CSS 에 섞이면 메인 산출물이 바뀐다(2026-11-26) */
 @source "./App.tsx";
 @source "./components";
 @source "./lib";

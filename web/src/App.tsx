@@ -9,7 +9,7 @@ import { Market } from './components/Market'
 import { BriefTab } from './components/BriefTab'
 import { Feedback } from './components/Feedback'
 import { Card } from './components/ui/card'
-import { site } from './lib/site'
+import { site, versions, vlabel } from './lib/site'
 import { kstDay, md } from './lib/fmt'
 
 type Mode = 'system' | 'light' | 'dark'
@@ -79,11 +79,17 @@ export default function App() {
               <b className="text-tx">지난 회차입니다.</b> {md(data.issue)} 07:45 에 낸 전망이고, 오늘 회차는 아직 없습니다(발행 전이거나 휴장일).
             </p>
           )}
-          <Tabs.List aria-label="보기 전환" className="mb-4 flex gap-1 border-b border-line">
+          <div className="mb-4 flex items-end gap-2 border-b border-line">
+          <Tabs.List aria-label="보기 전환" className="flex gap-1">
             {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
               <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2.5 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
             ))}
           </Tabs.List>
+            {/* 실험실: 개발 중인 다음 화면(/labs/). 메인과 같은 데이터, 화면만 다르다(2026-11-26) */}
+            <a href={site('labs/')} className="mb-1.5 ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[13px] font-bold text-tx2 shadow-[var(--shadow)]">
+              실험실<span className="rounded bg-tx px-1 py-px text-[10px] font-extrabold leading-none text-bg">BETA</span>
+            </a>
+          </div>
           <Tabs.Content value="dash">
             {/* 모바일은 한 열, PC(1024px~)는 2단: 왼쪽 전망·실시간, 오른쪽 20거래일·간밤 시장 */}
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
@@ -99,7 +105,7 @@ export default function App() {
             </div>
           </Tabs.Content>
           <Tabs.Content value="brief"><BriefTab data={data} /></Tabs.Content>
-          <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a></p>
+          <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a> · 화면 {vlabel(versions.main)}</p>
         </Tabs.Root>
       )}
     </div>
