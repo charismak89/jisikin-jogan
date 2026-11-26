@@ -10,9 +10,10 @@ Card.displayName = 'Card';
 
 export function CardHeader({ title, aside }: { title: React.ReactNode; aside?: React.ReactNode }) {
   return (
-    <div className="mb-4 flex items-baseline justify-between gap-3">
-      <h2 className="text-headline1 font-bold text-fg">{title}</h2>
-      {aside ? <span className="text-label2 text-fg-2">{aside}</span> : null}
+    // 제목과 오른쪽 값이 한 줄에 안 들어가면 오른쪽 값을 통째로 다음 줄로 내린다(제목, 숫자와 등락이 중간에서 끊기지 않게). 원본에서 바꾼 곳
+    <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+      <h2 className="min-w-0 text-headline1 font-bold text-fg">{title}</h2>
+      {aside ? <span className="shrink-0 whitespace-nowrap text-label2 text-fg-2">{aside}</span> : null}
     </div>
   );
 }

@@ -5,6 +5,7 @@
   python3 uicheck.py                     루트(v6) · v6/ · labs/(실험실) · archive/(지난 회차 목록) 를 390px·1440px 로
   python3 uicheck.py --out <폴더>        스크린샷을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
   python3 uicheck.py --path '#brief'     검사할 주소를 하나 더 (루트 기준, 여러 번 써도 된다)
+  python3 uicheck.py --width 360        폭을 하나 더 (390, 1440 에 더한다, 여러 번 써도 된다). 넘치면 넘친 요소를 적는다
 
 결과: 화면마다 h1, 가로 넘침(px), 콘솔 오류, 저장소 파일 4xx·실패. 하나라도 있으면 종료 코드 1, 없으면 0,
       playwright 가 없으면 2. 글꼴(jsdelivr) 말고 외부 요청은 막는다 — 실시간 칸은 비어 보이는 게 정상이다.
@@ -31,6 +32,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if not p.startswith(BASE): return os.path.join(self.directory, '.uicheck-없음')  # 404
         return super().translate_path('/' + p[len(BASE):])
     def log_message(self, *a): pass
+
+WIDE = '''() => { const W = document.documentElement.clientWidth, out = [];
+  for (const el of document.body.querySelectorAll('*')) {
+    const r = el.getBoundingClientRect(); if (r.right <= W + 0.5 || r.width === 0) continue;
+    if ([...el.children].some((c) => c.getBoundingClientRect().right > W + 0.5)) continue;
+    const cls = typeof el.className === 'string' ? el.className.trim().split(/\\s+/).slice(0, 4).join('.') : '';
+    out.push(el.tagName.toLowerCase() + (cls ? '.' + cls : '') + ' 오른쪽 ' + Math.round(r.right) + 'px "' + (el.textContent || '').trim().slice(0, 20) + '"');
+    if (out.length >= 5) break; }
+  return out }'''
 
 def check(page, url, w, h, out, origin):
     con, bad, fail, blocked = [], [], [], [0]
@@ -60,6 +70,8 @@ def check(page, url, w, h, out, origin):
     shot = os.path.join(out, '%s-%d.png' % (name, w))
     page.screenshot(path=shot, full_page=True)
     problems = (['가로 넘침 %dpx' % over] if over > 0 else []) + errs + ['응답 ' + b for b in bad] + ['실패 ' + f for f in fail]
+    if over > 0:  # 넘친 요소 중 가장 안쪽 것(자식이 안 넘치는 것) 몇 개를 적는다. 어디를 고칠지 바로 보이게
+        for e in page.evaluate(WIDE): problems.append('넘친 요소 ' + e)
     print('%s %-14s %5dpx  h1=%r' % ('ok  ' if not problems else 'FAIL', url[len(origin):] or '/', w, h1[:40]))
     for p in problems: print('       - ' + p)
     if blocked[0]: print('       (외부 요청 %d건 막음)' % blocked[0])
@@ -81,7 +93,7 @@ def main():
         with sync_playwright() as pw:
             b = pw.chromium.launch(**({'executable_path': CHROMIUM} if os.path.exists(CHROMIUM) else {}))
             for p in PAGES + args('--path'):
-                for w, h in WIDTHS:
+                for w, h in WIDTHS + [(int(x), 800) for x in args('--width')]:
                     page = b.new_page()
                     try: ok = check(page, origin + BASE + p, w, h, out, origin) and ok
                     finally: page.close()
