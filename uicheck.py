@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """uicheck.py — 화면 검사. 저장소를 GitHub Pages 와 같은 주소(/jisikin-jogan/)로 잠깐 띄우고 브라우저로 연다.
 
-  python3 uicheck.py                     루트(v6) · v6/ · labs/(실험실) · archive/(지난 회차 목록) 를 390px·1440px 로
+  python3 uicheck.py                     루트(v6), v6/, labs/(실험실), archive/(지난 회차 목록) 를 360, 390, 1440px 로
   python3 uicheck.py --out <폴더>        스크린샷을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
   python3 uicheck.py --path '#brief'     검사할 주소를 하나 더 (루트 기준, 여러 번 써도 된다)
-  python3 uicheck.py --width 360        폭을 하나 더 (390, 1440 에 더한다, 여러 번 써도 된다). 넘치면 넘친 요소를 적는다
+  python3 uicheck.py --width 320        폭을 하나 더 (360, 390, 1440 에 더한다, 여러 번 써도 된다). 넘치면 넘친 요소를 적는다
 
 결과: 화면마다 h1, 가로 넘침(px), 콘솔 오류, 저장소 파일 4xx·실패. 하나라도 있으면 종료 코드 1, 없으면 0,
       playwright 가 없으면 2. 글꼴(jsdelivr) 말고 외부 요청은 막는다 — 실시간 칸은 비어 보이는 게 정상이다.
@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 
 BASE = '/jisikin-jogan/'
 PAGES = ['', 'v6/', 'labs/', 'archive/']   # v5/ 는 2026-10-22 삭제, labs/(실험실)는 2026-11-26 추가
-WIDTHS = [(390, 844), (1440, 900)]
+WIDTHS = [(360, 800), (390, 844), (1440, 900)]  # 360: 좁은 안드로이드 폰. 2026-11-26 실험실이 360px 에서만 8px 넘쳤다
 CHROMIUM = '/opt/pw-browsers/chromium'  # 클라우드 세션에 깔린 브라우저. playwright install 로 받지 않는다
 ALLOW = ('https://cdn.jsdelivr.net/',)  # Pretendard 글꼴. 글꼴이 바뀌면 줄바꿈·넘침이 달라져서 받는다
 
