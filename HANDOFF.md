@@ -12,7 +12,9 @@
 - 한국투자증권 Open API(2026-11-26): 실전 앱 키를 VM `/etc/jogan-relay.env` 에 `KIS_APPKEY`, `KIS_APPSECRET` 으로 넣었다(사용자, `grep -c '^KIS_APP'` → 2 확인). `/v1/night` 는 키 없이 공개(사용자 결정 2026-11-26).
   - 근월물 코드: 지수선물옵션 마스터 `fo_idx_code_mts.mst.zip`(공개) 의 `구분 1, 순서 1` 줄. 2026-11-26 실측 `A01612`(표준 `KR4A016C0004`, F 202612).
   - 시험(사용자, 11/26 15:52, 18:02): 토큰, 승인키 OK, 근월물 `A01612`, REST `CM` = 야간선물(727.50 +0.10%, 주간 종가 726.75 대비), `H0MFCNT0` 체결 5건. 사실은 `CONTEXT.md` 한국투자증권 절.
-  - 중계기 `/v1/night`(키 없이): 18:00~06:05 10초마다 REST `CM`, 1분봉을 `night-<세션 시작일>.json` 에 보관, 첫 체결 전(지난밤 값)은 waiting. **VM 갱신 필요(사용자)**: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh` → `curl -s https://129-225-146-153.sslip.io/v1/night | head -c 300` 에 `"state":"live"`(밤) 또는 `"closed"`(낮). 그 뒤 실험실 밤 카드를 이 값으로 바꾼다.
+  - 중계기 `/v1/night`(키 없이): 18:00~06:05 10초마다 REST `CM`, 1분봉을 `night-<세션 시작일>.json` 에 보관, 첫 체결 전(지난밤 값)은 waiting. **VM 갱신 필요(사용자)**: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh` → `curl -s https://129-225-146-153.sslip.io/v1/night | head -c 300` 에 `"state":"live"`(밤) 또는 `"closed"`(낮). VM 갱신 완료(11/26 18:09, 사용자), 같은 밤 `live` 확인.
+  - 실험실 밤 카드(PR #91, 실험실 7.0-beta.2): 18:00~08:10 코스피는 `/v1/night` 실제 야간선물, 없으면 추종가. 11/26 18:2x 실제 `/labs/` 에서 724.85 −0.26% = 중계기 값 확인.
+  - 남은 일: ① 11/27 아침 `/v1/night` 06:00 마감값(`last`, `state: closed`)과 회차 `state.json` `signals.k200n_close`(손물) 대조, 0.05p 안이면 OK(관리 세션 send_later 08:20). ② 회차 야간선물 경로를 손물에서 `/v1/night` 로 바꾸는 것은 사용자 결정 뒤 별도 PR(회차 경로, routine-reviewer). ③ 사용자가 폰으로 `/labs/` 를 보고 메인 전환 시점을 정한다.
 - 남은 일: 사용자가 폰으로 /labs/ 를 장중, 저녁, 밤에 보고 고칠 점을 준다. 그 뒤 전환 PR(`web/index.html` 진입점을 실험실 앱으로, versions.json 두 값을 7.0 으로 같게).
 - 사진: `python3 uishots.py --page labs/ --top --perp --intraday --clock 23:00`(가짜 추종가, 가짜 장중 봉). 종목을 고른 화면은 `--tap 삼성전자`. 금요일 회차는 `--day <금요일 day.json> --clock 2026-11-22T21:00`.
 - 되돌리기: 실험실 관련 PR revert. 메인의 실험실 버튼, 버전 표시는 2026-11-26 labs 이름 변경 PR 에서 들어갔다.
