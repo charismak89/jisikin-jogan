@@ -115,11 +115,11 @@ export default function App() {
         ) : (
           <Tabs.Root value={tab} onValueChange={go}>
             <div className="mb-3 flex items-end gap-2 border-b border-line">
-            <Tabs.List aria-label="보기 전환" className="flex gap-1">
-              {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
-                <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
-              ))}
-            </Tabs.List>
+              <Tabs.List aria-label="보기 전환" className="flex gap-1">
+                {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
+                  <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
+                ))}
+              </Tabs.List>
               <a href={site('')} className="mb-1.5 ml-auto shrink-0 rounded-full bg-card px-2.5 py-1 text-[13px] font-bold text-tx2 shadow-[var(--shadow)]">메인으로</a>
             </div>
             <Tabs.Content value="dash">

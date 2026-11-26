@@ -8,7 +8,7 @@
 규칙
   메인만: web/src/App.tsx, web/src/main.tsx, web/index.html            → main 을 올린다
   실험실만: web/src/labs/, web/labs.html                               → labs 를 올린다
-  공용: web/src/components/, web/src/lib/, web/src/types.ts, web/src/index.css → 둘 다 올린다(두 화면이 같이 바뀐다)
+  공용: web/src/components/, web/src/lib/, web/src/types.ts, web/src/index.css, web/src/brief.css → 둘 다 올린다(두 화면이 같이 바뀐다)
 '올린다'는 기준 커밋의 값과 다르면 된다. 기준 커밋에 versions.json 이 없으면 통과한다.
 결과: VERSIONCHECK PASS / FAIL 한 줄과 이유. FAIL 이면 종료 코드 1. 저장소 파일을 바꾸지 않는다.
 """
@@ -17,7 +17,7 @@ import json, subprocess, sys
 VF = 'web/versions.json'
 MAIN = ('web/src/App.tsx', 'web/src/main.tsx', 'web/index.html')
 LABS = ('web/src/labs/', 'web/labs.html')
-SHARED = ('web/src/components/', 'web/src/lib/', 'web/src/types.ts', 'web/src/index.css')
+SHARED = ('web/src/components/', 'web/src/lib/', 'web/src/types.ts', 'web/src/index.css', 'web/src/brief.css')
 
 def git(*a):
     return subprocess.run(['git', *a], capture_output=True, text=True)

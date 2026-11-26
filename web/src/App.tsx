@@ -80,11 +80,11 @@ export default function App() {
             </p>
           )}
           <div className="mb-4 flex items-end gap-2 border-b border-line">
-          <Tabs.List aria-label="보기 전환" className="flex gap-1">
-            {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
-              <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2.5 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
-            ))}
-          </Tabs.List>
+            <Tabs.List aria-label="보기 전환" className="flex gap-1">
+              {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
+                <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2.5 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
+              ))}
+            </Tabs.List>
             {/* 실험실: 개발 중인 다음 화면(/labs/). 메인과 같은 데이터, 화면만 다르다(2026-11-26) */}
             <a href={site('labs/')} className="mb-1.5 ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[13px] font-bold text-tx2 shadow-[var(--shadow)]">
               실험실<span className="rounded bg-tx px-1 py-px text-[10px] font-extrabold leading-none text-bg">BETA</span>
