@@ -1,4 +1,4 @@
-// 시험 화면(stg) 앱. 메인 App.tsx 를 바탕으로 첫 화면만 바꾼다(2026-11-26).
+// 실험실(labs, 처음 이름 stg) 앱. 메인 App.tsx 를 바탕으로 첫 화면만 바꾼다(2026-11-26).
 //  - 머리말을 한 줄로 줄여 첫 카드가 첫 화면 위쪽에 오게 한다(390px 에서 메인은 카드가 약 230px 아래).
 //  - 첫 카드(NowCard)는 시간대마다 바뀐다. 기존 전망 카드는 '오늘 브리핑 요약'으로 줄여 아래에 둔다.
 //  - '예측 → 실시간' 카드(LiveChart)는 뺐다. 종목 선택과 종목별 전망 구간, 시가 채점은 첫 카드로 옮겼다(2026-11-26)
@@ -11,7 +11,7 @@ import { Market } from '../components/Market'
 import { BriefTab } from '../components/BriefTab'
 import { Feedback } from '../components/Feedback'
 import { Card } from '../components/ui/card'
-import { site } from '../lib/site'
+import { site, versions, vlabel } from '../lib/site'
 import { dir, kstDay, md, sg } from '../lib/fmt'
 import { NowCard } from './NowCard'
 import { NightFeed } from './night'
@@ -95,7 +95,10 @@ export default function App() {
 
   return (
     <>
-      <div role="note" className="bg-tx px-4 py-1 text-center text-[11px] font-semibold text-bg">시험 화면(stg) · 메인 주소와 다를 수 있습니다</div>
+      {/* 실험실 띠: 버전과 메인과의 관계. 두 버전이 같으면 메인과 같은 화면이다(web/versions.json) */}
+      <div role="note" className="bg-tx px-4 py-1 text-center text-[11px] font-semibold text-bg">
+        실험실 {vlabel(versions.labs)} · {versions.labs === versions.main ? '메인과 같은 화면입니다' : `개발 중인 화면이라 메인(${vlabel(versions.main)})과 다릅니다`}
+      </div>
       <div className="mx-auto w-full max-w-[1120px] px-4 pb-16 pt-3 sm:px-6">
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
@@ -111,11 +114,14 @@ export default function App() {
           <Card className="text-center text-[15px] text-tx2">{err || '불러오는 중…'}<div className="mt-3"><a className="font-bold text-brand" href={site('archive/')}>지난 회차 보기 →</a></div></Card>
         ) : (
           <Tabs.Root value={tab} onValueChange={go}>
-            <Tabs.List aria-label="보기 전환" className="mb-3 flex gap-1 border-b border-line">
-              {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
-                <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
-              ))}
-            </Tabs.List>
+            <div className="mb-3 flex items-end gap-2 border-b border-line">
+              <Tabs.List aria-label="보기 전환" className="flex gap-1">
+                {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
+                  <Tabs.Trigger key={v} value={v} className="-mb-px border-b-2 border-transparent px-3 py-2 text-[15px] font-bold text-tx3 data-[state=active]:border-tx data-[state=active]:text-tx">{l}</Tabs.Trigger>
+                ))}
+              </Tabs.List>
+              <a href={site('')} className="mb-1.5 ml-auto shrink-0 rounded-full bg-card px-2.5 py-1 text-[13px] font-bold text-tx2 shadow-[var(--shadow)]">메인으로</a>
+            </div>
             <Tabs.Content value="dash">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
                 <div className="space-y-4">
@@ -131,7 +137,7 @@ export default function App() {
             </Tabs.Content>
             <Tabs.Content value="brief"><BriefTab data={data} /></Tabs.Content>
             {past && <p className="mt-4 px-2 text-center text-[12px] text-tx3">{md(data.issue)} 회차가 마지막 발행입니다.</p>}
-            <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a></p>
+            <p className="mt-6 px-2 text-center text-[12px] leading-relaxed text-tx3">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a> · 실험실 {vlabel(versions.labs)}</p>
           </Tabs.Root>
         )}
       </div>

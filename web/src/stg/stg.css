@@ -1,5 +1,0 @@
-/* 시험 화면 스타일 입구: 메인 토큰과 Tailwind(index.css)에 stg 소스 범위와 시간대 배경(sky.css)을 더한다 */
-@import "../index.css";
-@import "./sky.css";
-@source "./";
-@source "../../stg.html";
