@@ -60,6 +60,7 @@ render.py 가 이 표를 읽어 표기명을 바꾼다. 코드 열이 키다.
 - 근월물 코드는 지수선물옵션 마스터 `https://new.real.download.dws.co.kr/common/master/fo_idx_code_mts.mst.zip`(공개)의 `구분 1(코스피200 선물), 순서 1` 줄. 2026-11-26 `A01612`(F 202612).
 - 현재가 `FHMIF10000000`(`/uapi/domestic-futureoption/v1/quotations/inquire-price`)에 시장 코드 `CM` 을 주면 KRX 야간선물, `F` 는 주간선물이다. 야간 등락률은 그날 주간 종가 대비(VM 실측 11/26 18:02: CM 727.50 +0.10%, F 726.75). 응답의 `futs_prdy_clpr` 는 지난밤 종가라 등락률 기준이 아니다.
 - 실시간 체결은 WebSocket `ws://ops.koreainvestment.com:21000` `H0MFCNT0`(tr_key `A01612`)도 된다. 필드 [1] 시각, [2] 대비, [4] 등락률, [5] 현재가, [6] 시가, [7] 고가, [8] 저가. 중계기는 REST 10초로 충분해 쓰지 않는다.
+- 중계기 `/v1/night` 를 마감값으로 쓸 때는 `state: closed` 만 보지 않는다. 낮 응답은 지난 세션을 closed 로 준다(첫 체결이 없던 세션, 새벽에 끊긴 세션도). `bars` 가 있고 `asof` 가 다음 날 05:55 이후일 때만 마감값이다(`fetch_relay.night`). `error` 는 마지막 시도의 실패라 낮까지 남으니 거르는 조건으로 쓰지 않는다(2026-11-27 PR #97 routine-reviewer).
 - 초당 호출 한도가 있다(0.3초 간격 연속 호출에서 "초당 거래건수를 초과" 1회). 중계기 `/v1/night` 는 18:00~06:05 에 10초마다 한 번.
 - 시세 재배포 위험은 토스와 같은 범주(`DIRECTION.md` 8절). 한투 약관은 확인하지 못했다 [검증 필요].
 
