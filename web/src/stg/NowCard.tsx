@@ -13,7 +13,7 @@ type Sky = 'dawn' | 'day' | 'dusk' | 'night'
 interface Mark { t: number; label: string }
 interface Model {
   sky: Sky; status: string; dot: 'live' | 'calm' | 'night'
-  label: string; big: string; bigDir: number | null; level?: string
+  label: string; big: string; bigDir: number | null; level?: string; badge?: string
   note?: string | null; foot?: string | null
   lines: Pt[]; x0: number; x1: number; band?: { lo: number; hi: number; from: number; to?: number } | null
   marks: Mark[]; pin?: { t: number; p: number; label: string } | null
@@ -45,7 +45,7 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
     pre: `${S.open} 개장까지 ${inMin(minsTo(D.t_open, now))}${S.why ? ` · ${S.why}` : ''}`,
     live: `정규장 · ${S.close}까지`,
     closed: `오늘 정규장 마감 · 야간선물 ${inMin(minsTo(F.nightStart, now))} 뒤 시작`,
-    night: '야간 시간 · 06:00까지',
+    night: '밤 · 해외 추종가로 보는 중',
     dawn: now < F.nextBrief ? `야간선물 마감 · ${hm(F.nextBrief)} 전망 준비 중` : `${hm(F.nextBrief)} 전망 올리는 중`,
     weekend: `주말 · ${dayLabel(F.nextBrief)} ${hm(F.nextBrief)} 전망`,
     late: '오늘 전망 없음 · 발행 전이거나 휴장일',
@@ -94,17 +94,17 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
   const x1 = ph === 'night' || ph === 'closed' ? F.nightEnd : Math.max(now, F.nightEnd)
   const post = feed && (ph === 'dawn' || ph === 'weekend' || ph === 'late') ? (() => { const a = feed.at(KEY, F.nightEnd); return a != null && q != null ? q - a : null })() : null
   return { ...base,
-    label: `코스피200 추종가 · ${md(data.issue)} ${S.close} 대비`, big: q == null ? (feed?.ok === false ? '미확보' : '—') : sg(q), bigDir: q,
+    label: `코스피200 추종가 · ${md(data.issue)} ${S.close} 대비`, badge: '추종가', big: q == null ? (feed?.ok === false ? '미확보' : '—') : sg(q), bigDir: q,
     level: q != null && kClose != null ? '≈' + nf(K.prev * (1 + kClose / 100) * (1 + q / 100), 2) : undefined,
-    note: post != null ? `야간선물 마감(${now - F.nightEnd > 864e5 / 2 ? dayLabel(F.nightEnd) + ' ' : ''}${hm(F.nightEnd)}) 뒤 ${sg(post)}` : '야간선물 아님 · 해외 24시간 추종가',
-    foot: ph === 'night' ? '06:00 마감 대조 평균 0.36%p 차이(29회). 내일 07:45 전망에서 실제 야간선물로 바꿔 씁니다' : null,
+    note: post != null ? `야간선물 마감(${now - F.nightEnd > 864e5 / 2 ? dayLabel(F.nightEnd) + ' ' : ''}${hm(F.nightEnd)}) 뒤 ${sg(post)}p` : '실제 야간선물 시세가 아닙니다',
+    foot: ph === 'night' ? `야간선물(18:00~06:00)과 06:00 마감 대조 평균 0.36%p 차이(29회). ${dayLabel(F.nextBrief)} 07:45 전망에는 실제 야간선물을 씁니다` : null,
     lines: st?.pts ?? [], x0: F.base, x1,
     band: null,
-    marks: [{ t: F.base, label: `${S.close} 마감` }, { t: F.nightStart, label: '야간 개장' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '야간 마감' },
+    marks: [{ t: F.base, label: `${S.close} 마감` }, { t: F.nightStart, label: '18:00' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '06:00' },
       ...(x1 > F.nightEnd + 3600e3 ? [{ t: x1, label: '지금' }] : [])],
     pin: null,
     stocks: stocks.map((e) => { const v = feed?.S[e.key].last ?? null, c = closePct(live, e); return { name: e.name, p: v, px: c != null ? px(e, v, e.prev * (1 + c / 100)) : null, tag: '추종가' } }),
-    fresh: st?.lastT ? `${hm(st.lastT)} 기준` : null,
+    fresh: st?.lastT ? `${hm(st.lastT)} 기준${feed && feed.fails >= 3 ? ' · 지연' : ''}` : null,
   }
 }
 
@@ -140,6 +140,7 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
           {M.bigDir != null && view !== 'overnight' && <span className="text-[18px]">{arrow(M.bigDir)}</span>}{M.big}
         </span>
         {M.level && <span className="num text-[15px] font-bold text-tx2">{M.level}</span>}
+        {M.badge && <span className="rounded-full border border-line px-2 py-0.5 text-[11px] font-bold text-tx2">{M.badge}</span>}
       </div>
       {M.note && <div className="text-[13px] font-semibold text-tx2">{M.note}</div>}
 
@@ -205,7 +206,7 @@ function Chart({ M, now }: { M: Model; now: number }) {
         {M.band && M.band.to && <text x={X(M.band.to) + 4} y={Y(M.band.hi) + 10} fontSize={11} fill="var(--tx3)">07:45 전망 구간</text>}
         <line x1={0} x2={W - 8} y1={Y(0)} y2={Y(0)} stroke="var(--tx3)" strokeOpacity={0.5} strokeDasharray="3 3" />
         <text x={W - 10} y={Y(0) - 4} fontSize={11} fill="var(--tx3)" textAnchor="end">기준 0%</text>
-        {ticks.slice(1, -1).map((t) => <line key={t.t} x1={t.x} x2={t.x} y1={T} y2={H - B} stroke="var(--line)" />)}
+        {ticks.slice(1, -1).map((t, i) => <line key={i} x1={t.x} x2={t.x} y1={T} y2={H - B} stroke="var(--line)" />)}
         {path && <path d={path + `L${X(last[0]).toFixed(1)} ${Y(lo)}L${X(pts[0][0]).toFixed(1)} ${Y(lo)}Z`} fill={col} opacity={0.08} />}
         {path && <path d={path} fill="none" stroke={col} strokeWidth={2} strokeLinejoin="round" />}
         {mx && mn && mx !== mn && (<>
@@ -218,12 +219,12 @@ function Chart({ M, now }: { M: Model; now: number }) {
       </svg>
       <div className="relative mt-1 h-[2px] rounded bg-line" style={{ width: W - 8 }}>
         <div className="absolute inset-y-0 left-0 rounded bg-tx3" style={{ width: `${prog * 100}%` }} />
-        {ticks.map((t) => <span key={t.t} className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-tx3" style={{ left: t.x }} />)}
+        {ticks.map((t, i) => <span key={i} className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-tx3" style={{ left: t.x }} />)}
         {now > M.x0 && now < M.x1 && <span className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-tx" style={{ left: nowX }} />}
       </div>
       <div className="relative mt-1 h-4 text-[11px] text-tx3" style={{ width: W - 8 }}>
         {shown.map((t, i) => (
-          <span key={t.t} className={`absolute whitespace-nowrap ${i === 0 && t.x < 30 ? '' : t.x > W - 60 ? '-translate-x-full' : '-translate-x-1/2'}`} style={{ left: t.x }}>{t.label}</span>
+          <span key={i} className={`absolute whitespace-nowrap ${i === 0 && t.x < 30 ? '' : t.x > W - 60 ? '-translate-x-full' : '-translate-x-1/2'}`} style={{ left: t.x }}>{t.label}</span>
         ))}
       </div>
     </div>

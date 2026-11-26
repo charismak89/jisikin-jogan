@@ -10,7 +10,9 @@ const POLL = 30e3
 export class NightFeed {
   S: Record<string, Series> = {}
   ok: boolean | null = null
+  fails = 0               // 연속 실패 횟수. 3번 넘으면 화면에 '지연'
   version = 0
+  private bars: Record<string, Map<number, Pt>> = {}   // 봉 시작 시각 → [표시 시각, %]. 진행 중 봉도 같은 키라 다시 받으면 덮어쓴다
   private iv: [string, number]
   private next: Record<string, number> = {}
   private timer: number | undefined
@@ -26,7 +28,8 @@ export class NightFeed {
 
   private load(key: string, coin: string) {
     const st = this.S[key], [name, ms] = this.iv, end = Date.now()
-    const start = this.next[key] ?? this.from - 2 * ms
+    // 처음에는 마감 30분 전부터 받는다 — 거래 없는 분은 봉이 빠져서 기준 봉을 놓치지 않게
+    const start = this.next[key] ?? this.from - Math.max(2 * ms, 30 * 6e4)
     return fetch(this.D.api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'candleSnapshot', req: { coin, interval: name, startTime: start, endTime: end } }) })
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
@@ -38,12 +41,12 @@ export class NightFeed {
           st.base = parseFloat(b[b.length - 1].c)
         }
         const base = st.base
-        const m = new Map<number, Pt>(st.pts.map((p) => [p[0], p]))
+        const m = this.bars[key] ?? (this.bars[key] = new Map())
         cs.filter((c) => c.t + ms > this.from).forEach((c) => {
           const t = Math.min(c.t + ms, end)
-          m.delete(c.t + ms); m.set(t, [t, (parseFloat(c.c) / base - 1) * 100])
+          m.set(c.t, [t, (parseFloat(c.c) / base - 1) * 100])
         })
-        st.pts = [...m.values()].sort((a, b) => a[0] - b[0])
+        st.pts = [...m.entries()].sort((a, b) => a[0] - b[0]).map((x) => x[1])
         const l = st.pts[st.pts.length - 1]
         if (l) { st.last = l[1]; st.lastT = l[0] }
         this.next[key] = cs[cs.length - 1].t   // 마지막 봉(진행 중)부터 다시 받는다
@@ -52,7 +55,7 @@ export class NightFeed {
   tick = () => {
     if (document.hidden) return
     return Promise.all(this.D.ent.map((e) => this.load(e.key, e.coin)))
-      .then(() => { this.ok = true }, () => { this.ok = false })
+      .then(() => { this.ok = true; this.fails = 0 }, () => { this.ok = false; this.fails++ })
       .then(() => this.emit())
   }
   start() {
