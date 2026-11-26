@@ -57,7 +57,12 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
   const hr = new Date(now + 9 * 3600e3).getUTCHours()
   const sky: Sky = ph === 'weekend' || ph === 'late' ? (hr >= 18 || hr < 6 ? 'night' : 'day') : SKY[ph]
   const dot = ph === 'live' ? 'live' : sky === 'night' ? 'night' : 'calm'
-  const center = (e: Ent) => (e.lo != null && e.hi != null ? (e.lo + e.hi) / 2 : null)
+  // 코스피 전망 중심은 메인 화면(Hero)과 같은 forecast 값, 종목은 ent 구간
+  const center = (e: Ent) => {
+    const f = data.forecast
+    if (e.key === KEY && f.low_pct != null && f.high_pct != null) return (f.low_pct + f.high_pct) / 2
+    return e.lo != null && e.hi != null ? (e.lo + e.hi) / 2 : null
+  }
   const tiles = (pick: (e: Ent) => number | null, tag: (e: Ent) => string | null) =>
     D.ent.map((e) => ({ key: e.key, name: e.name, p: pick(e), tag: tag(e) }))
   const base = { sky, status, dot } as const
@@ -80,6 +85,8 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
     }
   }
   if (view === 'session') {
+    // 개장 전 '—' 는 코스피만(지수는 장 전 거래가 없다). 종목은 08:00 부터 NXT 실제가가 있어 그대로 보인다(live.ts preOpen).
+    // 코스피 추정치(≈)는 토스 시세가 없을 때(!krx)뿐이다. 종목은 approx 가 아니다
     const p = live.preOpen(E) ? null : live.lastPct(E), o = live.openPct(E), krx = live.useKrx(E)
     const done = now >= D.t_close
     return { ...base,
@@ -156,9 +163,9 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
 
       <Chart M={M} now={now} />
 
-      <div role="tablist" aria-label="차트 종목" className="mt-3 grid grid-cols-3 gap-1.5">
+      <div role="group" aria-label="차트 종목 고르기" className="mt-3 grid grid-cols-3 gap-1.5">
         {M.tiles.map((t) => (
-          <button key={t.key} type="button" role="tab" aria-selected={t.key === E.key} onClick={() => setSel(t.key)}
+          <button key={t.key} type="button" aria-pressed={t.key === E.key} onClick={() => setSel(t.key)}
             className={`min-w-0 rounded-2xl border px-2.5 py-2 text-left ${t.key === E.key ? 'border-tx bg-card' : 'border-transparent bg-card2'}`}>
             <div className="flex items-center justify-between gap-1 text-[12px]"><span className="truncate font-semibold text-tx2">{t.name}</span>{t.tag && <span className="shrink-0 text-[11px] text-tx3">{t.tag}</span>}</div>
             <b className={`num block text-[16px] ${dir(t.p)}`}>{t.p == null ? '—' : sg(t.p)}</b>
