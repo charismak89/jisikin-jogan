@@ -121,7 +121,7 @@ export default function App() {
               <Button asChild variant="assistive" size="small" className="ml-auto shrink-0"><a href={site('')}>메인으로</a></Button>
             </div>
             <TabsContent value="dash">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
                 <div className="space-y-4">
                   {live && <NowCard data={data} live={live} feed={feed} onBrief={() => go('brief')} />}
                   <Summary data={data} onBrief={() => go('brief')} />

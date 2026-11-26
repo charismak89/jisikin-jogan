@@ -249,14 +249,14 @@ function Chart({ M, now }: { M: Model; now: number }) {
         {M.band && M.band.to && (() => { const above = Y(M.band.hi) - 5 >= 11; return <text x={X(M.band.from)} y={above ? Y(M.band.hi) - 5 : Y(M.band.lo) + 13} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" stroke="var(--mt-surface-elevated-primary)" strokeWidth={3} paintOrder="stroke">07:45 전망 구간</text> })()}
         <line x1={0} x2={W - 8} y1={Y(0)} y2={Y(0)} stroke="var(--mt-foreground-neutral-secondary)" strokeOpacity={0.5} strokeDasharray="3 3" />
         {/* 기준선 글자: 전망 구간이 오른쪽 끝까지 닿으면(개장 전) 왼쪽에 둔다 */}
-        {M.band && !M.band.to ? <text x={2} y={Y(0) - 4} fontSize={12} fill="var(--mt-foreground-neutral-secondary)">기준 0%</text>
-          : <text x={W - 10} y={Y(0) - 4} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="end">기준 0%</text>}
+        {M.band && !M.band.to ? <text x={2} y={Y(0) - 4} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" stroke="var(--mt-surface-elevated-primary)" strokeWidth={3} paintOrder="stroke">기준 0%</text>
+          : <text x={W - 10} y={Y(0) - 4} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="end" stroke="var(--mt-surface-elevated-primary)" strokeWidth={3} paintOrder="stroke">기준 0%</text>}
         {ticks.slice(1, -1).map((t, i) => <line key={i} x1={t.x} x2={t.x} y1={T} y2={H - B} stroke="var(--mt-line-neutral-primary)" />)}
         {path && <path d={path + `L${X(last[0]).toFixed(1)} ${Y(lo)}L${X(pts[0][0]).toFixed(1)} ${Y(lo)}Z`} fill={col} opacity={0.08} />}
         {path && <path d={path} fill="none" stroke={col} strokeWidth={2} strokeLinejoin="round" />}
         {mx && mn && mx !== mn && (<>
-          <text x={Math.min(Math.max(X(mx[0]), 30), W - 40)} y={Y(mx[1]) - 5} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="middle">최고 {lbl(mx[1])}</text>
-          <text x={Math.min(Math.max(X(mn[0]), 30), W - 40)} y={Y(mn[1]) + 13} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="middle">최저 {lbl(mn[1])}</text>
+          <text x={Math.min(Math.max(X(mx[0]), 42), Math.max(42, W - 50))} y={Y(mx[1]) - 5} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="middle" stroke="var(--mt-surface-elevated-primary)" strokeWidth={3} paintOrder="stroke">최고 {lbl(mx[1])}</text>
+          <text x={Math.min(Math.max(X(mn[0]), 42), Math.max(42, W - 50))} y={Y(mn[1]) + 13} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="middle" stroke="var(--mt-surface-elevated-primary)" strokeWidth={3} paintOrder="stroke">최저 {lbl(mn[1])}</text>
         </>)}
         {M.pin && <g><circle cx={X(M.pin.t)} cy={Y(M.pin.p)} r={4} fill="var(--mt-foreground-brand-primary)" stroke="var(--mt-surface-elevated-primary)" strokeWidth={2} /></g>}
         {last && <circle className="sky-pulse" cx={X(last[0])} cy={Y(last[1])} r={4} fill={col} />}
