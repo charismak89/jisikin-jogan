@@ -1,11 +1,11 @@
 // 시험 화면(stg) 앱. 메인 App.tsx 를 바탕으로 첫 화면만 바꾼다(2026-11-26).
 //  - 머리말을 한 줄로 줄여 첫 카드가 첫 화면 위쪽에 오게 한다(390px 에서 메인은 카드가 약 230px 아래).
 //  - 첫 카드(NowCard)는 시간대마다 바뀐다. 기존 전망 카드는 '오늘 브리핑 요약'으로 줄여 아래에 둔다.
+//  - '예측 → 실시간' 카드(LiveChart)는 뺐다. 종목 선택과 종목별 전망 구간, 시가 채점은 첫 카드로 옮겼다(2026-11-26)
 import { useEffect, useMemo, useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import type { DayData } from '../types'
 import { Live, dropOldKey } from '../lib/live'
-import { LiveChart } from '../components/LiveChart'
 import { K20Chart } from '../components/K20Chart'
 import { Market } from '../components/Market'
 import { BriefTab } from '../components/BriefTab'
@@ -121,7 +121,6 @@ export default function App() {
                 <div className="space-y-4">
                   {live && <NowCard data={data} live={live} feed={feed} onBrief={() => go('brief')} />}
                   <Summary data={data} onBrief={() => go('brief')} />
-                  {live && <LiveChart live={live} />}
                 </div>
                 <div className="space-y-4">
                   <K20Chart data={data} />

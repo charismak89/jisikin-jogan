@@ -17,7 +17,7 @@ interface Model {
   note?: string | null; foot?: string | null
   lines: Pt[]; x0: number; x1: number; band?: { lo: number; hi: number; from: number; to?: number } | null
   marks: Mark[]; pin?: { t: number; p: number; label: string } | null
-  stocks: { name: string; p: number | null; px: string | null; tag?: string | null }[]
+  tiles: { key: string; name: string; p: number | null; tag: string | null }[]
   fresh: string | null
 }
 
@@ -36,10 +36,13 @@ function useVer(src: { subscribe(fn: () => void): () => void } | null) {
 
 /** 발행일 정규장 종가(%) — 토스 1분봉 마지막 값, 없으면 추종가 */
 const closePct = (live: Live, e: Ent) => { const s = live.sessPts(e); return s.length ? s[s.length - 1][1] : null }
-const px = (e: Ent, p: number | null, base?: number) => (p == null ? null : (e.approx ? '≈' : '') + nf(tk(e, (base ?? e.prev) * (1 + p / 100)), 0) + (e.unit || ''))
 
-function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed: NightFeed | null, now: number): Model {
-  const D = data.day, K = D.ent.find((e) => e.key === KEY)!, stocks = D.ent.filter((e) => e.key !== KEY)
+/** 종목 값 표시: 코스피는 지수(소수 2자리), 종목은 호가 단위 원. 추정치는 ≈ */
+const lvl = (e: Ent, base: number, p: number, approx: boolean) =>
+  (approx ? '≈' : '') + (e.key === KEY ? nf(base * (1 + p / 100), 2) : nf(tk(e, base * (1 + p / 100)), 0) + (e.unit || ''))
+
+function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed: NightFeed | null, now: number, E: Ent): Model {
+  const D = data.day, isK = E.key === KEY
   const S = D.sess ?? { open: '09:00', close: '15:30', prev_close: '15:30', why: null }
   const status = {
     pre: `${S.open} 개장까지 ${inMin(minsTo(D.t_open, now))}${S.why ? ` · ${S.why}` : ''}`,
@@ -54,56 +57,60 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
   const hr = new Date(now + 9 * 3600e3).getUTCHours()
   const sky: Sky = ph === 'weekend' || ph === 'late' ? (hr >= 18 || hr < 6 ? 'night' : 'day') : SKY[ph]
   const dot = ph === 'live' ? 'live' : sky === 'night' ? 'night' : 'calm'
+  const center = (e: Ent) => (e.lo != null && e.hi != null ? (e.lo + e.hi) / 2 : null)
+  const tiles = (pick: (e: Ent) => number | null, tag: (e: Ent) => string | null) =>
+    D.ent.map((e) => ({ key: e.key, name: e.name, p: pick(e), tag: tag(e) }))
   const base = { sky, status, dot } as const
 
   if (view === 'overnight') {
-    const f = data.forecast, s = data.signals, c = f.low_pct != null && f.high_pct != null ? (f.low_pct + f.high_pct) / 2 : null
-    const lines = [...K.path, ...live.tailPts(K).map((b) => [b[0], b[1]] as Pt)]
+    const f = data.forecast, s = data.signals, c = center(E)
     return { ...base,
-      label: `${md(data.issue)} ${S.open} 코스피 시초가 전망`, big: c != null ? `${sg(c)} 안팎` : '전망 없음', bigDir: c,
-      level: f.low != null && f.high != null ? `${nf(f.low)} ~ ${nf(f.high)}` : undefined,
-      note: s.k200n_pct != null ? `야간선물 ${sg(s.k200n_pct)}${s.k200n_asof ? ` · ${s.k200n_asof} 마감` : ''}` : '야간선물 미확보',
+      label: `${md(data.issue)} ${S.open} ${E.name} 시초가 전망`, big: c != null ? `${sg(c)} 안팎` : '전망 없음', bigDir: c,
+      level: isK ? (f.low != null && f.high != null ? `${nf(f.low)} ~ ${nf(f.high)}` : undefined)
+        : E.lo_v != null && E.hi_v != null ? `${nf(E.lo_v)} ~ ${nf(E.hi_v)}${E.unit}` : undefined,
+      note: isK ? (s.k200n_pct != null ? `야간선물 ${sg(s.k200n_pct)}${s.k200n_asof ? ` · ${s.k200n_asof} 마감` : ''}` : '야간선물 미확보')
+        : `${E.prev_label} 종가 ${nf(E.prev)}${E.unit}`,
       foot: data.post_note?.text ?? null,
-      lines, x0: D.t_prev, x1: D.t_open,
-      band: K.lo != null && K.hi != null ? { lo: K.lo, hi: K.hi, from: D.t_open - (D.t_open - D.t_prev) * 0.06 } : null,
+      lines: [...E.path, ...live.tailPts(E).map((b) => [b[0], b[1]] as Pt)], x0: D.t_prev, x1: D.t_open,
+      band: E.lo != null && E.hi != null ? { lo: E.lo, hi: E.hi, from: D.t_open - (D.t_open - D.t_prev) * 0.06 } : null,
       marks: [{ t: D.t_prev, label: `${S.prev_close} 마감` }, { t: D.t_night, label: `야간 ${hm(D.t_night)}` }, { t: D.t_open, label: `${S.open} 개장` }],
-      pin: K.night != null ? { t: D.t_night, p: K.night, label: '야간선물' } : null,
-      stocks: stocks.map((e) => ({ name: e.name, p: e.lo != null && e.hi != null ? (e.lo + e.hi) / 2 : null, px: e.lo_v != null && e.hi_v != null ? `${nf(e.lo_v)}~${nf(e.hi_v)}` : null, tag: '전망' })),
+      pin: E.night != null ? { t: D.t_night, p: E.night, label: '야간선물' } : null,
+      tiles: tiles(center, () => null),
       fresh: `${data.signals.perp_asof ?? '07:45'} 회차`,
     }
   }
   if (view === 'session') {
-    const p = live.preOpen(K) ? null : live.lastPct(K), o = live.openPct(K), krx = live.useKrx(K)
+    const p = live.preOpen(E) ? null : live.lastPct(E), o = live.openPct(E), krx = live.useKrx(E)
     const done = now >= D.t_close
     return { ...base,
-      label: done ? `코스피 · ${md(data.issue)} 마감` : '코스피 · 실시간', big: p == null ? '—' : sg(p), bigDir: p,
-      level: p == null ? undefined : (krx ? '' : '≈') + nf(K.prev * (1 + p / 100), 2),
-      note: o != null && K.lo != null ? `시가 ${sg(o)} · 07:45 전망 구간 ${band(K, o)}` : `07:45 전망 ${K.lo != null && K.hi != null ? `${sg(K.lo)} ~ ${sg(K.hi)}` : '없음'}`,
+      label: `${E.name} · ${done ? `${md(data.issue)} 마감` : '실시간'}`, big: p == null ? '—' : sg(p), bigDir: p,
+      level: p == null ? undefined : lvl(E, E.prev, p, !krx),
+      note: o != null && E.lo != null ? `시가 ${sg(o)} · 07:45 전망 구간 ${band(E, o)}` : `07:45 전망 ${E.lo != null && E.hi != null ? `${sg(E.lo)} ~ ${sg(E.hi)}` : '없음'}`,
       foot: krx ? null : '토스 시세 연결 전 · 해외 추종가로 대신 그림',
-      lines: live.sessPts(K).map((b) => [b[0], b[1]] as Pt), x0: D.t_open, x1: D.t_close,
-      band: K.lo != null && K.hi != null ? { lo: K.lo, hi: K.hi, from: D.t_open, to: D.t_open + (D.t_close - D.t_open) * 0.1 } : null,
+      lines: live.sessPts(E).map((b) => [b[0], b[1]] as Pt), x0: D.t_open, x1: D.t_close,
+      band: E.lo != null && E.hi != null ? { lo: E.lo, hi: E.hi, from: D.t_open, to: D.t_open + (D.t_close - D.t_open) * 0.1 } : null,
       marks: [{ t: D.t_open, label: `${S.open} 개장` }, { t: D.t_open + 3 * 3600e3, label: '정오' }, { t: D.t_close, label: `${S.close} 마감` }],
       pin: o != null ? { t: D.t_open + 6e4, p: o, label: '시가' } : null,
-      stocks: stocks.map((e) => { const q = live.lastPct(e); return { name: e.name, p: q, px: px(e, q), tag: live.useKrx(e) ? null : '추종가' } }),
+      tiles: tiles((e) => (live.preOpen(e) ? null : live.lastPct(e)), (e) => (live.useKrx(e) ? null : '추종가')),
       fresh: done ? null : krx ? '15초마다' : null,
     }
   }
   // proxy — 발행일 마감 대비 밤 추종가
-  const st = feed?.S[KEY], q = st?.last ?? null
-  const kClose = closePct(live, K)
+  const st = feed?.S[E.key], q = st?.last ?? null
+  const cl = closePct(live, E)
   const x1 = ph === 'night' || ph === 'closed' ? F.nightEnd : Math.max(now, F.nightEnd)
-  const post = feed && (ph === 'dawn' || ph === 'weekend' || ph === 'late') ? (() => { const a = feed.at(KEY, F.nightEnd); return a != null && q != null ? q - a : null })() : null
+  const post = feed && (ph === 'dawn' || ph === 'weekend' || ph === 'late') ? (() => { const a = feed.at(E.key, F.nightEnd); return a != null && q != null ? q - a : null })() : null
   return { ...base,
-    label: `코스피200 추종가 · ${md(data.issue)} ${S.close} 대비`, badge: '추종가', big: q == null ? (feed?.ok === false ? '미확보' : '—') : sg(q), bigDir: q,
-    level: q != null && kClose != null ? '≈' + nf(K.prev * (1 + kClose / 100) * (1 + q / 100), 2) : undefined,
+    label: `${isK ? '코스피200' : E.name} 추종가 · ${md(data.issue)} ${S.close} 대비`, badge: '추종가', big: q == null ? (feed?.ok === false ? '미확보' : '—') : sg(q), bigDir: q,
+    level: q != null && cl != null ? lvl(E, E.prev * (1 + cl / 100), q, true) : undefined,
     note: post != null ? `야간선물 마감(${now - F.nightEnd > 864e5 / 2 ? dayLabel(F.nightEnd) + ' ' : ''}${hm(F.nightEnd)}) 뒤 ${sg(post)}p` : '실제 야간선물 시세가 아닙니다',
-    foot: ph === 'night' ? `야간선물(18:00~06:00)과 06:00 마감 대조 평균 0.36%p 차이(29회). ${dayLabel(F.nextBrief)} 07:45 전망에는 실제 야간선물을 씁니다` : null,
+    foot: ph === 'night' ? `야간선물(18:00~06:00)과 06:00 마감 대조 평균 0.36%p 차이(29회, 코스피). ${dayLabel(F.nextBrief)} 07:45 전망에는 실제 야간선물을 씁니다` : null,
     lines: st?.pts ?? [], x0: F.base, x1,
     band: null,
     marks: [{ t: F.base, label: `${S.close} 마감` }, { t: F.nightStart, label: '18:00' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '06:00' },
       ...(x1 > F.nightEnd + 3600e3 ? [{ t: x1, label: '지금' }] : [])],
     pin: null,
-    stocks: stocks.map((e) => { const v = feed?.S[e.key].last ?? null, c = closePct(live, e); return { name: e.name, p: v, px: c != null ? px(e, v, e.prev * (1 + c / 100)) : null, tag: '추종가' } }),
+    tiles: tiles((e) => feed?.S[e.key].last ?? null, () => null),
     fresh: st?.lastT ? `${hm(st.lastT)} 기준${feed && feed.fails >= 3 ? ' · 지연' : ''}` : null,
   }
 }
@@ -117,7 +124,10 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
   const [flip, setFlip] = useState(false)
   useEffect(() => setFlip(false), [ph])
   const view = flip && alt ? alt : primary
-  const M = build(view, ph, F, data, live, feed, now)
+  // 아래 칸에서 고른 종목(코스피가 기본). 새로 고침하면 코스피로 돌아간다
+  const [sel, setSel] = useState(KEY)
+  const E = data.day.ent.find((e) => e.key === sel) ?? data.day.ent[0]
+  const M = build(view, ph, F, data, live, feed, now, E)
   const name = (v: View) => (v === 'overnight' ? '밤사이' : v === 'proxy' ? '밤 추종가' : ph === 'live' ? '코스피' : '낮 코스피')
   const otherLabel = alt ? name(flip ? primary : alt) : ''
 
@@ -146,17 +156,15 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
 
       <Chart M={M} now={now} />
 
-      <ul className="mt-3 grid grid-cols-2 gap-2">
-        {M.stocks.map((s) => (
-          <li key={s.name} className="rounded-2xl bg-card2 px-3 py-2">
-            <div className="flex items-center justify-between text-[12px] text-tx3"><span className="font-semibold text-tx2">{s.name}</span>{s.tag && <span>{s.tag}</span>}</div>
-            <div className="flex items-baseline justify-between gap-1">
-              <b className={`num text-[16px] ${dir(s.p)}`}>{s.p == null ? '—' : sg(s.p)}</b>
-              {s.px && <span className="num truncate text-[12px] text-tx3">{s.px}</span>}
-            </div>
-          </li>
+      <div role="tablist" aria-label="차트 종목" className="mt-3 grid grid-cols-3 gap-1.5">
+        {M.tiles.map((t) => (
+          <button key={t.key} type="button" role="tab" aria-selected={t.key === E.key} onClick={() => setSel(t.key)}
+            className={`min-w-0 rounded-2xl border px-2.5 py-2 text-left ${t.key === E.key ? 'border-tx bg-card' : 'border-transparent bg-card2'}`}>
+            <div className="flex items-center justify-between gap-1 text-[12px]"><span className="truncate font-semibold text-tx2">{t.name}</span>{t.tag && <span className="shrink-0 text-[11px] text-tx3">{t.tag}</span>}</div>
+            <b className={`num block text-[16px] ${dir(t.p)}`}>{t.p == null ? '—' : sg(t.p)}</b>
+          </button>
         ))}
-      </ul>
+      </div>
 
       {M.foot && <p className="mt-2 text-[12px] leading-snug text-tx3">{M.foot}</p>}
       <div className="mt-3 flex items-center justify-between gap-2">
@@ -203,9 +211,11 @@ function Chart({ M, now }: { M: Model; now: number }) {
           <rect x={X(M.band.from)} width={Math.max(4, X(M.band.to ?? M.x1) - X(M.band.from))} y={Y(M.band.hi)} height={Math.max(2, Y(M.band.lo) - Y(M.band.hi))}
             fill="var(--band)" stroke="var(--band-line)" strokeWidth={1} rx={3} opacity={0.9} />
         )}
-        {M.band && M.band.to && <text x={X(M.band.to) + 4} y={Y(M.band.hi) + 10} fontSize={11} fill="var(--tx3)">07:45 전망 구간</text>}
+        {M.band && M.band.to && (() => { const above = Y(M.band.hi) - 5 >= 11; return <text x={X(M.band.from)} y={above ? Y(M.band.hi) - 5 : Y(M.band.lo) + 13} fontSize={11} fill="var(--tx3)" stroke="var(--card)" strokeWidth={3} paintOrder="stroke">07:45 전망 구간</text> })()}
         <line x1={0} x2={W - 8} y1={Y(0)} y2={Y(0)} stroke="var(--tx3)" strokeOpacity={0.5} strokeDasharray="3 3" />
-        <text x={W - 10} y={Y(0) - 4} fontSize={11} fill="var(--tx3)" textAnchor="end">기준 0%</text>
+        {/* 기준선 글자: 전망 구간이 오른쪽 끝까지 닿으면(개장 전) 왼쪽에 둔다 */}
+        {M.band && !M.band.to ? <text x={2} y={Y(0) - 4} fontSize={11} fill="var(--tx3)">기준 0%</text>
+          : <text x={W - 10} y={Y(0) - 4} fontSize={11} fill="var(--tx3)" textAnchor="end">기준 0%</text>}
         {ticks.slice(1, -1).map((t, i) => <line key={i} x1={t.x} x2={t.x} y1={T} y2={H - B} stroke="var(--line)" />)}
         {path && <path d={path + `L${X(last[0]).toFixed(1)} ${Y(lo)}L${X(pts[0][0]).toFixed(1)} ${Y(lo)}Z`} fill={col} opacity={0.08} />}
         {path && <path d={path} fill="none" stroke={col} strokeWidth={2} strokeLinejoin="round" />}
