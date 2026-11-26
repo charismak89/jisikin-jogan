@@ -1,5 +1,134 @@
-/* 실험실 스타일 입구: 메인 토큰과 Tailwind(index.css)에 실험실 소스 범위와 시간대 배경(sky.css)을 더한다 */
-@import "../index.css";
-@import "./sky.css";
+/* 실험실 스타일 입구(표준 A, 2026-11-26). 메인(v6)의 index.css 토큰은 읽지 않는다.
+   클래스를 찾는 범위는 실험실 소스와 labs.html 만이다(메인 산출물과 섞이지 않게). */
+@import 'tailwindcss' source(none);
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import '../styles/montage.css';
+@import './montage-night.css';
+@import './sky.css';
 @source "./";
 @source "../../labs.html";
+
+/* ↓ 여기부터 '이 저장소 확장' 앞까지는 모의투자 봇 web/src/styles/index.css 와 같은 글이다(DESIGN.md 1, 2절). 고치면 그쪽과 맞춘다. */
+/* 표준 A: 몽타주 토큰을 Tailwind 이름으로 잇는다. 컴포넌트는 이 이름만 쓴다(DESIGN.md 2절). */
+@theme inline {
+  --font-sans: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+
+  --color-bg: var(--mt-background-neutral-primary);
+  --color-bg-2: var(--mt-background-neutral-secondary);
+  --color-card: var(--mt-surface-elevated-primary);
+  --color-fill: var(--mt-surface-neutral-secondary);
+  --color-fill-strong: var(--mt-surface-neutral-strong);
+
+  --color-fg: var(--mt-foreground-neutral-primary);
+  --color-fg-2: var(--mt-foreground-neutral-secondary);
+  --color-fg-3: var(--mt-foreground-neutral-tertiary);
+  --color-fg-disabled: var(--mt-foreground-disable-primary);
+  --color-fg-inverse: var(--mt-foreground-neutral-inverse);
+
+  --color-line: var(--mt-line-neutral-primary);
+  --color-line-2: var(--mt-line-neutral-secondary);
+  --color-focus: var(--mt-line-brand-focus);
+
+  --color-brand: var(--mt-surface-brand-primary);
+  --color-brand-strong: var(--mt-surface-brand-strong);
+  --color-brand-subtle: var(--mt-surface-brand-subtle);
+  --color-brand-fg: var(--mt-foreground-brand-primary);
+  --color-on-brand: var(--mt-static-white);
+  --color-brand-btn: var(--btn-brand);
+  --color-brand-btn-hover: var(--btn-brand-hover);
+
+  --color-positive: var(--mt-foreground-positive-primary);
+  --color-cautionary: var(--mt-foreground-cautionary-primary);
+  --color-negative: var(--mt-foreground-negative-primary);
+  --color-positive-subtle: var(--mt-surface-positive-primary);
+  --color-cautionary-subtle: var(--mt-surface-cautionary-primary);
+  --color-negative-subtle: var(--mt-surface-negative-primary);
+
+  --color-up: var(--mt-fin-up);
+  --color-down: var(--mt-fin-down);
+  --color-flat: var(--mt-fin-flat);
+
+  --radius-sm: var(--mt-radius-8);
+  --radius-10: var(--mt-radius-10);
+  --radius-md: var(--mt-radius-12);
+  --radius-lg: var(--mt-radius-16);
+  --radius-xl: var(--mt-radius-20);
+  --radius-2xl: var(--mt-radius-24);
+
+  --shadow-xs: var(--mt-elevation-shadow-normal-xsmall);
+  --shadow-sm: var(--mt-elevation-shadow-normal-small);
+  --shadow-md: var(--mt-elevation-shadow-normal-medium);
+
+  --text-title1: var(--mt-type-title1-size);
+  --text-title1--line-height: var(--mt-type-title1-line);
+  --text-title1--letter-spacing: var(--mt-type-title1-track);
+  --text-title3: var(--mt-type-title3-size);
+  --text-title3--line-height: var(--mt-type-title3-line);
+  --text-title3--letter-spacing: var(--mt-type-title3-track);
+  --text-heading2: var(--mt-type-heading2-size);
+  --text-heading2--line-height: var(--mt-type-heading2-line);
+  --text-heading2--letter-spacing: var(--mt-type-heading2-track);
+  --text-headline1: var(--mt-type-headline1-size);
+  --text-headline1--line-height: var(--mt-type-headline1-line);
+  --text-headline1--letter-spacing: var(--mt-type-headline1-track);
+  --text-body1: var(--mt-type-body1-size);
+  --text-body1--line-height: var(--mt-type-body1-line);
+  --text-body1--letter-spacing: var(--mt-type-body1-track);
+  --text-body2: var(--mt-type-body2-size);
+  --text-body2--line-height: var(--mt-type-body2-line);
+  --text-body2--letter-spacing: var(--mt-type-body2-track);
+  --text-label1: var(--mt-type-label1-size);
+  --text-label1--line-height: var(--mt-type-label1-line);
+  --text-label1--letter-spacing: var(--mt-type-label1-track);
+  --text-label2: var(--mt-type-label2-size);
+  --text-label2--line-height: var(--mt-type-label2-line);
+  --text-label2--letter-spacing: var(--mt-type-label2-track);
+  --text-caption1: var(--mt-type-caption1-size);
+  --text-caption1--line-height: var(--mt-type-caption1-line);
+  --text-caption1--letter-spacing: var(--mt-type-caption1-track);
+}
+
+/* 주 단추 바탕. 다크의 brand.primary(#3385FF) 위 흰 글자는 3.54:1 이라 다크에서만 한 단계 진한 brand.heavy 를 쓴다(DESIGN.md 2절). */
+:root {
+  --btn-brand: var(--mt-surface-brand-primary);
+  --btn-brand-hover: var(--mt-surface-brand-strong);
+}
+:root[data-theme='dark'] {
+  --btn-brand: var(--mt-surface-brand-heavy);
+  --btn-brand-hover: var(--mt-surface-brand-strong);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --btn-brand: var(--mt-surface-brand-heavy);
+    --btn-brand-hover: var(--mt-surface-brand-strong);
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-bg-2 text-fg font-sans text-body1 antialiased;
+    word-break: keep-all;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 3px solid var(--mt-line-brand-strong);
+    outline-offset: 2px;
+  }
+}
+
+/* 이 저장소 확장(DESIGN.md 2-1). 몽타주에 없는 것만 몽타주 토큰을 섞어 만든다. 값 자체를 새로 적지 않는다. */
+@theme inline {
+  --color-inverse: var(--mt-surface-neutral-inverse);
+  --color-scrim: color-mix(in srgb, var(--mt-static-black) 40%, transparent);
+  /* 07:45 예상 구간 띠와 선(옛 화면의 노란 띠) */
+  --color-band: color-mix(in srgb, var(--mt-foreground-cautionary-primary) 28%, transparent);
+  --color-band-line: var(--mt-foreground-cautionary-primary);
+}

@@ -4,9 +4,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { DayData, Ent, Pt } from '../types'
 import type { Live } from '../lib/live'
 import { band } from '../lib/live'
-import { arrow, dir, hm, md, nf, sg, tk } from '../lib/fmt'
+import { arrow, hm, md, nf, sg, tk } from '../lib/fmt'
 import { dayLabel, frame, inMin, minsTo, type Frame, type Phase } from './clock'
 import type { NightFeed } from './night'
+import { tone } from './lib/tone'
+import { Button } from './components/ui/button'
 
 type View = 'session' | 'overnight' | 'proxy'
 type Sky = 'dawn' | 'day' | 'dusk' | 'night'
@@ -165,44 +167,44 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
   const otherLabel = alt ? name(flip ? primary : alt) : ''
 
   return (
-    <section aria-label="지금 시장" data-sky={M.sky} className="sky relative overflow-hidden rounded-3xl p-4 shadow-[var(--shadow)] sm:p-5">
+    <section aria-label="지금 시장" data-sky={M.sky} className="sky relative overflow-hidden rounded-lg p-4 shadow-xs ring-1 ring-line-2 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-tx2">
+        <div className="flex min-w-0 items-center gap-1.5 text-label2 font-semibold text-fg-2">
           <span aria-hidden className={`sky-dot sky-dot-${M.dot} size-2 shrink-0 rounded-full`} />
           <span className="truncate">{M.status}</span>
         </div>
         {alt && (
-          <button type="button" onClick={() => setFlip((v) => !v)} aria-pressed={flip}
-            className="shrink-0 rounded-full bg-card2 px-2.5 py-1 text-[12px] font-semibold text-tx2" aria-label={`${otherLabel} 보기`}>⇆ {otherLabel}</button>
+          <Button variant="assistive" size="small" onClick={() => setFlip((v) => !v)} aria-pressed={flip}
+            className="shrink-0" aria-label={`${otherLabel} 보기`}>⇆ {otherLabel}</Button>
         )}
       </div>
 
-      <div className="mt-2 text-[12px] font-semibold text-tx3">{M.label}</div>
+      <div className="mt-2 text-caption1 font-semibold text-fg-2">{M.label}</div>
       <div className="flex flex-wrap items-baseline gap-x-2">
-        <span className={`num text-[30px] font-extrabold leading-tight tracking-tight ${M.bigDir == null ? 'text-tx' : dir(M.bigDir)}`}>
-          {M.bigDir != null && view !== 'overnight' && <span className="text-[18px]">{arrow(M.bigDir)}</span>}{M.big}
+        <span className={`num text-title1 font-bold leading-tight tracking-tight ${M.bigDir == null ? 'text-fg' : tone(M.bigDir)}`}>
+          {M.bigDir != null && view !== 'overnight' && <span className="text-headline1">{arrow(M.bigDir)}</span>}{M.big}
         </span>
-        {M.level && <span className="num text-[15px] font-bold text-tx2">{M.level}</span>}
-        {M.badge && <span className="rounded-full border border-line px-2 py-0.5 text-[11px] font-bold text-tx2">{M.badge}</span>}
+        {M.level && <span className="num text-body2 font-bold text-fg-2">{M.level}</span>}
+        {M.badge && <span className="rounded-full border border-line px-2 py-0.5 text-caption1 font-bold text-fg-2">{M.badge}</span>}
       </div>
-      {M.note && <div className="text-[13px] font-semibold text-tx2">{M.note}</div>}
+      {M.note && <div className="text-label2 font-semibold text-fg-2">{M.note}</div>}
 
       <Chart M={M} now={now} />
 
       <div role="group" aria-label="차트 종목 고르기" className="mt-3 grid grid-cols-3 gap-1.5">
         {M.tiles.map((t) => (
           <button key={t.key} type="button" aria-pressed={t.key === E.key} onClick={() => setSel(t.key)}
-            className={`min-w-0 rounded-2xl border px-2.5 py-2 text-left ${t.key === E.key ? 'border-tx bg-card' : 'border-transparent bg-card2'}`}>
-            <div className="flex items-center justify-between gap-1 text-[12px]"><span className="truncate font-semibold text-tx2">{t.name}</span>{t.tag && <span className="shrink-0 text-[11px] text-tx3">{t.tag}</span>}</div>
-            <b className={`num block text-[16px] ${dir(t.p)}`}>{t.p == null ? '—' : sg(t.p)}</b>
+            className={`min-w-0 rounded-md bg-card px-2.5 py-2 text-left ${t.key === E.key ? 'ring-2 ring-fg' : 'ring-1 ring-line-2'}`}>
+            <div className="flex items-center justify-between gap-1 text-caption1"><span className="truncate font-semibold text-fg-2">{t.name}</span>{t.tag && <span className="shrink-0 text-caption1 text-fg-2">{t.tag}</span>}</div>
+            <b className={`num block text-body1 ${tone(t.p)}`}>{t.p == null ? '—' : sg(t.p)}</b>
           </button>
         ))}
       </div>
 
-      {M.foot && <p className="mt-2 text-[12px] leading-snug text-tx3">{M.foot}</p>}
+      {M.foot && <p className="mt-2 text-caption1 leading-snug text-fg-2">{M.foot}</p>}
       <div className="mt-3 flex items-center justify-between gap-2">
-        <span className="text-[11px] text-tx3">{M.fresh ?? ''}</span>
-        <button type="button" onClick={onBrief} className="rounded-full bg-card px-3 py-1.5 text-[13px] font-bold text-tx shadow-[var(--shadow)]">브리핑 보기 ›</button>
+        <span className="text-caption1 text-fg-2">{M.fresh ?? ''}</span>
+        <Button variant="assistive" size="small" onClick={onBrief}>브리핑 보기 ›</Button>
       </div>
     </section>
   )
@@ -230,7 +232,7 @@ function Chart({ M, now }: { M: Model; now: number }) {
   const path = pts.map((p, i) => `${i ? 'L' : 'M'}${X(p[0]).toFixed(1)} ${Y(p[1]).toFixed(1)}`).join('')
   const last = pts[pts.length - 1]
   const mx = pts.length ? pts.reduce((a, b) => (b[1] > a[1] ? b : a)) : null, mn = pts.length ? pts.reduce((a, b) => (b[1] < a[1] ? b : a)) : null
-  const col = last ? (last[1] < 0 ? 'var(--dn)' : 'var(--up)') : 'var(--tx3)'
+  const col = last ? (last[1] < 0 ? 'var(--mt-fin-down)' : 'var(--mt-fin-up)') : 'var(--mt-foreground-neutral-secondary)'
   const nowX = X(now), prog = Math.max(0, Math.min(1, (now - M.x0) / (M.x1 - M.x0)))
   // 눈금 글자는 64px 안에서 겹치면 앞의 것을 숨긴다(끝 눈금은 항상 보인다)
   const ticks = M.marks.filter((m) => m.t >= M.x0 && m.t <= M.x1).map((m) => ({ ...m, x: X(m.t) })).sort((a, b) => a.x - b.x)
@@ -242,30 +244,30 @@ function Chart({ M, now }: { M: Model; now: number }) {
       <svg className="viz block" width={W} height={H} role="img" aria-label={`${M.label} ${M.big}`}>
         {M.band && (
           <rect x={X(M.band.from)} width={Math.max(4, X(M.band.to ?? M.x1) - X(M.band.from))} y={Y(M.band.hi)} height={Math.max(2, Y(M.band.lo) - Y(M.band.hi))}
-            fill="var(--band)" stroke="var(--band-line)" strokeWidth={1} rx={3} opacity={0.9} />
+            className="fill-band stroke-band-line" strokeWidth={1} rx={3} />
         )}
-        {M.band && M.band.to && (() => { const above = Y(M.band.hi) - 5 >= 11; return <text x={X(M.band.from)} y={above ? Y(M.band.hi) - 5 : Y(M.band.lo) + 13} fontSize={11} fill="var(--tx3)" stroke="var(--card)" strokeWidth={3} paintOrder="stroke">07:45 전망 구간</text> })()}
-        <line x1={0} x2={W - 8} y1={Y(0)} y2={Y(0)} stroke="var(--tx3)" strokeOpacity={0.5} strokeDasharray="3 3" />
+        {M.band && M.band.to && (() => { const above = Y(M.band.hi) - 5 >= 11; return <text x={X(M.band.from)} y={above ? Y(M.band.hi) - 5 : Y(M.band.lo) + 13} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" stroke="var(--mt-surface-elevated-primary)" strokeWidth={3} paintOrder="stroke">07:45 전망 구간</text> })()}
+        <line x1={0} x2={W - 8} y1={Y(0)} y2={Y(0)} stroke="var(--mt-foreground-neutral-secondary)" strokeOpacity={0.5} strokeDasharray="3 3" />
         {/* 기준선 글자: 전망 구간이 오른쪽 끝까지 닿으면(개장 전) 왼쪽에 둔다 */}
-        {M.band && !M.band.to ? <text x={2} y={Y(0) - 4} fontSize={11} fill="var(--tx3)">기준 0%</text>
-          : <text x={W - 10} y={Y(0) - 4} fontSize={11} fill="var(--tx3)" textAnchor="end">기준 0%</text>}
-        {ticks.slice(1, -1).map((t, i) => <line key={i} x1={t.x} x2={t.x} y1={T} y2={H - B} stroke="var(--line)" />)}
+        {M.band && !M.band.to ? <text x={2} y={Y(0) - 4} fontSize={12} fill="var(--mt-foreground-neutral-secondary)">기준 0%</text>
+          : <text x={W - 10} y={Y(0) - 4} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="end">기준 0%</text>}
+        {ticks.slice(1, -1).map((t, i) => <line key={i} x1={t.x} x2={t.x} y1={T} y2={H - B} stroke="var(--mt-line-neutral-primary)" />)}
         {path && <path d={path + `L${X(last[0]).toFixed(1)} ${Y(lo)}L${X(pts[0][0]).toFixed(1)} ${Y(lo)}Z`} fill={col} opacity={0.08} />}
         {path && <path d={path} fill="none" stroke={col} strokeWidth={2} strokeLinejoin="round" />}
         {mx && mn && mx !== mn && (<>
-          <text x={Math.min(Math.max(X(mx[0]), 30), W - 40)} y={Y(mx[1]) - 5} fontSize={11} fill="var(--tx3)" textAnchor="middle">최고 {lbl(mx[1])}</text>
-          <text x={Math.min(Math.max(X(mn[0]), 30), W - 40)} y={Y(mn[1]) + 13} fontSize={11} fill="var(--tx3)" textAnchor="middle">최저 {lbl(mn[1])}</text>
+          <text x={Math.min(Math.max(X(mx[0]), 30), W - 40)} y={Y(mx[1]) - 5} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="middle">최고 {lbl(mx[1])}</text>
+          <text x={Math.min(Math.max(X(mn[0]), 30), W - 40)} y={Y(mn[1]) + 13} fontSize={12} fill="var(--mt-foreground-neutral-secondary)" textAnchor="middle">최저 {lbl(mn[1])}</text>
         </>)}
-        {M.pin && <g><circle cx={X(M.pin.t)} cy={Y(M.pin.p)} r={4} fill="var(--brand)" stroke="var(--card)" strokeWidth={2} /></g>}
+        {M.pin && <g><circle cx={X(M.pin.t)} cy={Y(M.pin.p)} r={4} fill="var(--mt-foreground-brand-primary)" stroke="var(--mt-surface-elevated-primary)" strokeWidth={2} /></g>}
         {last && <circle className="sky-pulse" cx={X(last[0])} cy={Y(last[1])} r={4} fill={col} />}
-        {!pts.length && <text x={(W - 8) / 2} y={H / 2} fontSize={13} fill="var(--tx3)" textAnchor="middle">시세를 받는 중</text>}
+        {!pts.length && <text x={(W - 8) / 2} y={H / 2} fontSize={13} fill="var(--mt-foreground-neutral-secondary)" textAnchor="middle">시세를 받는 중</text>}
       </svg>
       <div className="relative mt-1 h-[2px] rounded bg-line" style={{ width: W - 8 }}>
-        <div className="absolute inset-y-0 left-0 rounded bg-tx3" style={{ width: `${prog * 100}%` }} />
-        {ticks.map((t, i) => <span key={i} className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-tx3" style={{ left: t.x }} />)}
-        {now > M.x0 && now < M.x1 && <span className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-tx" style={{ left: nowX }} />}
+        <div className="absolute inset-y-0 left-0 rounded bg-fg-3" style={{ width: `${prog * 100}%` }} />
+        {ticks.map((t, i) => <span key={i} className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fg-3" style={{ left: t.x }} />)}
+        {now > M.x0 && now < M.x1 && <span className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-inverse" style={{ left: nowX }} />}
       </div>
-      <div className="relative mt-1 h-4 text-[11px] text-tx3" style={{ width: W - 8 }}>
+      <div className="relative mt-1 h-4 text-caption1 text-fg-2" style={{ width: W - 8 }}>
         {shown.map((t, i) => (
           <span key={i} className={`absolute whitespace-nowrap ${i === 0 && t.x < 30 ? '' : t.x > W - 60 ? '-translate-x-full' : '-translate-x-1/2'}`} style={{ left: t.x }}>{t.label}</span>
         ))}

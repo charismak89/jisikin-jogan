@@ -12,7 +12,8 @@ paths:
 
 # 화면을 고칠 때
 
-- 색, 글자, 숫자 표기, 배치 규칙은 루트 `DESIGN.md`. 토큰이나 `fmt.ts` 를 바꾸면 그 표와 대비 값을 같은 PR 에서 고친다. 1절(공통)은 코인 집사 `DESIGN.md` 1절과 같은 글이다. 코인 집사 저장소는 세션에 기본으로 붙어 있지 않다. 1절을 대조하거나 고칠 일이면 첫 턴에 add_repo 허용을 사용자에게 받는다(2026-10-28 첫 시도는 auto mode 가 거부, 허용 뒤 성공).
+- 색, 글자, 숫자 표기, 배치 규칙은 루트 `DESIGN.md`. 토큰이나 `fmt.ts` 를 바꾸면 그 표와 대비 값을 같은 PR 에서 고친다. 1절(공통)은 표준 A 글로, 모의투자 봇(원본)과 코인 집사 `DESIGN.md` 1절과 같은 글이다(2026-11-26). 두 저장소는 세션에 기본으로 붙어 있지 않다. 1절을 대조하거나 고칠 일이면 첫 턴에 add_repo 허용을 사용자에게 받는다(2026-10-28, 2026-11-26 모두 첫 시도는 auto mode 가 거부, 사용자가 채팅으로 허용한 뒤 성공).
+- 실험실은 표준 A(몽타주)다. 실험실 소스에 옛 토큰 이름(`text-tx*`, `bg-card2`, `text-dn`, `brand-soft`)과 공용 `dir()` 을 쓰지 않는다. 토큰 생성 파일(`web/src/styles/montage.css`, `web/src/labs/montage-night.css`)은 `npm run tokens` 로만 고친다.
 - `v6/` 와 루트 `index.html` 은 `web/` 빌드 산출물이다. 직접 고치지 않는다. `cd web && npm ci && npm run build` 후 `v6/`, `index.html` 을 소스와 같은 커밋에 넣는다. PR 의 `check / web` 잡이 둘이 맞는지 본다.
 - 실험실 `labs/`(2026-11-26, 처음 이름 stg): `web/labs.html` 과 `web/src/labs/` 를 `vite build --mode labs` 로 빌드한 산출물이다. 메인 탭 줄의 `실험실 BETA` 버튼으로 누구나 들어온다. `npm run build` 가 v6 와 labs 를 같이 낸다. 메인 화면은 `web/src/labs/` 를 고쳐도 바뀌지 않는다. 공용 파일(`components/`, `lib/`, `types.ts`, `index.css`)을 고치면 두 화면이 같이 바뀐다. 다 보면 `web/index.html` 의 진입점을 실험실 앱으로 바꿔 전환한다. 시간대별 사진은 `python3 uishots.py --page labs/ --clock 23:00`.
 - 메인 화면 클래스는 `web/src/index.css` 의 `@source`(App.tsx, components, lib, index.html)에서만 찾는다(2026-11-26, 실험실 클래스가 섞여 메인 산출물이 바뀌던 문제). 메인 화면 코드를 새 폴더에 두면 `@source` 를 더한다. 빠지면 그 클래스가 메인 CSS 에서 조용히 사라지고 CI 는 통과한다. 실험실은 `web/src/labs/labs.css` 가 범위를 더한다. 실험실만 고친 PR 은 빌드 뒤 `git status --porcelain -- v6 index.html` 이 비어야 한다.
