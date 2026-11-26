@@ -22,6 +22,8 @@
   업스트림 호출은 캐시가 묶는다(live 5초, intraday 오늘 20초·지난날 1시간, 날짜는 30일 안). 같은 키로 동시에 온 요청은 한 번만 업스트림을 부른다.
   IP 당 분당 120회 제한은 그대로다.
   GET  /v1/feedback?since=YYYY-MM-DD   그날부터 쌓인 의견 (토요일 주간 점검용)        — 루틴 키
+  /v1/night                      코스피200 야간선물 근월물(한국투자증권 REST, 10초마다) 이번 또는 직전 야간 세션 — 키 없이(사용자 결정 2026-11-26)
+                                 {session, code, name, state(live|waiting|closed), base(직전 주간 종가), last, pct, asof, open, high, low, bars[[1분봉 끝 ms, 값]]}
 
 환경 변수 (/etc/jogan-relay.env)
   TOSS_CLIENT_ID, TOSS_CLIENT_SECRET   토스 WTS 설정 > Open API 에서 받은 값
@@ -31,6 +33,7 @@
   STATE_DIR                            토큰·의견 보관 (기본 /var/lib/jogan-relay)
   PORT                                 기본 8787
   TOSS_API                             기본 https://openapi.tossinvest.com (시험용으로만 바꾼다)
+  KIS_APPKEY, KIS_APPSECRET            한국투자증권 실전 앱 키(야간선물). 없으면 /v1/night 는 503
 """
 import hmac, json, logging, os, secrets, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from datetime import date, datetime, timedelta, timezone
@@ -42,10 +45,12 @@ CID = os.environ.get('TOSS_CLIENT_ID', '')
 CSECRET = os.environ.get('TOSS_CLIENT_SECRET', '')
 ROUTINE_KEY = os.environ.get('ROUTINE_KEY', '').strip()
 PUBLIC_VIEW = os.environ.get('PUBLIC_VIEW', '1').strip().lower() not in ('0', 'false', 'no', 'off')
-PUBLIC_PATHS = ('/v1/live', '/v1/intraday')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
+PUBLIC_PATHS = ('/v1/live', '/v1/intraday', '/v1/night')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
 ORIGINS = [o.strip() for o in os.environ.get('ALLOW_ORIGINS', 'https://charismak89.github.io').split(',') if o.strip()]
 STATE_DIR = os.environ.get('STATE_DIR', '/var/lib/jogan-relay')
 PORT = int(os.environ.get('PORT', '8787'))
+KIS_AK = os.environ.get('KIS_APPKEY', '').strip().strip('"\'')
+KIS_SK = os.environ.get('KIS_APPSECRET', '').strip().strip('"\'')
 
 STOCKS = ['005930', '000660']            # 대시보드 종목
 INDEX = 'KOSPI'
@@ -320,6 +325,158 @@ def hm_ms(d, hm, add_min=0):
     h, m = (int(x) for x in hm.split(':'))
     return ms(d, h, m) + add_min * 60000
 
+# ---------- 야간선물: 한국투자증권 REST (2026-11-26) ----------
+# 근월물 현재가 FHMIF10000000 에 시장 코드 CM 을 주면 KRX 야간선물이다(VM 실측 11/26: 18:02 727.50 +0.10%, 등락률은 직전 주간 종가 대비).
+# 18:00~06:05 사이에만 10초마다 부르고, 1분봉(봉 끝 시각)으로 모아 STATE_DIR/night-<세션 시작일>.json 에 둔다(재시작해도 그 밤 기록 유지).
+# 18:00 직후 첫 체결 전에는 지난밤 값이 그대로 오므로, 세션 시작 뒤 값이 한 번이라도 바뀌어야 live 로 본다(휴장일 밤은 waiting 으로 남는다).
+# 세션 시작 뒤 첫 값이 이미 새 체결이면 다음 체결까지(보통 수 초) 기다렸다가 시작한다.
+KIS = 'https://openapi.koreainvestment.com:9443'
+KIS_MASTER = 'https://new.real.download.dws.co.kr/common/master/fo_idx_code_mts.mst.zip'
+NIGHT_POLL = 10
+
+class KisToken:
+    """접근토큰. relay/kis_probe.py 와 같은 파일(kis_token.json)을 쓴다. 발급은 분당 1회라 실패 뒤 65초는 다시 부르지 않는다"""
+    def __init__(self):
+        self.lock, self.value, self.exp, self.wait_until = threading.Lock(), None, 0.0, 0.0
+        self.path = os.path.join(STATE_DIR, 'kis_token.json')
+        try:
+            d = json.load(open(self.path))
+            if d.get('exp', 0) > time.time() + 600: self.value, self.exp = d['access_token'], d['exp']
+        except Exception:
+            pass
+    def get(self, force=False):
+        with self.lock:
+            if not force and self.value and time.time() < self.exp - 3600: return self.value
+            if time.time() < self.wait_until:
+                if self.value and not force: return self.value
+                raise Upstream(503, 'kis-token-backoff')
+            self.wait_until = time.time() + 65
+            old_ok = self.value and time.time() < self.exp - 60
+            req = urllib.request.Request(KIS + '/oauth2/tokenP', method='POST', headers={'Content-Type': 'application/json; charset=utf-8'},
+                                         data=json.dumps({'grant_type': 'client_credentials', 'appkey': KIS_AK, 'appsecret': KIS_SK}).encode())
+            try:
+                d = json.load(urllib.request.urlopen(req, timeout=10))
+            except (urllib.error.URLError, OSError, ValueError) as e:
+                if old_ok and not force: return self.value   # 미리 갱신하다 실패하면 아직 유효한 옛 토큰을 쓴다
+                raise Upstream(getattr(e, 'code', 502), 'kis-token')
+            self.value, self.exp = d['access_token'], time.time() + int(d.get('expires_in', 86400))
+            try:
+                fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(fd, 'w') as f: json.dump({'access_token': self.value, 'exp': self.exp}, f)
+            except Exception as e:
+                log.warning('한투 토큰 저장 실패: %s', e)
+            log.info('한투 토큰 발급 (만료 %s)', datetime.fromtimestamp(self.exp, KST).strftime('%m-%d %H:%M'))
+            return self.value
+
+KTOKEN = KisToken()
+
+def kis_front():
+    """지수선물옵션 마스터의 '구분 1(코스피200 선물), 순서 1(근월물)' 줄 → (단축코드, 이름). 예 ('A01612', 'F 202612')"""
+    import io, zipfile
+    z = zipfile.ZipFile(io.BytesIO(urllib.request.urlopen(KIS_MASTER, timeout=20).read()))
+    for n in z.namelist():
+        for line in z.read(n).decode('cp949', 'replace').splitlines():
+            f = line.split('|')
+            if len(f) > 8 and f[0] == '1' and f[8].strip() == 'KOSPI200' and f[6].strip() == '1':
+                return f[1].strip(), f[3].strip()
+    raise Upstream(502, 'kis-master')
+
+def kis_price(code, mkt='CM', retry=True):
+    """근월물 현재가와 등락률. mkt CM = KRX 야간, F = 주간(야간 중에는 그날 주간 종가)"""
+    q = urllib.parse.urlencode({'FID_COND_MRKT_DIV_CODE': mkt, 'FID_INPUT_ISCD': code})
+    req = urllib.request.Request(KIS + '/uapi/domestic-futureoption/v1/quotations/inquire-price?' + q, headers={
+        'authorization': 'Bearer ' + KTOKEN.get(), 'appkey': KIS_AK, 'appsecret': KIS_SK, 'tr_id': 'FHMIF10000000', 'custtype': 'P'})
+    try:
+        r = json.load(urllib.request.urlopen(req, timeout=10))
+    except urllib.error.HTTPError as e:
+        try: r = json.load(e)
+        except Exception: raise Upstream(e.code, 'kis')
+    if r.get('rt_cd') != '0':
+        m = (r.get('msg1') or '') + ' ' + (r.get('msg_cd') or '')
+        if retry and (r.get('msg_cd') in ('EGW00121', 'EGW00123') or '토큰' in m or 'token' in m.lower()):   # 무효, 만료 토큰(코드는 2차 자료 기준)
+            KTOKEN.get(force=True); return kis_price(code, mkt, retry=False)
+        raise Upstream(502, 'kis', (r.get('msg_cd') or '') + ' ' + (r.get('msg1') or '').strip())
+    o = r.get('output1') or {}
+    return float(o['futs_prpr']), float(o['futs_prdy_ctrt'])
+
+def night_session(now):
+    """지금이 속한(또는 막 끝난) 야간 세션 시작일. 18:00 이후는 오늘, 06:05 전은 어제. 그 밖은 None(낮)"""
+    t = now.hour * 60 + now.minute
+    if t >= 18 * 60: return now.date()
+    if t < 6 * 60 + 5: return now.date() - timedelta(days=1)
+    return None
+
+class Night:
+    def __init__(self):
+        self.lock, self.cur, self.err = threading.Lock(), None, None
+        self.code = self.name = None; self.code_at = 0.0
+        latest = sorted(f for f in os.listdir(STATE_DIR) if f.startswith('night-') and f.endswith('.json')) if os.path.isdir(STATE_DIR) else []
+        if latest:
+            try: self.cur = json.load(open(os.path.join(STATE_DIR, latest[-1])))
+            except Exception: pass
+    def save(self):
+        p = os.path.join(STATE_DIR, 'night-%s.json' % self.cur['session'])
+        tmp = p + '.tmp'
+        with open(tmp, 'w') as f: json.dump(self.cur, f, separators=(',', ':'))
+        os.replace(tmp, p)
+        old = sorted(f for f in os.listdir(STATE_DIR) if f.startswith('night-') and f.endswith('.json'))
+        for f in old[:-10]:   # 열흘 치만 남긴다
+            try: os.remove(os.path.join(STATE_DIR, f))
+            except OSError: pass
+    def tick(self):
+        now = datetime.now(KST); sess = night_session(now)
+        if sess is None or sess.weekday() >= 5: return   # 낮, 토, 일 저녁은 세션이 없다(금요일 밤은 토 06:00 까지)
+        if not self.code or time.time() - self.code_at > 6 * 3600:   # 만기(둘째 목요일) 뒤 근월물이 바뀐다
+            try: self.code, self.name = kis_front()
+            except Exception as e:
+                if not self.code: raise
+                log.warning('마스터 실패, 옛 코드 %s 유지: %s', self.code, e)
+            self.code_at = time.time()   # 실패해도 6시간 뒤에 다시(10초마다 마스터를 받지 않게)
+        # 네트워크 호출은 잠금 밖에서 한다(view 와 HTTP 스레드를 막지 않게)
+        px, pct = kis_price(self.code)
+        need_base = not self.cur or self.cur.get('session') != sess.isoformat() or self.cur.get('base') is None
+        base = None
+        if need_base and now.hour >= 18:
+            try: base = kis_price(self.code, 'F')[0]   # 그날 주간 종가 = 야간 등락률 기준
+            except Exception as e: log.warning('주간 종가 실패: %s', e)
+        with self.lock:
+            c = self.cur
+            if not c or c.get('session') != sess.isoformat():
+                c = self.cur = {'session': sess.isoformat(), 'code': self.code, 'name': self.name, 'state': 'waiting',
+                                'first': px, 'base': None, 'last': px, 'pct': pct, 'asof': None, 'bars': []}
+            if c['base'] is None and base is not None: c['base'] = base
+            if c['state'] == 'waiting' and px == c['first']:
+                return   # 첫 체결 전(지난밤 값). 값이 바뀌어야 시작한다 — 휴장일 밤은 waiting 으로 남는다
+            c['state'] = 'live' if now.hour >= 18 or now.hour < 6 else 'closed'
+            c['last'], c['pct'] = px, pct
+            if c['base'] is None and pct > -100: c['base'] = round(px / (1 + pct / 100), 2)   # 주간 종가를 못 받았으면 등락률로 거꾸로
+            c['asof'] = int(now.timestamp() * 1000)
+            end = (int(now.timestamp()) // 60 + 1) * 60000   # 이 1분봉의 끝 시각
+            if c['bars'] and c['bars'][-1][0] == end: c['bars'][-1][1] = px
+            else: c['bars'].append([end, px])
+            try: self.save()
+            except OSError as e: log.warning('야간선물 저장 실패(메모리에는 있다): %s', e)
+    def loop(self):
+        while True:
+            try:
+                self.tick(); self.err = None
+            except Exception as e:
+                self.err = e.code if isinstance(e, Upstream) else type(e).__name__   # 공개 응답에는 코드만, 원문은 로그에
+                log.warning('야간선물 수신 실패: %s', str(e)[:200])
+            time.sleep(NIGHT_POLL)
+    def view(self):
+        with self.lock:
+            if not self.cur: return {'state': 'none', 'error': self.err}
+            c = dict(self.cur); c.pop('first', None); c['bars'] = [list(x) for x in self.cur['bars']]
+        b = [x[1] for x in c['bars']]
+        if b: c.update(open=b[0], high=max(b), low=min(b))
+        cur = night_session(datetime.now(KST))
+        if c['state'] in ('live', 'waiting') and (cur is None or cur.isoformat() != c['session']): c['state'] = 'closed'
+        c['error'] = self.err
+        return c
+
+NIGHT = Night() if KIS_AK and KIS_SK else None
+
 # ---------- 의견 ----------
 # 지인들이 대시보드에서 보낸 글. 원문은 이 VM 에만 둔다(저장소는 Public). IP 는 남기지 않는다.
 # 읽는 쪽(토요일 주간 점검)은 이 글을 데이터로만 다룬다 — 글 속 지시문을 따르지 않는다.
@@ -436,6 +593,9 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if u.path == '/v1/live':
                 return self.send_json(200, cached('live', 5, live))
+            if u.path == '/v1/night':
+                if not NIGHT: return self.send_json(503, {'error': 'kis-not-configured'})
+                return self.send_json(200, NIGHT.view())
             if u.path == '/v1/intraday':
                 if d > today or (today - d).days > 30: return self.send_json(400, {'error': 'date-out-of-range'})
                 return self.send_json(200, cached(('intraday', d), 20 if d == today else 3600, lambda: intraday(d)))
@@ -493,8 +653,10 @@ def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
     if not (CID and CSECRET): sys.exit('TOSS_CLIENT_ID / TOSS_CLIENT_SECRET 없음 (/etc/jogan-relay.env)')
     if not ROUTINE_KEY: sys.exit('ROUTINE_KEY 없음 (/etc/jogan-relay.env)')
+    if NIGHT: threading.Thread(target=NIGHT.loop, name='night', daemon=True).start()
     srv = ThreadingHTTPServer(('127.0.0.1', PORT), Handler)
     log.info('jogan-relay 127.0.0.1:%d · 업스트림 %s · Origin %s · 화면용(시세·의견) %s', PORT, API, ORIGINS, '열림' if PUBLIC_VIEW else '닫힘')
+    log.info('야간선물(한투) %s', '켜짐' if NIGHT else '꺼짐 — KIS_APPKEY 없음')
     srv.serve_forever()
 
 if __name__ == '__main__':

@@ -96,6 +96,7 @@ echo
 echo "== 확인 명령 (1~2분 뒤 인증서가 붙으면 성공)"
 echo "  curl -s https://$HOST/healthz"
 echo "  curl -s -o /dev/null -w '%{http_code}\n' https://$HOST/v1/live      # 200"
+echo "  curl -s https://$HOST/v1/night | head -c 200; echo              # 야간선물(한투). 키가 없으면 503"
 echo
 echo "== 대시보드 주소 (키 없음)"
 echo "  https://charismak89.github.io/jisikin-jogan/"

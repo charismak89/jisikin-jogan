@@ -21,6 +21,7 @@ cd ~/jisikin-jogan && sudo bash relay/install.sh
 ```bash
 curl -s https://129-225-146-153.sslip.io/healthz          # {"ok":true,"token":true,...} 면 정상 (토큰은 첫 시세 요청 때 받는다)
 curl -s -o /dev/null -w '%{http_code}\n' https://129-225-146-153.sslip.io/v1/live   # 키 없이. 200 = PUBLIC_VIEW 반영됨, 401 = VM 이 아직 옛 코드
+curl -s https://129-225-146-153.sslip.io/v1/night | head -c 300; echo   # 야간선물(한투). 18:00~06:00 은 "state":"live", 낮에는 직전 세션 "closed". 404 = VM 이 옛 코드, 503 = KIS_APPKEY 없음
 sudo journalctl -u jogan-relay -n 50 --no-pager          # 로그 (키는 남기지 않는다)
 ```
 

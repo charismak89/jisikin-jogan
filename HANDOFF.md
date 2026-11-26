@@ -11,7 +11,8 @@
 - 밤 값은 해외 24시간 추종가(`night.ts`, 발행일 15:30 대비, 30초 갱신)다. 실제 야간선물이 아니다. 06:00 대조 29회 평균 0.36%p, 최대 1.00%p 차이. 토스 Open API(명세 1.2.28)에는 선물 시세가 없다.
 - 한국투자증권 Open API(2026-11-26): 실전 앱 키를 VM `/etc/jogan-relay.env` 에 `KIS_APPKEY`, `KIS_APPSECRET` 으로 넣었다(사용자, `grep -c '^KIS_APP'` → 2 확인). `/v1/night` 는 키 없이 공개(사용자 결정 2026-11-26).
   - 근월물 코드: 지수선물옵션 마스터 `fo_idx_code_mts.mst.zip`(공개) 의 `구분 1, 순서 1` 줄. 2026-11-26 실측 `A01612`(표준 `KR4A016C0004`, F 202612).
-  - **대기(사용자)**: 18:00 뒤 VM 에서 `cd ~/jisikin-jogan && git pull && sudo python3 relay/kis_probe.py` → 토큰, 승인키 OK, 근월물 `A01612`, REST 야간 현재가 가능 여부, `H0MFCNT0` 체결 5건(필드 순서 확인용). 결과를 받아 중계기 `/v1/night`(1분봉 누적, 파일 보관)와 실험실 밤 카드를 붙인다. 회차의 야간선물 경로(sonmul)를 바꾸는 것은 그 뒤 따로(routine-reviewer).
+  - 시험(사용자, 11/26 15:52, 18:02): 토큰, 승인키 OK, 근월물 `A01612`, REST `CM` = 야간선물(727.50 +0.10%, 주간 종가 726.75 대비), `H0MFCNT0` 체결 5건. 사실은 `CONTEXT.md` 한국투자증권 절.
+  - 중계기 `/v1/night`(키 없이): 18:00~06:05 10초마다 REST `CM`, 1분봉을 `night-<세션 시작일>.json` 에 보관, 첫 체결 전(지난밤 값)은 waiting. **VM 갱신 필요(사용자)**: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh` → `curl -s https://129-225-146-153.sslip.io/v1/night | head -c 300` 에 `"state":"live"`(밤) 또는 `"closed"`(낮). 그 뒤 실험실 밤 카드를 이 값으로 바꾼다.
 - 남은 일: 사용자가 폰으로 /labs/ 를 장중, 저녁, 밤에 보고 고칠 점을 준다. 그 뒤 전환 PR(`web/index.html` 진입점을 실험실 앱으로, versions.json 두 값을 7.0 으로 같게).
 - 사진: `python3 uishots.py --page labs/ --top --perp --intraday --clock 23:00`(가짜 추종가, 가짜 장중 봉). 종목을 고른 화면은 `--tap 삼성전자`. 금요일 회차는 `--day <금요일 day.json> --clock 2026-11-22T21:00`.
 - 되돌리기: 실험실 관련 PR revert. 메인의 실험실 버튼, 버전 표시는 2026-11-26 labs 이름 변경 PR 에서 들어갔다.
