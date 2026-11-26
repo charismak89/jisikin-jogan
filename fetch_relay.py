@@ -123,12 +123,20 @@ def calendar_notes(rel, issue):
 def night(nt, p):
     """/v1/night 응답 → (prices 조각, 못 넣은 이유). 직전 영업일 p 저녁에 시작한 세션이 끝났을 때만 쓴다"""
     if not isinstance(nt, dict): return {}, '응답 없음'
-    if nt.get('session') != p.isoformat():
-        return {}, '세션 %s 가 직전 영업일 %s 밤이 아님(연휴면 정상)' % (nt.get('session'), p.isoformat())
+    s = str(nt.get('session') or '')
+    if s > p.isoformat(): return {}, '세션 %s 가 이미 다음 밤(늦은 재실행) — sonmul 도 새 세션이니 prekospi 지난 밤 기록으로 받는다' % s
+    if s != p.isoformat(): return {}, '세션 %s 가 직전 영업일 %s 밤이 아님(연휴 뒤면 정상)' % (s, p.isoformat())
     if nt.get('state') != 'closed': return {}, '세션이 아직 %s' % nt.get('state')
+    if not nt.get('bars'): return {}, '그 밤 체결 기록 없음(첫 체결 전 값)'
+    # 마지막 수신이 마감(다음 날 06:00) 무렵이어야 한다 — 새벽에 끊겨 멈춘 값을 마감값으로 쓰지 않는다(2026-11-27 routine-reviewer).
+    # 중계기 error 는 '마지막 시도'의 실패라 06:04 에 한 번 실패해도 낮 내내 남는다. 그래서 error 대신 이 시각으로 거른다
+    end = p + timedelta(days=1)   # 금요일 밤 세션은 토 06:00 에 끝난다(월요일 회차 asof 도 토요일)
+    try: at = datetime.fromtimestamp(int(nt.get('asof')) / 1000, KST)
+    except (TypeError, ValueError): return {}, '마지막 수신 시각 없음'
+    if at < datetime(end.year, end.month, end.day, 5, 55, tzinfo=KST):
+        return {}, '마지막 수신이 %s — 마감 전에 끊긴 값' % at.strftime('%m/%d %H:%M')
     last, base = _num(nt.get('last')), _num(nt.get('base'))
     if not (last and base): return {}, '마감값 또는 주간 종가 없음'
-    end = p + timedelta(days=1)   # 금요일 밤 세션은 토 06:00 에 끝난다(월요일 회차 asof 도 토요일)
     return {'K200N': {'close': last, 'pct_screen': round((last / base - 1) * 100, 2), 'asof': '%d/%d 06:00' % (end.month, end.day),
                       'src': 'kis-night', 'code': nt.get('code'), 'name': nt.get('name')},
             'K200F': {'close': base, 'src': 'kis-day'}}, None
@@ -195,7 +203,7 @@ def report(rel):
     for n in calendar_notes(rel, date.fromisoformat(rel['issue_date'])): print('  달력 ' + n)
     n = P.get('K200N')
     if n:
-        print('  야간선물(한국투자증권) %s %+.2f%% (%s 마감, 주간선물 종가 %s) — 종가, 등락률, 기준 시각은 fill.json 에 자동으로 들어간다(해설 cm 은 회차가 쓴다). sonmul 은 열지 않는다' % (
+        print('  야간선물(한국투자증권) %s %+.2f%% (%s 마감, 주간선물 종가 %s) — 종가, 등락률, 기준 시각은 fill.json 에 자동으로 들어간다(해설 cm 은 회차가 쓴다). sonmul 은 열지 않는다. 야간선물 게이트 경고가 나면 sonmul 과 대조해 다르면 고치지 말고 HOLD' % (
             fmt(n['close']), n['pct_screen'], n['asof'], fmt(P['K200F']['close'])))
     else:
         print('  야간선물 못 받음 — %s. RUNBOOK 2단계 sonmul 로 받는다' % rel.get('night_reason', '알 수 없음'))
