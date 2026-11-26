@@ -14,6 +14,9 @@ import { BriefTab } from './components/BriefTab'
 import { Feedback } from './components/Feedback'
 import { Card } from './components/ui/card'
 import { site, versions, vlabel } from '../lib/site'
+
+// 2026-11-27 메인 전환 뒤 메인(vite 기본 모드)과 실험실(--mode labs)이 이 앱을 같이 쓴다. 실험실에서만 띠와 '메인으로'를 보인다
+const IS_LABS = import.meta.env.MODE === 'labs'
 import { kstDay, md, sg } from '../lib/fmt'
 import { NowCard } from './NowCard'
 import { NightFeed } from './night'
@@ -94,9 +97,9 @@ export default function App() {
   return (
     <>
       {/* 실험실 띠: 버전과 메인과의 관계. 두 버전이 같으면 메인과 같은 화면이다(web/versions.json) */}
-      <div role="note" className="bg-inverse px-4 py-1 text-center text-caption1 font-semibold text-fg-inverse">
+      {IS_LABS && <div role="note" className="bg-inverse px-4 py-1 text-center text-caption1 font-semibold text-fg-inverse">
         실험실 {vlabel(versions.labs)} · {versions.labs === versions.main ? '메인과 같은 화면입니다' : `개발 중인 화면이라 메인(${vlabel(versions.main)})과 다릅니다`}
-      </div>
+      </div>}
       <div className="mx-auto w-full max-w-[1120px] px-4 pb-16 pt-3 sm:px-6">
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
@@ -118,7 +121,9 @@ export default function App() {
                   <TabsTrigger key={v} value={v}>{l}</TabsTrigger>
                 ))}
               </TabsList>
-              <Button asChild variant="assistive" size="small" className="ml-auto shrink-0"><a href={site('')}>메인으로</a></Button>
+              {IS_LABS
+                ? <Button asChild variant="assistive" size="small" className="ml-auto shrink-0"><a href={site('')}>메인으로</a></Button>
+                : <Button asChild variant="assistive" size="small" className="ml-auto shrink-0"><a href={site('labs/')}>실험실<span className="ml-1 rounded bg-inverse px-1 py-px text-caption1 font-bold leading-none text-fg-inverse">BETA</span></a></Button>}
             </div>
             <TabsContent value="dash">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
@@ -135,7 +140,7 @@ export default function App() {
             </TabsContent>
             <TabsContent value="brief"><BriefTab data={data} /></TabsContent>
             {past && <p className="mt-4 px-2 text-center text-caption1 text-fg-2">{md(data.issue)} 회차가 마지막 발행입니다.</p>}
-            <p className="mt-6 px-2 text-center text-caption1 leading-relaxed text-fg-2">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a> · 실험실 {vlabel(versions.labs)}</p>
+            <p className="mt-6 px-2 text-center text-caption1 leading-relaxed text-fg-2">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a> · {IS_LABS ? '실험실' : '화면'} {vlabel(IS_LABS ? versions.labs : versions.main)}</p>
           </Tabs>
         )}
       </div>
