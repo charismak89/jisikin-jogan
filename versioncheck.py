@@ -6,7 +6,7 @@
   python3 versioncheck.py --base <커밋>    비교 기준을 바꾼다
 
 규칙
-  메인만: web/src/App.tsx, web/src/main.tsx, web/index.html            → main 을 올린다
+  메인: web/index.html, web/src/labs/, web/src/styles/(2026-11-27 메인 전환 뒤 메인도 실험실 앱을 빌드), 옛 web/src/App.tsx, main.tsx → main 을 올린다
   실험실만: web/src/labs/, web/labs.html                               → labs 를 올린다
   공용: web/src/components/, web/src/lib/, web/src/types.ts, web/src/index.css, web/src/brief.css → 둘 다 올린다(두 화면이 같이 바뀐다)
 '올린다'는 기준 커밋의 값과 다르면 된다. 기준 커밋에 versions.json 이 없으면 통과한다.
@@ -15,8 +15,8 @@
 import json, subprocess, sys
 
 VF = 'web/versions.json'
-MAIN = ('web/src/App.tsx', 'web/src/main.tsx', 'web/index.html')
-LABS = ('web/src/labs/', 'web/labs.html')
+MAIN = ('web/src/App.tsx', 'web/src/main.tsx', 'web/index.html', 'web/src/labs/', 'web/src/styles/')   # 2026-11-27 메인 전환: 메인도 web/src/labs 를 빌드한다
+LABS = ('web/src/labs/', 'web/labs.html', 'web/src/styles/')
 SHARED = ('web/src/components/', 'web/src/lib/', 'web/src/types.ts', 'web/src/index.css', 'web/src/brief.css')
 
 def git(*a):
