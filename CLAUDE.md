@@ -61,7 +61,7 @@
 ## 위임 규칙
 - 급한 일, 몇 번이면 끝나는 작은 일, 결정과 원본 수정은 메인이 직접 한다.
 - 여러 파일을 뒤져 위치를 찾는 일은 finder에게 맡긴다.
-- 코드 수정이 끝나면 커밋 전에 reviewer에게 검수를 맡기고, [반드시 수정] 항목을 고친 뒤 나에게 보고한다.
+- 코드 수정이 끝나면 PR 을 열기 전에 reviewer에게 검수를 맡기고, [반드시 수정] 항목을 고친 뒤 나에게 보고한다. 커밋과 브랜치 push 는 검수 전에 해도 된다(클라우드 환경의 Stop hook 이 커밋을 요구한다). reviewer 는 `origin/main...HEAD` 와 `HEAD` 를 둘 다 본다.
 - 회차 경로(`fetch_*.py`, `score.py`, `render.py`, `datacheck.py`, `analyze.py`, `sources.json`, `calibration.json`, `RUNBOOK.md`, `WEEKLY.md`)를 바꾼 PR 은 머지 전에 routine-reviewer 로도 검토한다.
 - PR 본문에 `reviewer: 반드시 수정 n건(고침), 권장 n건(반영 n)` 한 줄을 남긴다. 회차 경로는 `routine-reviewer:` 줄도 남긴다. 문서만 바꾼 PR 은 `reviewer: 해당 없음(문서)`.
 - 서브에이전트 결과 중 핵심 1~2개는 메인이 직접 확인한다.
