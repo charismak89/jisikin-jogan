@@ -1,4 +1,9 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+/* 클래스를 찾는 범위는 메인 화면 소스만. 시험 화면(src/stg/)은 stg.css 가 따로 더한다 — stg 클래스가 메인 CSS 에 섞이면 메인 산출물이 바뀐다(2026-11-26) */
+@source "./App.tsx";
+@source "./components";
+@source "./lib";
+@source "../index.html";
 
 /* 토큰 — 토스결: 연한 회색 바탕 위의 흰 카드, 큰 숫자, 파란 강조. 한국 증시 관례대로 상승 빨강·하락 파랑.
    테마 키(data-jj, localStorage jj-theme)는 v5 와 같아서 지인이 고른 테마가 그대로 이어진다. */
