@@ -17,6 +17,9 @@ score.py·render.py 는 fill.json 을 읽은 뒤 merge_into() 로 relay.json 값
   - 둘 다 있고 다르면: 국내 종목 종가·시가(KRX 1분봉, complete)·코스피·코스닥 지수·수급(18시 뒤 확정치)은 중계기 값을 쓴다.
     미국 종가·환율은 회차 값을 둔다. 어느 쪽이든 경고로 알린다.
   - relay.json 의 issue_date 가 fill 과 다르면(어제 파일) 쓰지 않는다.
+  - 야간선물(2026-11-27): 중계기 /v1/night(한국투자증권)의 직전 영업일 밤 세션 마감값을 K200N(close, pct_screen, asof)과
+    K200F(주간선물 종가 = 등락률 기준)로 넣는다. 회차 값과 다르면 중계기 값을 쓴다(11/27 손물과 728.00, +0.17%, 726.75 로 같았다).
+    세션이 직전 영업일이 아니거나(연휴) 아직 안 끝났으면 넣지 않고 회차가 sonmul 로 받는다.
 """
 import io, json, os, sys, urllib.request
 from datetime import datetime, timedelta, timezone, date
@@ -27,6 +30,7 @@ OUT = 'relay.json'
 KR = ['005930', '000660', '402340', '009150', '0167A0', '442580']
 US = ['NVDA', 'MU', 'EWY', 'SKHY']
 OPEN_KEYS = ['KOSPI', '005930', '000660']   # 채점에 쓰는 시가
+NIGHT_KEYS = ('K200N', 'K200F')            # 야간선물, 주간선물 종가(한국투자증권 /v1/night)
 FLOW_KEYS = ['foreign', 'inst', 'retail', 'other']
 
 def prev_business_day(d):
@@ -116,6 +120,27 @@ def calendar_notes(rel, issue):
     if pb and pb < exp.isoformat(): notes.append('미국 %s 휴장(토스 달력) — 미국 종가는 %s 값이 그대로다. render.py 가 EWY·ADR 시사 갭을 뺀다' % (exp, pb))
     return notes
 
+def night(nt, p):
+    """/v1/night 응답 → (prices 조각, 못 넣은 이유). 직전 영업일 p 저녁에 시작한 세션이 끝났을 때만 쓴다"""
+    if not isinstance(nt, dict): return {}, '응답 없음'
+    s = str(nt.get('session') or '')
+    if s > p.isoformat(): return {}, '세션 %s 가 이미 다음 밤(늦은 재실행) — sonmul 도 새 세션이니 prekospi 지난 밤 기록으로 받는다' % s
+    if s != p.isoformat(): return {}, '세션 %s 가 직전 영업일 %s 밤이 아님(연휴 뒤면 정상)' % (s, p.isoformat())
+    if nt.get('state') != 'closed': return {}, '세션이 아직 %s' % nt.get('state')
+    if not nt.get('bars'): return {}, '그 밤 체결 기록 없음(첫 체결 전 값)'
+    # 마지막 수신이 마감(다음 날 06:00) 무렵이어야 한다 — 새벽에 끊겨 멈춘 값을 마감값으로 쓰지 않는다(2026-11-27 routine-reviewer).
+    # 중계기 error 는 '마지막 시도'의 실패라 06:04 에 한 번 실패해도 낮 내내 남는다. 그래서 error 대신 이 시각으로 거른다
+    end = p + timedelta(days=1)   # 금요일 밤 세션은 토 06:00 에 끝난다(월요일 회차 asof 도 토요일)
+    try: at = datetime.fromtimestamp(int(nt.get('asof')) / 1000, KST)
+    except (TypeError, ValueError): return {}, '마지막 수신 시각 없음'
+    if at < datetime(end.year, end.month, end.day, 5, 55, tzinfo=KST):
+        return {}, '마지막 수신이 %s — 마감 전에 끊긴 값' % at.strftime('%m/%d %H:%M')
+    last, base = _num(nt.get('last')), _num(nt.get('base'))
+    if not (last and base): return {}, '마감값 또는 주간 종가 없음'
+    return {'K200N': {'close': last, 'pct_screen': round((last / base - 1) * 100, 2), 'asof': '%d/%d 06:00' % (end.month, end.day),
+                      'src': 'kis-night', 'code': nt.get('code'), 'name': nt.get('name')},
+            'K200F': {'close': base, 'src': 'kis-day'}}, None
+
 def fetch(issue):
     base, key = os.environ.get('JJ_RELAY_URL', '').strip(), os.environ.get('JJ_RELAY_TOKEN', '').strip()
     if not (base and key):
@@ -138,6 +163,12 @@ def fetch(issue):
         return fail
     rel = normalize(daily, cal, issue, p)
     if notes is not None: rel['hours_notes'] = notes
+    try: nt = get(base, key, '/v1/night', timeout=15)
+    except Exception as e: nt = None; rel['night_reason'] = '중계기 /v1/night 실패 — %s' % str(e)[:80]
+    if nt is not None:
+        add, why = night(nt, p)
+        rel['prices'].update(add)
+        if why: rel['night_reason'] = why
     return rel
 
 def sg(v):
@@ -170,6 +201,12 @@ def report(rel):
     for k, v in sorted(sf.items()):
         print('  %s 순매수(주) 외국인 %s · 기관 %s · 개인 %s' % (k, *[sg(v.get(x)) for x in ('foreign', 'inst', 'retail')]))
     for n in calendar_notes(rel, date.fromisoformat(rel['issue_date'])): print('  달력 ' + n)
+    n = P.get('K200N')
+    if n:
+        print('  야간선물(한국투자증권) %s %+.2f%% (%s 마감, 주간선물 종가 %s) — 종가, 등락률, 기준 시각은 fill.json 에 자동으로 들어간다(해설 cm 은 회차가 쓴다). sonmul 은 열지 않는다. 야간선물 게이트 경고가 나면 sonmul 과 대조해 다르면 고치지 말고 HOLD' % (
+            fmt(n['close']), n['pct_screen'], n['asof'], fmt(P['K200F']['close'])))
+    else:
+        print('  야간선물 못 받음 — %s. RUNBOOK 2단계 sonmul 로 받는다' % rel.get('night_reason', '알 수 없음'))
     for e in rel.get('errors') or []: print('  일부 실패 — %s' % e)
     print('  → 국내 종가·시가·지수·수급은 1순위로 fill.json 에 쓴다. 미국 종가·환율은 웹 값이 1순위이고 못 구했을 때만 이 값을 쓴다. 빈칸은 score.py·render.py 가 채운다.')
 
@@ -202,18 +239,20 @@ def merge_into(fill, rel=None):
     prices = fill.setdefault('prices', {})
     for k, r in (rel.get('prices') or {}).items():
         p = prices.setdefault(k, {})
-        official = (k in ('KOSPI', 'KOSDAQ')) or (k in KR and r.get('complete') is not False)
-        fields = ['close'] + (['open', 'open_date'] if k in OPEN_KEYS and r.get('open') is not None else [])
+        official = (k in ('KOSPI', 'KOSDAQ')) or (k in KR and r.get('complete') is not False) or k in NIGHT_KEYS
+        fields = ['close'] + (['open', 'open_date'] if k in OPEN_KEYS and r.get('open') is not None else []) + (['pct_screen', 'asof'] if k == 'K200N' else [])
         for fld in fields:
             rv = r.get(fld)
             if rv is None: continue
-            fv = p.get(fld) if fld == 'open_date' else _num(p.get(fld))
+            fv = p.get(fld) if fld in ('open_date', 'asof') else _num(p.get(fld))
             if fv in (None, ''):
                 p[fld] = rv; filled.append('prices.%s.%s' % (k, fld))
                 if fld == 'open' and not p.get('open_date'): p['open_date'] = r.get('open_date'); filled.append('prices.%s.open_date' % k)
                 if k == 'USDKRW' and fld == 'close': p.setdefault('asof', 'toss %s' % r.get('asof', '')[11:16])
-            elif fld == 'open_date':
-                if fv != rv and official: diff.append('prices.%s.open_date 회차 %s / 중계기 %s → 중계기' % (k, fv, rv)); p[fld] = rv
+            elif fld in ('open_date', 'asof'):
+                if fv != rv and official: diff.append('prices.%s.%s 회차 %s / 중계기 %s → 중계기' % (k, fld, fv, rv)); p[fld] = rv
+            elif fld == 'pct_screen':
+                if abs(fv - rv) >= 0.05: diff.append('prices.%s.pct_screen 회차 %+.2f / 중계기 %+.2f → 중계기' % (k, fv, rv)); p[fld] = rv
             elif abs(fv - rv) > max(abs(rv) * 0.0005, 0.005):
                 use = official and k != 'USDKRW'
                 diff.append('prices.%s.%s 회차 %s / 중계기 %s → %s' % (k, fld, fv, rv, '중계기' if use else '회차 값 유지'))
