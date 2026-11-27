@@ -2,6 +2,7 @@
 fill.json
 perp.json
 relay.json
+news.json
 out/
 # Google Finance curl 폴백 원본 (RUNBOOK 2단계 턴 A)
 gf_*.html

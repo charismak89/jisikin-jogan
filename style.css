@@ -341,3 +341,5 @@ html.js5 [data-panel][hidden]{display:none!important}
 .fbm{min-height:18px;margin:8px 0 0;font-size:13px;font-weight:700;color:var(--tx2)}
 /* 2026-11-27 참고 시세(간밤 글로벌 표 아래) — 새 클래스만 */
 .refs{margin-top:14px}.rh{font-size:12px;font-weight:700;color:var(--tx3);margin-bottom:6px}.fc{display:block;font-size:11.5px;color:var(--tx3)}
+/* 2026-11-27 밤사이 뉴스, 오늘 일정 — 새 클래스만 */
+details.news{margin-top:12px}.nl{list-style:none;margin:0;padding:0}.nl li{display:grid;grid-template-columns:44px 1fr;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}.nl li:first-child{border-top:0}.nl .nt{color:var(--tx3)}.nl a{color:inherit}.nl .ns{display:block;font-size:11.5px;color:var(--tx3)}.nl li.ndt,.nl li.nmk{display:block;font-size:11.5px;font-weight:700;color:var(--tx3)}.nn{font-size:11.5px;color:var(--tx3);margin-top:6px}.agenda{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:var(--panel2)}.ag{list-style:none;margin:0;padding:0}.ag li{display:grid;grid-template-columns:minmax(64px,max-content) 1fr;gap:10px;font-size:13.5px}.ag b{white-space:nowrap}

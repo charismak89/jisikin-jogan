@@ -22,7 +22,7 @@ def git(*a, binary=False):
     if r.returncode != 0: raise SystemExit('git %s 실패: %s' % (' '.join(a[:2]), r.stderr.decode('utf-8', 'replace').strip()[:300]))
     return r.stdout if binary else r.stdout.decode('utf-8').strip()
 
-SKIP = {'.git', 'out', 'fill.json', 'perp.json', 'relay.json', '__pycache__'}
+SKIP = {'.git', 'out', 'fill.json', 'perp.json', 'relay.json', 'news.json', '__pycache__'}
 
 def main():
     root = git('rev-parse', '--show-toplevel'); os.chdir(root)
@@ -39,6 +39,8 @@ def main():
     except SystemExit: perp_s = None
     try: relay_s = git('show', '%s:fixtures/last-relay.json' % b)
     except SystemExit: relay_s = None
+    try: news_s = git('show', '%s:fixtures/last-news.json' % b)   # 2026-11-27 부터. 없으면 시각표 없이 렌더
+    except SystemExit: news_s = None
     state_s, cal_s = git('show', '%s~:state.json' % b), git('show', '%s~:calibration.json' % b)
 
     tmp = tempfile.mkdtemp(prefix='regress-')
@@ -49,7 +51,7 @@ def main():
     shutil.copytree(root, new, ignore=lambda d, names: [n for n in names if n in SKIP])   # 고친 뒤 = 작업 트리
     res = {}
     for side, d in (('old', old), ('new', new)):
-        for name, s in (('fill.json', fill_s), ('perp.json', perp_s), ('relay.json', relay_s), ('state.json', state_s), ('calibration.json', cal_s)):
+        for name, s in (('fill.json', fill_s), ('perp.json', perp_s), ('relay.json', relay_s), ('news.json', news_s), ('state.json', state_s), ('calibration.json', cal_s)):
             p = os.path.join(d, name)
             if s is None:
                 if os.path.exists(p): os.remove(p)
