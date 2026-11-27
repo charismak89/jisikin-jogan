@@ -157,7 +157,10 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         p.goto(origin + BASE + page + '#w=' + ','.join(x[0] for x in WATCH), wait_until='load'); p.reload(wait_until='load'); p.wait_for_timeout(1500)   # 해시만 바뀌면 다시 읽지 않아 reload
         snap('watch', True)
         p.get_by_role('button', name='편집').click(); p.wait_for_timeout(200); snap('watch-edit', False)
+        p.get_by_role('button', name='완료').click()
+        p.get_by_role('button', name='+ 추가').click(); p.wait_for_timeout(200)
         p.get_by_role('textbox').fill('하이'); p.wait_for_timeout(200); snap('watch-search', False)
+        p.keyboard.press('Escape'); p.wait_for_timeout(200)
         p.evaluate("localStorage.removeItem('jj-watch')")
     p.get_by_role('tab', name='브리핑 전문').click(); p.wait_for_timeout(800)
     p.get_by_role('button', name='전부 펼치기').click(); p.wait_for_timeout(300)

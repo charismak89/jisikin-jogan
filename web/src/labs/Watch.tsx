@@ -4,10 +4,12 @@
 //  - 시세는 중계기 /v1/quotes 를 10초마다(이 탭을 보고 있고 창이 보일 때만). 최대 20종목.
 //  - 목록은 로그인 없이 이 브라우저에 저장한다(localStorage jj-watch). 다른 브라우저로는 '목록 링크 복사'(#w=코드,코드)로 옮긴다.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import type { DayData } from '../types'
 import { nf } from '../lib/fmt'
 import { tone } from './lib/tone'
-import { Card, CardHeader, Cap } from './components/ui/card'
+import { Card, Cap } from './components/ui/card'
 import { Button } from './components/ui/button'
 import { cn } from './lib/cn'
 
@@ -43,6 +45,8 @@ export function Watch({ data }: { data: DayData }) {
   const [stocksErr, setStocksErr] = useState(false)
   const [q, setQ] = useState('')
   const [edit, setEdit] = useState(false)
+  const [adding, setAdding] = useState(false)
+  const closeAdd = useCallback(() => { setAdding(false); setQ('') }, [])
   const [quotes, setQuotes] = useState<Record<string, Quote>>({})
   const [okAt, setOkAt] = useState<number | null>(null)
   const [fail, setFail] = useState(false)
@@ -121,41 +125,21 @@ export function Watch({ data }: { data: DayData }) {
 
   if (!relay) return <Card className="text-center text-body2 text-fg-2">이 회차는 KRX 중계기 주소가 없어 관심종목 시세를 받을 수 없습니다.</Card>
 
+  const status = fail ? `시세를 못 받음${okAt ? ` · 마지막 ${hms(okAt)}` : ''}` : okAt ? `${hms(okAt)} 기준 · 10초마다 갱신` : '시세 받는 중…'
   return (
     <div className="space-y-4">
-      <Card aria-label="관심종목 검색">
-        <CardHeader title="관심종목" aside={<span>{items.length}/{WATCH_MAX}</span>} />
-        <label className="sr-only" htmlFor="watch-q">종목 이름이나 코드</label>
-        <input id="watch-q" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" inputMode="search"
-          placeholder={stocksErr ? '종목 목록을 받지 못했습니다' : stocks ? '종목 이름이나 6자리 코드' : '종목 목록 받는 중…'} disabled={!stocks}
-          className="h-11 w-full rounded-10 bg-fill px-3 text-body2 text-fg placeholder:text-fg-2 focus:outline-none focus:ring-2 focus:ring-focus" />
-        {hits.length > 0 && (
-          <ul className="mt-2 divide-y divide-line" aria-label="검색 결과">
-            {hits.map((s) => (
-              <li key={s[0]}>
-                <button type="button" onClick={() => add(s)} className="flex min-h-11 w-full items-center justify-between gap-2 px-1 text-left">
-                  <span className="min-w-0 truncate text-body2 font-semibold text-fg">{s[1]}</span>
-                  <span className="num shrink-0 text-caption1 text-fg-2">{s[0]} · {s[2] === 'KOSPI' ? '코스피' : '코스닥'}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        {q && stocks && !hits.length && <p className="mt-2 text-caption1 text-fg-2">맞는 종목이 없습니다.</p>}
-        {msg && <p role="status" className="mt-2 text-caption1 text-fg-2">{msg}</p>}
-      </Card>
-
-      {items.length > 0 && (
-        <Card aria-label="관심종목 시세" className="px-0 sm:px-0">
-          <div className="mb-2 flex items-center justify-between gap-2 px-4 sm:px-6">
-            <span className={cn('text-caption1', fail ? 'text-negative' : 'text-fg-2')}>
-              {fail ? `시세를 못 받음${okAt ? ` · 마지막 ${hms(okAt)}` : ''}` : okAt ? `${hms(okAt)} 기준 · 10초마다` : '시세 받는 중…'}
-            </span>
-            <span className="flex shrink-0 gap-1.5">
-              <Button variant="assistive" size="small" onClick={copy}>목록 링크 복사</Button>
-              <Button variant="assistive" size="small" onClick={() => setEdit((e) => !e)} aria-pressed={edit}>{edit ? '완료' : '편집'}</Button>
-            </span>
-          </div>
+      {/* 목록이 맨 위(2026-11-27 사용자 피드백). 기능 단추는 카드 머리에, 갱신 시각은 맨 아래 */}
+      <Card aria-label="관심종목" className="px-0 sm:px-0">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6">
+          <h2 className="text-headline1 font-bold text-fg">관심종목 <span className="num text-label2 font-semibold text-fg-2">{items.length}/{WATCH_MAX}</span></h2>
+          <span className="flex shrink-0 gap-1.5">
+            <Button variant="assistive" size="small" onClick={() => { setAdding(true); setEdit(false); setMsg('') }}>+ 추가</Button>
+            {items.length > 0 && <Button variant="assistive" size="small" onClick={() => setEdit((e) => !e)} aria-pressed={edit}>{edit ? '완료' : '편집'}</Button>}
+            {items.length > 0 && <Button variant="assistive" size="small" onClick={copy}>링크 복사</Button>}
+          </span>
+        </div>
+        {msg && !adding && <p role="status" className="mb-2 px-4 text-caption1 text-fg-2 sm:px-6">{msg}</p>}
+        {items.length > 0 ? (
           <table className="w-full table-fixed text-right">
             <thead>
               <tr className="border-y border-line text-caption1 text-fg-2">
@@ -195,12 +179,76 @@ export function Watch({ data }: { data: DayData }) {
               })}
             </tbody>
           </table>
-          <div className="px-4 sm:px-6">
-            <Cap>현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '목록 링크 복사'로 옮기세요.</Cap>
+        ) : (
+          <div className="border-t border-line px-4 pt-6 text-center sm:px-6">
+            <p className="text-body2 text-fg-2">위 '+ 추가'로 종목을 넣으면 현재가와 등락을 한눈에 봅니다.</p>
           </div>
-        </Card>
-      )}
-      {!items.length && <Card className="text-center text-body2 text-fg-2">위에서 종목을 찾아 넣으면 현재가와 등락을 한눈에 봅니다.</Card>}
+        )}
+        <div className="border-t border-line px-4 sm:px-6">
+          {items.length > 0 && <p className={cn('mt-3 text-caption1 font-semibold', fail ? 'text-negative' : 'text-fg-2')}>{status}</p>}
+          <Cap>현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '링크 복사'로 옮기세요.</Cap>
+        </div>
+      </Card>
+
+      {adding && <AddSheet onClose={closeAdd}>
+        <label className="sr-only" htmlFor="watch-q">종목 이름이나 코드</label>
+        <input id="watch-q" autoFocus value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" inputMode="search"
+          placeholder={stocksErr ? '종목 목록을 받지 못했습니다' : stocks ? '종목 이름이나 6자리 코드' : '종목 목록 받는 중…'} disabled={!stocks}
+          className="h-11 w-full rounded-10 bg-fill px-3 text-body2 text-fg placeholder:text-fg-2 focus:outline-none focus:ring-2 focus:ring-focus" />
+        {msg && <p role="status" className="mt-2 text-caption1 text-fg-2">{msg}</p>}
+        {hits.length > 0 && (
+          <ul className="mt-2 divide-y divide-line" aria-label="검색 결과">
+            {hits.map((s) => {
+              const has = items.some((i) => i[0] === s[0])
+              return (
+                <li key={s[0]}>
+                  <button type="button" onClick={() => add(s)} disabled={has} className="flex min-h-11 w-full items-center justify-between gap-2 px-1 text-left disabled:opacity-50">
+                    <span className="min-w-0 truncate text-body2 font-semibold text-fg">{s[1]}</span>
+                    <span className="num shrink-0 text-caption1 text-fg-2">{has ? '목록에 있음' : `${s[0]} · ${s[2] === 'KOSPI' ? '코스피' : '코스닥'}`}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        {q && stocks && !hits.length && <p className="mt-2 text-caption1 text-fg-2">맞는 종목이 없습니다.</p>}
+      </AddSheet>}
     </div>
+  )
+}
+
+/** 종목 추가 창: 모바일은 아래에서 올라오는 시트, 넓은 화면은 가운데 창. Esc, 바깥 누르기, 닫기 단추로 닫는다 */
+function AddSheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const back = document.activeElement as HTMLElement | null
+    // 입력창이 아직 꺼져 있으면(종목 목록 받는 중) autoFocus 가 안 먹으니 창 자체로
+    if (!box.current?.contains(document.activeElement)) box.current?.focus()
+    const k = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'Tab' && box.current) {   // Tab 은 창 안에서만 돈다
+        const f = [...box.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')]
+        if (!f.length) return
+        const i = f.indexOf(document.activeElement as HTMLElement)
+        e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus()
+      }
+    }
+    window.addEventListener('keydown', k)
+    const ov = document.body.style.overflow; document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', k); document.body.style.overflow = ov; back?.focus?.() }
+  }, [onClose])
+  return createPortal(
+    // 바깥을 '눌렀을 때'만 닫는다(입력창에서 끌어 선택하다 바깥에서 놓아도 닫히지 않게)
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-scrim sm:items-center sm:p-8" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label="관심종목 추가"
+        className="flex max-h-[85dvh] w-full outline-none flex-col rounded-t-lg bg-card px-4 pb-6 pt-4 shadow-xs sm:max-w-[480px] sm:rounded-lg sm:px-6">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-headline1 font-bold text-fg">관심종목 추가</h2>
+          <Button variant="assistive" size="small" onClick={onClose}>닫기</Button>
+        </div>
+        <div className="min-h-0 overflow-y-auto">{children}</div>
+      </div>
+    </div>,
+    document.body,
   )
 }
