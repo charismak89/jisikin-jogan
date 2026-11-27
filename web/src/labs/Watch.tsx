@@ -138,7 +138,7 @@ export function Watch({ data }: { data: DayData }) {
             {items.length > 0 && <Button variant="assistive" size="small" onClick={copy}>링크 복사</Button>}
           </span>
         </div>
-        {msg && <p role="status" className="mb-2 px-4 text-caption1 text-fg-2 sm:px-6">{msg}</p>}
+        {msg && !adding && <p role="status" className="mb-2 px-4 text-caption1 text-fg-2 sm:px-6">{msg}</p>}
         {items.length > 0 ? (
           <table className="w-full table-fixed text-right">
             <thead>
@@ -181,8 +181,7 @@ export function Watch({ data }: { data: DayData }) {
           </table>
         ) : (
           <div className="border-t border-line px-4 pt-6 text-center sm:px-6">
-            <p className="text-body2 text-fg-2">종목을 넣으면 현재가와 등락을 한눈에 봅니다.</p>
-            <Button className="mt-3" variant="assistive" size="small" onClick={() => { setAdding(true); setMsg('') }}>+ 종목 추가</Button>
+            <p className="text-body2 text-fg-2">위 '+ 추가'로 종목을 넣으면 현재가와 등락을 한눈에 봅니다.</p>
           </div>
         )}
         <div className="border-t border-line px-4 sm:px-6">
@@ -220,16 +219,29 @@ export function Watch({ data }: { data: DayData }) {
 
 /** 종목 추가 창: 모바일은 아래에서 올라오는 시트, 넓은 화면은 가운데 창. Esc, 바깥 누르기, 닫기 단추로 닫는다 */
 function AddSheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const box = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const back = document.activeElement as HTMLElement | null
+    // 입력창이 아직 꺼져 있으면(종목 목록 받는 중) autoFocus 가 안 먹으니 창 자체로
+    if (!box.current?.contains(document.activeElement)) box.current?.focus()
+    const k = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'Tab' && box.current) {   // Tab 은 창 안에서만 돈다
+        const f = [...box.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')]
+        if (!f.length) return
+        const i = f.indexOf(document.activeElement as HTMLElement)
+        e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus()
+      }
+    }
     window.addEventListener('keydown', k)
     const ov = document.body.style.overflow; document.body.style.overflow = 'hidden'
-    return () => { window.removeEventListener('keydown', k); document.body.style.overflow = ov }
+    return () => { window.removeEventListener('keydown', k); document.body.style.overflow = ov; back?.focus?.() }
   }, [onClose])
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-scrim sm:items-center sm:p-8" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="관심종목 추가" onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[85vh] w-full flex-col rounded-t-lg bg-card px-4 pb-6 pt-4 shadow-xs sm:max-w-[480px] sm:rounded-lg sm:px-6">
+    // 바깥을 '눌렀을 때'만 닫는다(입력창에서 끌어 선택하다 바깥에서 놓아도 닫히지 않게)
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-scrim sm:items-center sm:p-8" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label="관심종목 추가"
+        className="flex max-h-[85dvh] w-full outline-none flex-col rounded-t-lg bg-card px-4 pb-6 pt-4 shadow-xs sm:max-w-[480px] sm:rounded-lg sm:px-6">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-headline1 font-bold text-fg">관심종목 추가</h2>
           <Button variant="assistive" size="small" onClick={onClose}>닫기</Button>
