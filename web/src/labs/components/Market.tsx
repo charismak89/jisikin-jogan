@@ -22,7 +22,7 @@ export function Market({ data }: { data: DayData }) {
           )
         })}
       </div>
-      {data.market.some((m) => m.key === 'K200N' && m.asof) && <p className="mt-2 text-caption1 text-fg-2">K200 야간 {data.market.find((m) => m.key === 'K200N')?.asof} 마감 · 미국 종목은 직전 미국장 종가</p>}
+      {data.market.some((m) => m.key === 'K200N' && m.asof) && <p className="mt-2 text-caption1 text-fg-2">K200 야간은 {data.market.find((m) => m.key === 'K200N')?.asof} 마감, 미국 종목은 직전 미국장 종가</p>}
     </Card>
   )
 }
