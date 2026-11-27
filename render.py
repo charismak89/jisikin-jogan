@@ -352,11 +352,13 @@ def news_html(d):
     items = [x for x in n.get('items') or [] if x.get('t') and x.get('ms')]
     if not items:
         warn('밤사이 뉴스 없음 — %s (게이트 무관)' % ('; '.join(n.get('errors') or []) or '조회 창 안 기사 없음')); return ''
+    try: items = sorted(((datetime.fromtimestamp(int(x['ms']) / 1000, KST), x) for x in items), key=lambda p: p[0])
+    except (TypeError, ValueError, OverflowError) as e:
+        warn('news.json 시각을 읽지 못함 — %s (게이트 무관)' % e); return ''
     nc = night_close_ms(d)
     rows, day, marked = [], None, False
-    for x in sorted(items, key=lambda x: x['ms']):
-        t = datetime.fromtimestamp(x['ms'] / 1000, KST)
-        if not marked and x['ms'] >= nc:
+    for t, x in items:
+        if not marked and int(x['ms']) >= nc:
             nt = datetime.fromtimestamp(nc / 1000, KST)
             rows.append('<li class="nmk">%d/%d %s 야간선물 마감</li>' % (nt.month, nt.day, nt.strftime('%H:%M'))); marked = True
             day = nt.date()
@@ -364,11 +366,14 @@ def news_html(d):
             rows.append('<li class="ndt">%d/%d</li>' % (t.month, t.day)); day = t.date()
         url = str(x.get('url') or '')
         title = esc(x['t'])
-        if url.startswith('https://'): title = '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>' % (esc(url), title)
+        # 링크는 https 이고 공백, 따옴표, 꺾쇠가 없을 때만 건다(속성 밖으로 빠져나가지 않게, 2026-11-27 검수). 속성값은 따옴표까지 바꾼다
+        if re.fullmatch(r'https://[^\s"\'<>`]+', url):
+            title = '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>' % (esc(url).replace('"', '&quot;').replace("'", '&#39;'), title)
         rows.append('<li><span class="nt num">%s</span><span class="nb">%s<span class="ns">%s</span></span></li>' % (t.strftime('%H:%M'), title, esc(x.get('src') or '매체 미상')))
-    return ('<details class="news"><summary>밤사이 뉴스 %d건(%s~%s)</summary><div class="dbody"><ol class="nl">%s</ol>'
+    span = ('%s 이후' % n['first']) if n.get('first') else '%s~%s' % (n.get('from') or '', (n.get('to') or '')[-5:])   # 창 앞부분을 못 받았으면 실제 시작을 쓴다
+    return ('<details class="news"><summary>밤사이 뉴스 %d건(%s)</summary><div class="dbody"><ol class="nl">%s</ol>'
             '<p class="nn">Google 뉴스 검색으로 모은 제목입니다. 매체가 단 제목 그대로이고 내용은 확인하지 않았습니다.</p></div></details>') % (
-        len(items), esc(n.get('from') or ''), esc((n.get('to') or '')[-5:]), ''.join(rows))
+        len(items), esc(span), ''.join(rows))
 
 def expiry_day(y, m):
     """코스피200 선물, 옵션 만기일: 그달 둘째 목요일, 휴장이면 앞 영업일"""
