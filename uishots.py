@@ -27,13 +27,15 @@ from uicheck import ALLOW, BASE, CHROMIUM, Handler, args
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 def fake_intraday(day):
-    """중계기 /v1/intraday·/v1/live 와 같은 모양({items: {종목: {bars, open, last}}})의 가짜 응답"""
+    """중계기 /v1/intraday·/v1/live 와 같은 모양({items: {종목: {bars, ohlc, open, last}}})의 가짜 응답. 1분봉, ohlc 는 캔들용(2026-11-27)"""
     items = {}
     for e in day['ent']:
-        bars, t, i = [], day['t_open'] + 60000, 0
+        bars, ohlc, t, i = [], [], day['t_open'] + 60000, 0
         while t <= day['t_close'] + 60000:
-            bars.append([t, e['prev'] * (1 - 0.012 + 0.006 * math.sin(i / 9))]); t += 300000; i += 1
-        items[e['key']] = {'bars': bars, 'open': bars[0][1], 'last': bars[-1][1]}
+            f = lambda k: e['prev'] * (1 - 0.012 + 0.006 * math.sin(k / 45) + 0.0012 * math.sin(k * 1.7))
+            o, c = f(i - 1), f(i)
+            ohlc.append([t, o, max(o, c) * 1.0004, min(o, c) * 0.9996, c]); bars.append([t, c]); t += 60000; i += 1
+        items[e['key']] = {'bars': bars, 'ohlc': ohlc, 'open': bars[0][1], 'last': bars[-1][1]}
     return json.dumps({'items': items})
 
 KST = dt.timezone(dt.timedelta(hours=9))
@@ -55,8 +57,9 @@ def fake_perp(day, req_body):
     t, end, out = int(req['startTime'] // ms * ms), int(req['endTime']), []
     while t <= end:
         k = (t - day['t_prev']) / 36e5
-        c = e['base'] * (1 + 0.006 * math.sin(k / 2.5) + 0.002 * math.sin(k * 3))
-        out.append({'t': t, 'T': t + ms - 1, 's': e['coin'], 'i': req.get('interval'), 'o': str(c), 'c': str(c), 'h': str(c), 'l': str(c), 'v': '1', 'n': 1})
+        f = lambda k: e['base'] * (1 + 0.006 * math.sin(k / 2.5) + 0.002 * math.sin(k * 3))
+        o, c = f(k - ms / 36e5), f(k)
+        out.append({'t': t, 'T': t + ms - 1, 's': e['coin'], 'i': req.get('interval'), 'o': str(o), 'c': str(c), 'h': str(max(o, c) * 1.0003), 'l': str(min(o, c) * 0.9997), 'v': '1', 'n': 1})
         t += int(ms)
     return json.dumps(out)
 
@@ -65,15 +68,17 @@ def fake_night(day, issue, clock):
     t0 = int(dt.datetime.fromisoformat(issue + 'T18:00:00+09:00').timestamp() * 1000)
     end = t0 + 12 * 3600 * 1000
     now = int(clock.timestamp() * 1000) if clock else end
-    base, bars, t = 726.75, [], t0 + 60000
+    base, bars, ohlc, t = 726.75, [], [], t0 + 60000
+    f = lambda k: round(base * (1 + 0.004 * math.sin(k / 1.7) - 0.002 * math.sin(k * 2.3) + 0.0006 * math.sin(k * 40)), 2)
     while t <= min(now, end):
         k = (t - t0) / 36e5
-        bars.append([t, round(base * (1 + 0.004 * math.sin(k / 1.7) - 0.002 * math.sin(k * 2.3)), 2)])
+        o, c = f(k - 1 / 60), f(k)
+        bars.append([t, c]); ohlc.append([t, o, round(max(o, c) + 0.15, 2), round(min(o, c) - 0.15, 2), c])
         t += 60000
     st = 'none' if not bars else ('live' if now < end else 'closed')
     last = bars[-1][1] if bars else None
     return json.dumps({'session': issue, 'code': 'A01612', 'name': 'F 202612', 'state': st, 'base': base, 'last': last,
-                       'pct': round((last / base - 1) * 100, 2) if last else None, 'asof': bars[-1][0] if bars else None, 'bars': bars, 'error': None})
+                       'pct': round((last / base - 1) * 100, 2) if last else None, 'asof': bars[-1][0] if bars else None, 'bars': bars, 'ohlc': ohlc, 'error': None})
 
 def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None, perp=None, issue=None):
     ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme='dark' if dark else 'light', timezone_id='Asia/Seoul', locale='ko-KR')
@@ -110,7 +115,11 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         box = p.locator(sel).first
         if box.count() and box.get_by_role('button', name='차트 크게 보기').count():
             box.get_by_role('button', name='차트 크게 보기').click(); p.wait_for_timeout(1200)
-            snap(nm, False); p.keyboard.press('Escape'); p.wait_for_timeout(300)
+            snap(nm, False)
+            five = p.get_by_role('dialog').get_by_role('button', name='5분')   # 실험실 캔들(2026-11-27): 5분봉도 한 장
+            if five.count():
+                five.click(); p.wait_for_timeout(400); snap(nm + '-5m', False)
+            p.keyboard.press('Escape'); p.wait_for_timeout(300)
     fb = p.get_by_role('button', name='의견')
     if fb.count():
         fb.click(); p.wait_for_timeout(500)

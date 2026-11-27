@@ -23,7 +23,8 @@
   IP 당 분당 120회 제한은 그대로다.
   GET  /v1/feedback?since=YYYY-MM-DD   그날부터 쌓인 의견 (토요일 주간 점검용)        — 루틴 키
   /v1/night                      코스피200 야간선물 근월물(한국투자증권 REST, 10초마다) 이번 또는 직전 야간 세션 — 키 없이(사용자 결정 2026-11-26)
-                                 {session, code, name, state(live|waiting|closed), base(직전 주간 종가), last, pct, asof, open, high, low, bars[[1분봉 끝 ms, 값]]}
+                                 {session, code, name, state(live|waiting|closed), base(직전 주간 종가), last, pct, asof, open, high, low, bars[[1분봉 끝 ms, 값]],
+                                  ohlc[[1분봉 끝 ms, 시, 고, 저, 종]](2026-11-27, 10초마다 받은 값으로 만든다. 그 전 세션 파일에는 없다)}
 
 환경 변수 (/etc/jogan-relay.env)
   TOSS_CLIENT_ID, TOSS_CLIENT_SECRET   토스 WTS 설정 > Open API 에서 받은 값
@@ -166,7 +167,7 @@ def live():
     return out
 
 def candles_1m(path, params, start_ms, end_ms):
-    """최신순 200개씩 받아 start_ms 이전까지 거슬러 간다. 반환은 [봉 종료 ms, 시, 종] 오름차순."""
+    """최신순 200개씩 받아 start_ms 이전까지 거슬러 간다. 반환은 [봉 종료 ms, 시, 종, 고, 저] 오름차순(고, 저는 2026-11-27 캔들용으로 뒤에 붙였다)."""
     out, before, pages = {}, None, 0
     while pages < 6:
         q = dict(params, interval='1m', count=200)
@@ -178,7 +179,8 @@ def candles_1m(path, params, start_ms, end_ms):
             # 종목·지수 모두 봉 종료 시각. 명세는 지수 봉을 '시작 시각'이라 적었지만 10/15 실측 코스피는 09:01~15:30 390봉이다
             t = iso_ms(c['timestamp'])
             if start_ms < t <= end_ms + 60000:
-                out[t] = [t, float(c['openPrice']), float(c['closePrice'])]
+                o, cl = float(c['openPrice']), float(c['closePrice'])
+                out[t] = [t, o, cl, float(c.get('highPrice') or max(o, cl)), float(c.get('lowPrice') or min(o, cl))]
         if not cs or not res.get('nextBefore') or iso_ms(cs[-1]['timestamp']) <= start_ms: break
         before = res['nextBefore']
     return [out[k] for k in sorted(out)]
@@ -192,9 +194,10 @@ def intraday(d):
     items = {}
     for s in STOCKS:
         bars = candles_1m('/api/v1/candles', {'symbol': s, 'before': before}, ms(d, 8, 0), end)
-        items[s] = {'bars': [[t, c] for t, o, c in bars], 'open': next((o for t, o, c in bars if t > t_open), None)}
+        items[s] = {'bars': [[b[0], b[2]] for b in bars], 'ohlc': [[b[0], b[1], b[3], b[4], b[2]] for b in bars],
+                    'open': next((b[1] for b in bars if b[0] > t_open), None)}
     bars = candles_1m('/api/v1/market-indicators/%s/candles' % INDEX, {'before': before}, t_open - 60000, min(end, t_close + 60000))   # 개장 1분 전부터 — 명세대로 개장 시각 봉이 와도 첫 봉을 잃지 않게
-    items[INDEX] = {'bars': [[t, c] for t, o, c in bars], 'open': bars[0][1] if bars else None}
+    items[INDEX] = {'bars': [[b[0], b[2]] for b in bars], 'ohlc': [[b[0], b[1], b[3], b[4], b[2]] for b in bars], 'open': bars[0][1] if bars else None}
     return {'date': d.isoformat(), 'asof': datetime.now(KST).isoformat(timespec='seconds'), 'hours': hrs, 'items': items}
 
 def day_candle(path, params, d):
@@ -443,7 +446,7 @@ class Night:
             c = self.cur
             if not c or c.get('session') != sess.isoformat():
                 c = self.cur = {'session': sess.isoformat(), 'code': self.code, 'name': self.name, 'state': 'waiting',
-                                'first': px, 'base': None, 'last': px, 'pct': pct, 'asof': None, 'bars': []}
+                                'first': px, 'base': None, 'last': px, 'pct': pct, 'asof': None, 'bars': [], 'ohlc': []}
             if c['base'] is None and base is not None: c['base'] = base
             if c['state'] == 'waiting' and px == c['first']:
                 return   # 첫 체결 전(지난밤 값). 값이 바뀌어야 시작한다 — 휴장일 밤은 waiting 으로 남는다
@@ -454,6 +457,10 @@ class Night:
             end = (int(now.timestamp()) // 60 + 1) * 60000   # 이 1분봉의 끝 시각
             if c['bars'] and c['bars'][-1][0] == end: c['bars'][-1][1] = px
             else: c['bars'].append([end, px])
+            # 캔들(2026-11-27): 10초마다 받은 값으로 1분봉 시, 고, 저, 종을 만든다. 옛 세션 파일에는 ohlc 가 없다
+            oh = c.setdefault('ohlc', [])
+            if oh and oh[-1][0] == end: k = oh[-1]; k[2], k[3], k[4] = max(k[2], px), min(k[3], px), px
+            else: oh.append([end, px, px, px, px])
             try: self.save()
             except OSError as e: log.warning('야간선물 저장 실패(메모리에는 있다): %s', e)
     def loop(self):
@@ -468,6 +475,7 @@ class Night:
         with self.lock:
             if not self.cur: return {'state': 'none', 'error': self.err}
             c = dict(self.cur); c.pop('first', None); c['bars'] = [list(x) for x in self.cur['bars']]
+            c['ohlc'] = [list(x) for x in self.cur.get('ohlc') or []]
         b = [x[1] for x in c['bars']]
         if b: c.update(open=b[0], high=max(b), low=min(b))
         cur = night_session(datetime.now(KST))

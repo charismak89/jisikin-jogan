@@ -1,7 +1,7 @@
 // 첫 카드(시험 화면, 2026-11-26). 앤트위키 홈 첫 카드처럼 시간대마다 문구, 배경, 차트가 바뀐다.
 // 앤트위키에 없는 것: 07:45 예측 구간 띠, 시가 채점, 야간선물 마감(06:00) 뒤 움직임, 주말 추종가.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { DayData, Ent, Pt } from '../types'
+import type { DayData, Ent, Ohlc, Pt } from '../types'
 import type { Live } from '../lib/live'
 import { band } from '../lib/live'
 import { arrow, hm, md, nf, sg, tk } from '../lib/fmt'
@@ -11,6 +11,7 @@ import { tone } from './lib/tone'
 import { Button } from './components/ui/button'
 import { ChartSheet } from './components/ChartSheet'
 import { ZoomButton } from './components/ui/zoom-button'
+import { LAB } from './lab'
 
 type View = 'session' | 'overnight' | 'proxy'
 type Sky = 'dawn' | 'day' | 'dusk' | 'night'
@@ -23,6 +24,7 @@ interface Model {
   marks: Mark[]; pin?: { t: number; p: number; label: string } | null
   tiles: { key: string; name: string; p: number | null; tag: string | null }[]
   fresh: string | null
+  cand?: Ohlc[] | null   // 크게 보기 캔들(실험실, 2026-11-27). 없으면 선만
 }
 
 const KEY = 'KOSPI'
@@ -108,6 +110,7 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
       pin: o != null ? { t: D.t_open + 6e4, p: o, label: '시가' } : null,
       tiles: tiles((e) => (live.preOpen(e) ? null : live.lastPct(e)), (e) => (live.useKrx(e) ? null : '추종가')),
       fresh: done ? null : krx ? '15초마다' : null,
+      cand: live.sessOhlc(E),
     }
   }
   // 코스피 + 야간선물(중계기 /v1/night, 이 발행일 밤 세션)이 있으면 실제 야간선물로 그린다. 주말과 회차 없는 날은 추종가(야간선물이 없는 시간까지 이어서 본다)
@@ -128,6 +131,7 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
       pin: null,
       tiles: tiles((e) => (e.key === KEY ? fu.pct : feed?.S[e.key].last ?? null), () => null),
       fresh: done ? endLabel : fu.asof ? `${hm(fu.asof)} 기준${fu.state === 'live' ? ' · 10초마다' : ''}` : null,
+      cand: fu.ohlc.length ? fu.ohlc : null,
     }
   }
   // proxy — 발행일 마감 대비 밤 추종가
@@ -149,6 +153,7 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
     pin: null,
     tiles: tiles((e) => (e.key === KEY && futOK && fu ? fu.pct : feed?.S[e.key].last ?? null), () => null),
     fresh: st?.lastT ? `${hm(st.lastT)} 기준${feed && feed.fails >= 3 ? ' · 지연' : ''}` : null,
+    cand: st?.ohlc.length ? st.ohlc : null,
   }
 }
 
@@ -199,7 +204,7 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
       <Chart M={M} now={now} />
       {big && <ChartSheet onClose={closeBig} spec={{ kind: 'line', title: M.label, note: [M.note, M.fresh].filter(Boolean).join(', ') || null,
         pts: M.lines, x0: M.x0, x1: M.x1, band: M.band ? { lo: M.band.lo, hi: M.band.hi } : null, pin: M.pin ?? null,
-        level: view === 'session' ? (p: number) => lvl(E, E.prev, p, false) : undefined }} />}
+        level: view === 'session' ? (p: number) => lvl(E, E.prev, p, false) : undefined, candles: LAB ? M.cand ?? null : null }} />}
 
       <div role="group" aria-label="차트 종목 고르기" className="mt-3 grid grid-cols-3 gap-1.5">
         {M.tiles.map((t) => (

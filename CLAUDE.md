@@ -50,6 +50,7 @@
 
 ## 작업 규칙
 - main 에 머지 = 발행. GitHub Pages 가 1~2분 뒤 사이트에 반영한다. PR 검사는 `check / render`, `check / web` 이고, 통과하면 위 "PR 머지"대로 바로 머지한다.
+- 화면 개발은 실험실에 먼저 낸다(사용자 결정 2026-11-27). 새 기능은 `web/src/labs/lab.ts` 의 `LAB` 뒤에 두고 versions.json 의 labs 만 올린다. 사용자가 `/labs/` 를 보고 승인하면 '메인 전환 PR'에서 `LAB` 조건을 지우고 main 을 labs 와 같게 올린다. 브리핑 본문(render.py, template-v5.html)과 day.json 공용 필드는 메인과 같이 바뀌니 구현 전에 사용자에게 묻는다.
 - 화면(`template-v5.html`, `web/`, `style*.css`)을 바꾼 PR 은 머지 전에 `python3 uicheck.py` 를 돌린다. 경로 규칙(web.md)은 Bash 로 고칠 때 늦게 읽힐 수 있다.
 - 세션 브랜치 PR 이 머지된 뒤 `origin/main` 에서 다시 시작한 브랜치는 일반 push 로 올라간다(머지 커밋이 이전 head 를 포함). `-f` 를 쓰지 않는다. `git push -f`, `--force` 는 `.claude/settings.json` 의 `ask` 규칙이 확인 창을 띄운다.
 - 머지 예외: `claude/hold-<날짜>` 회차 브랜치. 게이트가 막은 회차라 HOLD 사유와 diff 요약을 한 줄로 알리고 내 판단을 받는다. `claude/publish-<날짜>`(게이트 통과, main push 만 거부된 회차)는 바로 머지한다.
