@@ -13,7 +13,6 @@ import { tone } from './lib/tone'
 import { Card, Cap } from './components/ui/card'
 import { Button } from './components/ui/button'
 import { cn } from './lib/cn'
-import { LAB } from './lab'
 
 export const WATCH_MAX = 20
 export const GROUP_MAX = 10
@@ -212,11 +211,11 @@ export function Watch({ data }: { data: DayData }) {
           <table className="w-full table-fixed text-right">
             <thead>
               <tr className="border-y border-line text-caption1 text-fg-2">
-                <th scope="col" className={cn(LAB ? 'w-[37%]' : 'w-[30%]', 'py-2 pl-4 text-left font-semibold sm:pl-6')}>종목명</th>
+                <th scope="col" className={'w-[37%] py-2 pl-4 text-left font-semibold sm:pl-6'}>종목명</th>
                 {edit ? <th scope="col" className="py-2 pr-4 font-semibold sm:pr-6">순서, 삭제</th> : <>
-                  <th scope="col" className={cn(LAB ? 'w-[20%]' : 'w-[24%]', 'py-2 font-semibold')}>현재가</th>
-                  <th scope="col" className={cn(LAB ? "w-[19%]" : "w-[21%]", "py-2 font-semibold")}>{LAB ? "등락" : "등락(대비)"}</th>
-                  <th scope="col" className={cn("py-2 pr-4 font-semibold sm:pr-6", LAB && !edit && "whitespace-nowrap pl-2")}>{LAB ? <>거래대금{anyApprox && '*'}</> : '거래량'}</th></>}
+                  <th scope="col" className={'w-[20%] py-2 font-semibold'}>현재가</th>
+                  <th scope="col" className="w-[19%] py-2 font-semibold">등락</th>
+                  <th scope="col" className={cn("py-2 pr-4 font-semibold sm:pr-6", !edit && "whitespace-nowrap pl-2")}>거래대금{anyApprox && '*'}</th></>}
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -225,23 +224,23 @@ export function Watch({ data }: { data: DayData }) {
                 return (
                   <tr key={c}>
                     <th scope="row" className="py-2.5 pl-4 text-left font-normal sm:pl-6">
-                      <div className={cn('font-semibold text-fg sm:text-body2', LAB ? 'line-clamp-2 break-all text-label2 leading-tight' : 'truncate text-label1')}>{n}</div>
+                      <div className={'line-clamp-2 break-all text-label2 font-semibold leading-tight text-fg sm:text-body2'}>{n}</div>
                       <div className="num text-caption1 text-fg-2">{c}{!kr && ` · ${MK_L[mk || ''] || '미국'}`}</div>
                     </th>
                     {!edit && <>
-                      <td className={cn('num py-2.5 font-semibold sm:text-body2', LAB ? 'text-caption1' : 'text-label2', tone(p))}>{k?.last != null ? nf(k.last, dp) : '—'}</td>
+                      <td className={cn('num py-2.5 text-caption1 font-semibold sm:text-body2', tone(p))}>{k?.last != null ? nf(k.last, dp) : '—'}</td>
                       <td className={cn('num py-2.5', tone(p))}>
-                        <div className={cn('font-semibold sm:text-body2', LAB ? 'text-caption1' : 'text-label2')}>{p != null ? sgn(p, Math.abs(p).toFixed(2) + '%') : '—'}</div>
+                        <div className={'text-caption1 font-semibold sm:text-body2'}>{p != null ? sgn(p, Math.abs(p).toFixed(2) + '%') : '—'}</div>
                         <div className="text-caption1">{k?.chg != null ? sgn(k.chg, nf(Math.abs(k.chg), dp)) : ''}</div>
                       </td></>}
-                    <td className={cn('num py-2.5 pr-4 sm:pr-6 sm:text-body2', LAB && !edit ? 'pl-2 text-caption1 text-fg-2' : 'text-label2 text-fg')}>
+                    <td className={cn('num py-2.5 pr-4 sm:pr-6 sm:text-body2', !edit ? 'pl-2 text-caption1 text-fg-2' : 'text-label2 text-fg')}>
                       {edit ? (
                         <span className="inline-flex gap-1.5">
                           <button type="button" aria-label={`${n} 위로`} disabled={i === 0} onClick={() => move(i, -1)} className="size-9 rounded-sm bg-fill text-fg disabled:opacity-40">↑</button>
                           <button type="button" aria-label={`${n} 아래로`} disabled={i === items.length - 1} onClick={() => move(i, 1)} className="size-9 rounded-sm bg-fill text-fg disabled:opacity-40">↓</button>
                           <button type="button" aria-label={`${n} 삭제`} onClick={() => del(c)} className="size-9 rounded-sm bg-fill font-bold text-negative">×</button>
                         </span>
-                      ) : LAB ? (() => { const a = amtOf(k); return a ? money(a.v, kr) : '—' })() : k?.vol != null ? nf(k.vol) : '—'}
+                      ) : (() => { const a = amtOf(k); return a ? money(a.v, kr) : '—' })()}
                     </td>
                   </tr>
                 )
@@ -250,12 +249,12 @@ export function Watch({ data }: { data: DayData }) {
           </table>
         ) : (
           <div className="border-t border-line px-4 pt-6 text-center sm:px-6">
-            <p className="text-body2 text-fg-2">{LAB ? "'+ 추가'로 종목을 넣으세요." : "이 그룹은 비어 있습니다. 위 '+ 추가'로 종목을 넣으면 현재가와 등락을 한눈에 봅니다."}</p>
+            <p className="text-body2 text-fg-2">'+ 추가'로 종목을 넣으세요.</p>
           </div>
         )}
         <div className="border-t border-line px-4 sm:px-6">
           {items.length > 0 && <p className={cn('mt-3 text-caption1 font-semibold', fail ? 'text-negative' : 'text-fg-2')}>{status}</p>}
-          {LAB ? <Cap>KRX+NXT 통합 · 등락은 전일 KRX 종가 대비{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(일부 통합 종가)' : ''}{anyApprox ? ' · * 거래량×현재가 어림' : ''}</Cap> : <Cap>국내 종목의 현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '링크 복사'로 지금 그룹을 옮기세요. 미국 종목은 달러이고 등락은 직전 정규장 종가 대비입니다. 한국 낮 시간의 현재가와 거래량은 토스 미국주식 주간거래 값입니다.</Cap>}
+          <Cap>KRX+NXT 통합 · 등락은 전일 KRX 종가 대비{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(일부 통합 종가)' : ''}{anyApprox ? ' · * 거래량×현재가 어림' : ''}</Cap>
         </div>
       </Card>
 

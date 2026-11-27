@@ -11,7 +11,6 @@ import { tone } from './lib/tone'
 import { Button } from './components/ui/button'
 import { ChartSheet } from './components/ChartSheet'
 import { ZoomButton } from './components/ui/zoom-button'
-import { LAB } from './lab'
 
 type View = 'session' | 'overnight' | 'proxy'
 type Sky = 'dawn' | 'day' | 'dusk' | 'night'
@@ -57,8 +56,8 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
   const status = {
     pre: `${S.open} 개장까지 ${inMin(minsTo(D.t_open, now))}${S.why ? ` · ${S.why}` : ''}`,
     live: `정규장 · ${S.close}까지`,
-    closed: LAB ? `정규장 마감 · 야간선물 ${inMin(minsTo(F.nightStart, now))} 뒤` : `오늘 정규장 마감 · 야간선물 ${inMin(minsTo(F.nightStart, now))} 뒤 시작`,
-    night: futOK ? '야간선물 거래 중 · 06:00까지' : LAB ? '밤 · 해외 추종가' : '밤 · 해외 추종가로 보는 중',
+    closed: `정규장 마감 · 야간선물 ${inMin(minsTo(F.nightStart, now))} 뒤`,
+    night: futOK ? '야간선물 거래 중 · 06:00까지' : '밤 · 해외 추종가',
     dawn: now < F.nextBrief ? `야간선물 마감 · ${hm(F.nextBrief)} 전망 준비 중` : `${hm(F.nextBrief)} 전망 올리는 중`,
     weekend: `주말 · ${dayLabel(F.nextBrief)} ${hm(F.nextBrief)} 전망`,
     late: '오늘 전망 없음 · 발행 전이거나 휴장일',
@@ -103,7 +102,7 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
       label: `${E.name} · ${done ? `${md(data.issue)} 마감` : '실시간'}`, big: p == null ? '—' : sg(p), bigDir: p,
       level: p == null ? undefined : lvl(E, E.prev, p, !krx),
       note: o != null && E.lo != null ? `시가 ${sg(o)} · 07:45 전망 구간 ${band(E, o)}` : `07:45 전망 ${E.lo != null && E.hi != null ? `${sg(E.lo)} ~ ${sg(E.hi)}` : '없음'}`,
-      foot: krx ? null : LAB ? '시세 연결 전 · 추종가' : '토스 시세 연결 전 · 해외 추종가로 대신 그림',
+      foot: krx ? null : '시세 연결 전 · 추종가',
       lines: live.sessPts(E).map((b) => [b[0], b[1]] as Pt), x0: D.t_open, x1: D.t_close,
       band: E.lo != null && E.hi != null ? { lo: E.lo, hi: E.hi, from: D.t_open, to: D.t_open + (D.t_close - D.t_open) * 0.1 } : null,
       marks: [{ t: D.t_open, label: `${S.open} 개장` }, { t: D.t_open + 3 * 3600e3, label: '정오' }, { t: D.t_close, label: `${S.close} 마감` }],
@@ -121,10 +120,10 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
     const postP = feed!.S[E.key].last, at6 = feed!.at(E.key, F.nightEnd)
     const post = done && postP != null && at6 != null ? postP - at6 : null
     return { ...base,
-      label: done ? `코스피200 야간선물 · ${endLabel}` : LAB ? '코스피200 야간선물' : `코스피200 야간선물 · 주간 종가 ${nf(fu.base as number, 2)} 대비`, badge: '야간선물',
+      label: done ? `코스피200 야간선물 · ${endLabel}` : '코스피200 야간선물', badge: '야간선물',
       big: sg(fu.pct as number), bigDir: fu.pct, level: nf(fu.last as number, 2),
-      note: post != null ? `마감 뒤 해외 추종가 ${sg(post)}p` : done ? `${endLabel}값` : fu.state === 'closed' ? '야간선물 거래가 끝났습니다' : LAB ? `주간 종가 ${nf(fu.base as number, 2)} 대비` : `${fu.name} · 한국거래소 야간시장`,
-      foot: ph === 'night' && !LAB ? `${dayLabel(F.nextBrief)} 07:45 전망은 이 야간선물 마감값으로 시작합니다. 삼성전자, SK하이닉스는 야간시장이 없어 해외 추종가입니다` : null,
+      note: post != null ? `마감 뒤 해외 추종가 ${sg(post)}p` : done ? `${endLabel}값` : fu.state === 'closed' ? '야간선물 거래가 끝났습니다' : `주간 종가 ${nf(fu.base as number, 2)} 대비`,
+      foot: null,
       lines: fu.pts, x0: F.nightStart, x1,
       band: null,
       marks: [{ t: F.nightStart, label: '18:00' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '06:00' }],
@@ -144,8 +143,8 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
     label: `${isK ? '코스피200' : E.name} 추종가 · ${md(data.issue)} ${S.close} 대비`, badge: '추종가', big: q == null ? (feed?.ok === false ? '미확보' : '—') : sg(q), bigDir: q,
     level: q != null && cl != null ? lvl(E, E.prev * (1 + cl / 100), q, true) : undefined,
     note: post != null ? `야간선물 마감(${now - F.nightEnd > 864e5 / 2 ? dayLabel(F.nightEnd) + ' ' : ''}${hm(F.nightEnd)}) 뒤 ${sg(post)}p`
-      : !isK ? (LAB ? '야간시장 없음 · 해외 추종가' : `${E.name}는 야간시장이 없어 해외 24시간 추종가입니다`) : waiting ? (LAB ? '야간선물 첫 체결 전' : '야간선물 첫 체결 기다리는 중 · 그동안 해외 추종가') : LAB ? null : '실제 야간선물 시세가 아닙니다',
-    foot: ph === 'night' && isK && !LAB ? `야간선물(18:00~06:00)과 06:00 마감 대조 평균 0.36%p 차이(29회). ${dayLabel(F.nextBrief)} 07:45 전망에는 실제 야간선물을 씁니다` : null,
+      : !isK ? '야간시장 없음 · 해외 추종가' : waiting ? '야간선물 첫 체결 전' : null,
+    foot: null,
     lines: st?.pts ?? [], x0: F.base, x1,
     band: null,
     marks: [{ t: F.base, label: `${S.close} 마감` }, { t: F.nightStart, label: '18:00' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '06:00' },
@@ -178,9 +177,9 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
   return (
     <section aria-label="지금 시장" data-sky={M.sky} className="sky relative overflow-hidden rounded-lg p-4 shadow-xs ring-1 ring-line-2 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <div className={`flex min-w-0 items-center gap-1.5 font-semibold text-fg-2 ${LAB ? 'text-label2 max-[380px]:text-caption1' : 'text-label2'}`}>
+        <div className={`flex min-w-0 items-center gap-1.5 font-semibold text-fg-2 text-label2 max-[380px]:text-caption1`}>
           <span aria-hidden className={`sky-dot sky-dot-${M.dot} size-2 shrink-0 rounded-full`} />
-          <span className={LAB ? 'min-w-0 leading-snug' : 'truncate'}>{M.status}</span>
+          <span className="min-w-0 leading-snug">{M.status}</span>
         </div>
         {alt && (
           <Button variant="assistive" size="small" onClick={() => setFlip((v) => !v)} aria-pressed={flip}
@@ -216,7 +215,7 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
         ))}
       </div>
 
-      {LAB && <FlowRow relay={data.day.relay} issue={data.issue} live={ph === 'live'} show={now >= data.day.t_open} />}
+      <FlowRow relay={data.day.relay} issue={data.issue} live={ph === 'live'} show={now >= data.day.t_open} />
       {M.foot && <p className="mt-2 text-caption1 leading-snug text-fg-2">{M.foot}</p>}
       <div className="mt-3 flex items-center justify-between gap-2">
         <span className="text-caption1 text-fg-2">{M.fresh ?? ''}</span>

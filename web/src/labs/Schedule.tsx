@@ -11,7 +11,6 @@ import { Card, Cap } from './components/ui/card'
 import { Button } from './components/ui/button'
 import { cn } from './lib/cn'
 import { isKr, loadStore } from './Watch'
-import { LAB } from './lab'
 
 type Kind = 'MKT' | 'IR' | 'EARN' | 'DIV'
 interface Ev { date: string; kind: Kind; title: string; name?: string; code?: string; rcept_no?: string; approx?: boolean }
@@ -96,7 +95,7 @@ export function Schedule({ data }: { data: DayData }) {
   const shown = all.filter((e) => inWeek(e.date) && match(f, e.kind))
   const byDay = days.map((d) => ({ d, evs: shown.filter((e) => e.date === d) }))
   const thisWeek = mon === monday(today)
-  const isMonth = LAB && mode === 'month'
+  const isMonth = mode === 'month'
   // 월간 칸: 그달 1일이 든 주 월요일부터 마지막 날이 든 주 일요일까지
   const cells = useMemo(() => {
     if (!isMonth) return []
@@ -117,25 +116,22 @@ export function Schedule({ data }: { data: DayData }) {
       <div className="mb-3 flex items-center justify-between gap-2 px-4 sm:px-6">
         <h2 className="min-w-0 text-headline1 font-bold text-fg">{isMonth ? `${+ym.slice(5, 7)}월 일정` : `${weekLabel(mon)} 일정`}</h2>
         <span className="flex shrink-0 items-center gap-1.5">
-          {LAB && (
-            <span role="group" aria-label="보기" className="flex rounded-full bg-fill p-0.5">
-              {(['week', 'month'] as const).map((m) => (
-                <button key={m} type="button" aria-pressed={mode === m} onClick={() => setView(m)}
-                  className={cn('min-h-8 rounded-full px-3 text-label2 font-semibold', mode === m ? 'bg-card text-fg shadow-xs' : 'text-fg-2')}>{m === 'week' ? '주' : '월'}</button>
-              ))}
-            </span>
-          )}
+          <span role="group" aria-label="보기" className="flex rounded-full bg-fill p-0.5">
+            {(['week', 'month'] as const).map((m) => (
+              <button key={m} type="button" aria-pressed={mode === m} onClick={() => setView(m)}
+                className={cn('min-h-8 rounded-full px-3 text-label2 font-semibold', mode === m ? 'bg-card text-fg shadow-xs' : 'text-fg-2')}>{m === 'week' ? '주' : '월'}</button>
+            ))}
+          </span>
           {isMonth ? <>
             <Button variant="assistive" size="small" aria-label="지난달" onClick={() => goMonth(-1)}>‹</Button>
             <Button variant="assistive" size="small" aria-label="다음 달" onClick={() => goMonth(1)}>›</Button>
           </> : <>
             <Button variant="assistive" size="small" aria-label="지난주" onClick={() => setMon(addDays(mon, -7))}>‹</Button>
-            {!thisWeek && !LAB && <Button variant="assistive" size="small" onClick={() => setMon(monday(today))}>이번 주</Button>}
             <Button variant="assistive" size="small" aria-label="다음 주" onClick={() => setMon(addDays(mon, 7))}>›</Button>
           </>}
         </span>
       </div>
-      {LAB && ((isMonth && ym !== month1(today)) || (!isMonth && !thisWeek)) && (
+      {((isMonth && ym !== month1(today)) || (!isMonth && !thisWeek)) && (
         <div className="-mt-1 mb-2 px-4 sm:px-6">
           <button type="button" className="text-label2 font-semibold text-fg-2 underline" onClick={() => { if (isMonth) { setYm(month1(today)); setSel(today) } else setMon(monday(today)) }}>{isMonth ? '이번 달로' : '이번 주로'}</button>
         </div>
@@ -192,7 +188,7 @@ export function Schedule({ data }: { data: DayData }) {
                   <li key={i} className="flex gap-2.5">
                     <span className={cn('mt-1.5 size-2 shrink-0 rounded-full', DOT[e.kind])} aria-hidden />
                     <div className="min-w-0">
-                      <p className="text-body2 font-semibold text-fg">{e.name ? `${e.name} ` : ''}{e.title}{e.approx && <span className="font-normal text-fg-2">{LAB ? ' (공시일)' : ' (공시일, 날짜는 원문 확인)'}</span>}</p>
+                      <p className="text-body2 font-semibold text-fg">{e.name ? `${e.name} ` : ''}{e.title}{e.approx && <span className="font-normal text-fg-2"> (공시일)</span>}</p>
                       <p className="text-caption1 text-fg-2">{KIND_L[e.kind]}{e.rcept_no && <> · <a className="underline" href={`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${e.rcept_no}`} target="_blank" rel="noopener noreferrer">DART 공시</a></>}</p>
                     </div>
                   </li>
@@ -204,8 +200,7 @@ export function Schedule({ data }: { data: DayData }) {
         {!isMonth && !shown.length && !byDay.some((x) => x.d === today) && <p className="border-t border-line py-4 text-body2 text-fg-2">이번 주 일정이 없어요</p>}
         {dart == null && <p className="py-2 text-caption1 text-fg-2">종목 일정 받는 중…</p>}
         {dartErr && <p className="py-2 text-caption1 text-negative">{dartErr}</p>}
-        {LAB && <Cap>종목 일정 날짜는 DART 공시에서 자동으로 읽어 원문 확인이 필요합니다</Cap>}
-        {!LAB && <Cap>시장 일정은 휴장, 장 시간 변경, 코스피200 만기입니다. 종목 일정은 삼성전자, SK하이닉스와 관심 그룹의 국내 종목(최대 30)의 DART 공시에서 뽑았습니다(IR 개최, 잠정실적, 배당 기준일과 지급일). 날짜는 공시 원문에서 자동으로 읽어 틀릴 수 있으니 원문을 확인하세요. 경제지표 발표 일정은 아직 없습니다.</Cap>}
+        <Cap>종목 일정 날짜는 DART 공시에서 자동으로 읽어 원문 확인이 필요합니다</Cap>
       </div>
     </Card>
   )
