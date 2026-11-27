@@ -54,7 +54,8 @@ const hms = (t: number) => { const d = new Date(t + 9 * 3600e3); return `${two(d
 const amtOf = (k: Quote | undefined): { v: number; approx: boolean } | null => {
   if (!k || k.vol == null || k.last == null) return k?.amt != null ? { v: k.amt, approx: false } : null
   const est = k.vol * k.last
-  return k.amt != null && est > 0 && k.amt / est > 1 / 3 && k.amt / est < 3 ? { v: k.amt, approx: false } : { v: est, approx: true }
+  if (k.amt != null && (!(est > 0) || (k.amt / est > 1 / 3 && k.amt / est < 3))) return { v: k.amt, approx: false }
+  return est > 0 ? { v: est, approx: true } : null
 }
 /** 원은 조, 억, 만. 달러는 B, M, K */
 const money = (v: number, kr: boolean) => {

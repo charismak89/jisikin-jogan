@@ -76,7 +76,7 @@ export function Schedule({ data }: { data: DayData }) {
     let dead = false
     const j = (p: string) => fetch(site(p), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}))
     Promise.all([j('holidays.json'), j('market_hours.json')]).then(([h, m]) => {
-      if (!dead) setMkt(marketEvents(h, m, addDays(today, -60), addDays(today, 120)))
+      if (!dead) setMkt(marketEvents(h, m, addDays(today, -400), addDays(today, 400)))
     })
     return () => { dead = true }
   }, [today])
@@ -204,6 +204,7 @@ export function Schedule({ data }: { data: DayData }) {
         {!isMonth && !shown.length && !byDay.some((x) => x.d === today) && <p className="border-t border-line py-4 text-body2 text-fg-2">이번 주 일정이 없어요</p>}
         {dart == null && <p className="py-2 text-caption1 text-fg-2">종목 일정 받는 중…</p>}
         {dartErr && <p className="py-2 text-caption1 text-negative">{dartErr}</p>}
+        {LAB && <Cap>종목 일정 날짜는 DART 공시에서 자동으로 읽어 원문 확인이 필요합니다</Cap>}
         {!LAB && <Cap>시장 일정은 휴장, 장 시간 변경, 코스피200 만기입니다. 종목 일정은 삼성전자, SK하이닉스와 관심 그룹의 국내 종목(최대 30)의 DART 공시에서 뽑았습니다(IR 개최, 잠정실적, 배당 기준일과 지급일). 날짜는 공시 원문에서 자동으로 읽어 틀릴 수 있으니 원문을 확인하세요. 경제지표 발표 일정은 아직 없습니다.</Cap>}
       </div>
     </Card>
