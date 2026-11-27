@@ -11,7 +11,7 @@
   --brand: var(--mt-foreground-brand-primary); --brand-soft: var(--mt-surface-brand-subtle);
   --up: var(--mt-fin-up); --dn: var(--mt-fin-down); --ok: var(--mt-foreground-positive-primary);
   --shadow: var(--mt-elevation-shadow-normal-xsmall), 0 0 0 1px var(--mt-line-neutral-secondary);
-  /* 하방 체크: 옅은 주황 바탕, 글자는 본문색, 주황은 왼쪽 띠로만(주황 글자는 4.5:1 이 안 나온다) */
+  /* 하방 체크: 옅은 주황 바탕, 글자는 본문색, 주황은 제목 앞 점으로만(주황 글자는 4.5:1 이 안 나온다) */
   --warn-bg: var(--mt-surface-cautionary-primary); --warn-tx: var(--mt-foreground-neutral-primary); --warn-strong: var(--mt-foreground-neutral-primary);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,9 +75,10 @@ summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; bo
 .dbody p + p { margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) { summary::after { transition: none; } }
 
-/* 하방 체크 — 회색 상자. '가장 약한 고리'만 주황 */
-.chk { background: var(--warn-bg); border-radius: 12px; padding: 14px 16px; margin-top: 16px; box-shadow: inset 3px 0 0 var(--mt-foreground-cautionary-primary); }
-.ct { font-size: 12px; font-weight: 700; color: var(--warn-strong); }
+/* 하방 체크 — 회색 상자. '가장 약한 고리'만 옅은 주황 바탕과 제목 앞 주황 점(2026-11-27 왼쪽 띠를 뺐다. 상태는 점과 글자로 쓴다, DESIGN.md 1절) */
+.chk { background: var(--warn-bg); border-radius: 12px; padding: 14px 16px; margin-top: 16px; }
+.ct { font-size: 12px; font-weight: 700; color: var(--warn-strong); display: flex; align-items: center; gap: 6px; }
+.chk:not(.soft) .ct::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mt-foreground-cautionary-primary); flex: none; }
 .cl { font-size: 15px; font-weight: 600; color: var(--warn-tx); margin-top: 4px; line-height: 1.55; }
 .chk summary { color: var(--warn-strong); }
 .chk .dbody { color: var(--warn-tx); background: color-mix(in srgb, var(--card) 65%, transparent); }
