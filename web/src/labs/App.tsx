@@ -14,6 +14,8 @@ import { BriefTab } from './components/BriefTab'
 import { Feedback } from './components/Feedback'
 import { Card } from './components/ui/card'
 import { site, versions, vlabel } from '../lib/site'
+import { LAB } from './lab'
+import { Watch } from './Watch'
 
 // 2026-11-27 메인 전환 뒤 메인(vite 기본 모드)과 실험실(--mode labs)이 이 앱을 같이 쓴다. 실험실에서만 띠와 '메인으로'를 보인다
 const IS_LABS = import.meta.env.MODE === 'labs'
@@ -73,7 +75,8 @@ function Summary({ data, onBrief }: { data: DayData; onBrief: () => void }) {
 export default function App() {
   const [data, setData] = useState<DayData | null>(null)
   const [err, setErr] = useState('')
-  const [tab, setTab] = useState(() => (location.hash === '#brief' ? 'brief' : 'dash'))
+  // 관심 탭은 실험실에만(LAB). #watch 나 목록 링크(#w=)로 열면 바로 관심 탭
+  const [tab, setTab] = useState(() => (location.hash === '#brief' ? 'brief' : LAB && /^#(watch|w=)/.test(location.hash) ? 'watch' : 'dash'))
 
   useEffect(() => {
     fetch(site('day.json'), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
@@ -93,7 +96,7 @@ export default function App() {
   }, [data])
   useEffect(() => (feed ? feed.start() : undefined), [feed])
   const past = !!data && kstDay(Date.now()) > data.issue
-  const go = (v: string) => { setTab(v); try { history.replaceState(null, '', v === 'brief' ? '#brief' : location.pathname + location.search) } catch { /* 무시 */ } window.scrollTo(0, 0) }
+  const go = (v: string) => { setTab(v); try { history.replaceState(null, '', v === 'brief' ? '#brief' : v === 'watch' ? '#watch' : location.pathname + location.search) } catch { /* 무시 */ } window.scrollTo(0, 0) }
 
   return (
     <>
@@ -118,7 +121,7 @@ export default function App() {
           <Tabs value={tab} onValueChange={go}>
             <div className="mb-3 flex items-center gap-2">
               <TabsList aria-label="보기 전환">
-                {[['dash', '대시보드'], ['brief', '브리핑 전문']].map(([v, l]) => (
+                {[['dash', '대시보드'], ...(LAB ? [['watch', '관심']] : []), ['brief', '브리핑 전문']].map(([v, l]) => (
                   <TabsTrigger key={v} value={v}>{l}</TabsTrigger>
                 ))}
               </TabsList>
@@ -139,6 +142,7 @@ export default function App() {
                 </div>
               </div>
             </TabsContent>
+            {LAB && <TabsContent value="watch"><Watch data={data} /></TabsContent>}
             <TabsContent value="brief"><BriefTab data={data} /></TabsContent>
             {past && <p className="mt-4 px-2 text-center text-caption1 text-fg-2">{md(data.issue)} 회차가 마지막 발행입니다.</p>}
             <p className="mt-6 px-2 text-center text-caption1 leading-relaxed text-fg-2">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a> · {IS_LABS ? '실험실' : '화면'} {vlabel(IS_LABS ? versions.labs : versions.main)}</p>

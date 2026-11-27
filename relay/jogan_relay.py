@@ -25,6 +25,10 @@
   /v1/night                      코스피200 야간선물 근월물(한국투자증권 REST, 10초마다) 이번 또는 직전 야간 세션 — 키 없이(사용자 결정 2026-11-26)
                                  {session, code, name, state(live|waiting|closed), base(직전 주간 종가), last, pct, asof, open, high, low, bars[[1분봉 끝 ms, 값]],
                                   ohlc[[1분봉 끝 ms, 시, 고, 저, 종]](2026-11-27, 10초마다 받은 값으로 만든다. 그 전 세션 파일에는 없다)}
+  /v1/stocks                     코스피, 코스닥 상장 종목 [코드, 이름, 시장] (관심종목 검색용, 6시간 캐시)        — 키 없이(2026-11-27 실험실)
+  /v1/quotes?symbols=A,B         관심종목 시세, 최대 QUOTE_MAX 종목. 현재가(KRX+NXT 통합), 전일 대비(직전 세션 KRX 종가 기준),
+                                 거래량(통합 일봉) — 키 없이(2026-11-27 실험실)
+  /v1/kospi-daily                코스피 일봉 시, 고, 저, 종 최근 30개 (20거래일 캔들용, 1분 캐시)                  — 키 없이(2026-11-27 실험실)
 
 환경 변수 (/etc/jogan-relay.env)
   TOSS_CLIENT_ID, TOSS_CLIENT_SECRET   토스 WTS 설정 > Open API 에서 받은 값
@@ -36,8 +40,9 @@
   TOSS_API                             기본 https://openapi.tossinvest.com (시험용으로만 바꾼다)
   KIS_APPKEY, KIS_APPSECRET            한국투자증권 실전 앱 키(야간선물). 없으면 /v1/night 는 503
 """
-import hmac, json, logging, os, secrets, sys, threading, time, urllib.error, urllib.parse, urllib.request
+import hmac, json, logging, os, re, secrets, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from datetime import date, datetime, timedelta, timezone
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 KST = timezone(timedelta(hours=9))
@@ -46,7 +51,7 @@ CID = os.environ.get('TOSS_CLIENT_ID', '')
 CSECRET = os.environ.get('TOSS_CLIENT_SECRET', '')
 ROUTINE_KEY = os.environ.get('ROUTINE_KEY', '').strip()
 PUBLIC_VIEW = os.environ.get('PUBLIC_VIEW', '1').strip().lower() not in ('0', 'false', 'no', 'off')
-PUBLIC_PATHS = ('/v1/live', '/v1/intraday', '/v1/night')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
+PUBLIC_PATHS = ('/v1/live', '/v1/intraday', '/v1/night', '/v1/stocks', '/v1/quotes', '/v1/kospi-daily')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
 ORIGINS = [o.strip() for o in os.environ.get('ALLOW_ORIGINS', 'https://charismak89.github.io').split(',') if o.strip()]
 STATE_DIR = os.environ.get('STATE_DIR', '/var/lib/jogan-relay')
 PORT = int(os.environ.get('PORT', '8787'))
@@ -130,7 +135,10 @@ def toss(path, params=None, retry=True):
 # 실패도 ERR_TTL 초 동안 기억한다 — 업스트림이 죽었을 때 줄 선 요청이 차례로 10초씩 기다리지 않게.
 _cache, _clock, _klocks = {}, threading.Lock(), {}
 ERR_TTL, CACHE_MAX = 3, 300
-def cached(key, ttl, fn):
+# 관심종목 시세(2026-11-27)는 종목 조합마다 키가 생겨서 따로 둔다 — 공용 캐시의 intraday, stocks 를 밀어내지 않게(검수)
+_qcache, _qklocks = {}, {}
+def cached(key, ttl, fn, store=None):
+    _cache, _klocks = store or (globals()['_cache'], globals()['_klocks'])
     def fresh():
         hit = _cache.get(key)
         return hit if hit and time.time() - hit[0] < (ttl if hit[2] is None else min(ttl, ERR_TTL)) else None
@@ -145,7 +153,7 @@ def cached(key, ttl, fn):
                 except Exception as e: hit = (time.time(), None, e)
                 with _clock:
                     _cache[key] = hit
-                    if len(_cache) > CACHE_MAX:   # 오래된 것부터 버린다(루틴 키 요청은 날짜가 제각각이라 끝없이 쌓일 수 있다)
+                    if len(_cache) > (CACHE_MAX if store is None else 2000):   # 오래된 것부터 버린다(루틴 키 요청은 날짜가 제각각이라 끝없이 쌓일 수 있다)
                         for k, _ in sorted(_cache.items(), key=lambda kv: kv[1][0])[:len(_cache) - CACHE_MAX]:
                             _cache.pop(k, None); _klocks.pop(k, None)
     if hit[2] is not None: raise hit[2]
@@ -327,6 +335,88 @@ def kr_hours(d):
 def hm_ms(d, hm, add_min=0):
     h, m = (int(x) for x in hm.split(':'))
     return ms(d, h, m) + add_min * 60000
+
+# ---------- 관심종목, 코스피 일봉(2026-11-27 실험실, 사용자 결정 "관심종목 계획대로 실험실에, 20거래일 캔들") ----------
+QUOTE_MAX = 20
+SYM_RE = re.compile(r'^[0-9A-Z]{6}$')
+
+def stock_list():
+    """코스피, 코스닥 상장(ACTIVE) 종목. 토스 명세가 하루 1회 받아 캐싱하라고 권한다."""
+    out = []
+    for mk in ('KOSPI', 'KOSDAQ'):
+        for r in toss('/api/v1/stocks/all', {'market': mk}) or []:
+            if r.get('symbol') and r.get('name'): out.append([r['symbol'], r['name'], mk])
+    if not out: raise ValueError('stocks/all 빈 응답')
+    return {'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': out}
+
+_base, _blk = {}, threading.Lock()
+def krx_base(s, ref):
+    """ref(최근 세션) 직전 세션의 KRX 종가. 종목, 날짜마다 한 번만 1분봉을 읽는다(실패는 기억하지 않는다).
+    직전 세션 날짜는 일봉 목록에서 ref 바로 앞 날짜다. 1분봉이 없으면 None — 호출한 쪽이 통합 일봉 종가로 대신한다."""
+    k = (s, ref)
+    with _blk:
+        if k in _base: return _base[k]
+    try:
+        d = date.fromisoformat(ref)
+        v = krx_day(s, d)
+        val = v['close'] if v else None
+    except Exception as e:
+        log.warning('KRX 종가 %s %s 실패: %s', s, ref, e); return None
+    if val is None: return None   # 빈 응답은 기억하지 않는다(일시적일 수 있다)
+    with _blk:
+        if len(_base) > 3000: _base.clear()
+        _base[k] = val
+    return val
+
+def quote_one(s):
+    """일봉 3개 → 최근 세션(ref)의 거래량과 그 전 세션 날짜. 전일 대비 기준은 그 전 세션의 KRX 종가."""
+    res = toss('/api/v1/candles', {'symbol': s, 'interval': '1d', 'count': 3}) or {}
+    cs = res.get('candles') or []   # 최신순
+    if not cs: return None
+    ref, prev = cs[0], (cs[1] if len(cs) > 1 else None)
+    out = {'ref': ref['timestamp'][:10], 'vol': float(ref.get('volume') or 0), 'base': None, 'base_src': None}
+    if prev:
+        b = krx_base(s, prev['timestamp'][:10])
+        out['base'], out['base_src'] = (b, 'krx') if b is not None else (float(prev['closePrice']), 'nxt-1d')
+    return out
+
+QSTORE = (_qcache, _qklocks)
+def quotes(syms):
+    out = {'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': {}, 'errors': []}
+    # 상장 목록에 없는 코드(상장폐지 등)는 빼고 부른다 — 하나가 prices 전체를 실패시키지 않게(검수)
+    try:
+        listed = {x[0] for x in cached('stocks', 6 * 3600, stock_list)['items']}
+        bad = [x for x in syms if x not in listed]
+        if bad: out['errors'].append('목록에 없음 %s' % ','.join(bad)); syms = [x for x in syms if x in listed]
+    except Exception as e:
+        log.warning('종목 목록 실패: %s', e)
+    if not syms: return out
+    px = {r['symbol']: r for r in (toss('/api/v1/prices', {'symbols': ','.join(syms)}) or [])}
+    def one(s):
+        try: return s, cached(('q1', s), 30, lambda: quote_one(s), QSTORE), None
+        except Exception as e: return s, None, e
+    with ThreadPoolExecutor(max_workers=5) as ex:   # 처음 보는 종목은 1분봉을 몇 쪽 읽어 순서대로면 수십 초 걸린다(검수)
+        qs = {s: (q, e) for s, q, e in ex.map(one, syms)}
+    for s in syms:
+        q, e = qs[s]
+        if e is not None: out['errors'].append('%s %s' % (s, e))
+        p = px.get(s)
+        if not p and not q: continue
+        last = float(p['lastPrice']) if p else None
+        base = (q or {}).get('base')
+        it = {'last': last, 't': (p or {}).get('timestamp'), 'base': base, 'base_src': (q or {}).get('base_src'),
+              'vol': (q or {}).get('vol'), 'ref': (q or {}).get('ref')}
+        if last is not None and base:
+            it['chg'] = round(last - base, 4); it['pct'] = round((last / base - 1) * 100, 2)
+        out['items'][s] = it
+    return out
+
+def kospi_daily():
+    res = toss('/api/v1/market-indicators/%s/candles' % INDEX, {'interval': '1d', 'count': 30}) or {}
+    rows = {}
+    for c in res.get('candles') or []:
+        rows[c['timestamp'][:10]] = [c['timestamp'][:10]] + [float(c[k + 'Price']) for k in ('open', 'high', 'low', 'close')]
+    return {'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': [rows[k] for k in sorted(rows)]}
 
 # ---------- 야간선물: 한국투자증권 REST (2026-11-26) ----------
 # 근월물 현재가 FHMIF10000000 에 시장 코드 CM 을 주면 KRX 야간선물이다(VM 실측 11/26: 18:02 727.50 +0.10%, 등락률은 직전 주간 종가 대비).
@@ -607,6 +697,15 @@ class Handler(BaseHTTPRequestHandler):
             if u.path == '/v1/intraday':
                 if d > today or (today - d).days > 30: return self.send_json(400, {'error': 'date-out-of-range'})
                 return self.send_json(200, cached(('intraday', d), 20 if d == today else 3600, lambda: intraday(d)))
+            if u.path == '/v1/stocks':
+                return self.send_json(200, cached('stocks', 6 * 3600, stock_list), ttl=3600)
+            if u.path == '/v1/quotes':
+                syms = list(dict.fromkeys(x.strip().upper() for x in q.get('symbols', '').split(',') if x.strip()))
+                if not syms or len(syms) > QUOTE_MAX or not all(SYM_RE.match(x) for x in syms):
+                    return self.send_json(400, {'error': 'bad-symbols', 'max': QUOTE_MAX})
+                return self.send_json(200, cached(('quotes', tuple(sorted(syms))), 5, lambda: quotes(syms), QSTORE))
+            if u.path == '/v1/kospi-daily':
+                return self.send_json(200, cached('kospi-daily', 60, kospi_daily))
             if u.path == '/v1/daily':
                 if not is_routine: return self.send_json(403, {'error': 'routine-key-required'})
                 try: uu = date.fromisoformat(q['us_until']) if q.get('us_until') else None
