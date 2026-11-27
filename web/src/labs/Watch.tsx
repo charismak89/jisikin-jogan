@@ -240,7 +240,7 @@ export function Watch({ data }: { data: DayData }) {
         )}
         <div className="border-t border-line px-4 sm:px-6">
           {items.length > 0 && <p className={cn('mt-3 text-caption1 font-semibold', fail ? 'text-negative' : 'text-fg-2')}>{status}</p>}
-          <Cap>국내 종목의 현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '링크 복사'로 지금 그룹을 옮기세요. 미국 종목은 달러, 직전 거래일 종가 대비입니다.</Cap>
+          <Cap>국내 종목의 현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '링크 복사'로 지금 그룹을 옮기세요. 미국 종목은 달러이고 등락은 직전 정규장 종가 대비입니다. 한국 낮 시간의 현재가와 거래량은 토스 미국주식 주간거래 값입니다.</Cap>
         </div>
       </Card>
 
