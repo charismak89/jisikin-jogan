@@ -465,8 +465,8 @@ def date_after(text, label, span=120):
     m = re.search(label, text)
     if not m: return None
     seg = text[m.end():m.end() + span]
-    nx = re.search(r'\s\d{1,2}\.\s', seg)
-    d = DATE_RE.search(seg[:nx.start()] if nx else seg)
+    d, nx = DATE_RE.search(seg), re.search(r'\s\d{1,2}\.\s', seg)
+    if d and nx and nx.start() < d.start(): d = None   # 날짜보다 다음 항목이 먼저면 이 칸은 비었다('2026. 12. 2.' 안의 '12. ' 는 날짜 뒤라 상관없다)
     return _d(d) if d else None
 
 def doc_text(rno):
