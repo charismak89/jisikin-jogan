@@ -28,6 +28,8 @@
   /v1/stocks                     코스피, 코스닥 상장 종목 [코드, 이름, 시장] (관심종목 검색용, 6시간 캐시)        — 키 없이(2026-11-27 실험실)
   /v1/quotes?symbols=A,B         관심종목 시세, 최대 QUOTE_MAX 종목. 현재가(KRX+NXT 통합), 전일 대비(직전 세션 KRX 종가 기준),
                                  거래량(통합 일봉) — 키 없이(2026-11-27 실험실)
+  /v1/stocks?mk=us               미국(NYSE, NASDAQ, AMEX) 종목 [티커, 이름, 거래소] (2026-11-27 실험실)               — 키 없이
+  /v1/events?symbols=A,B         국내 종목의 DART 공시 일정(IR 개최, 잠정실적, 배당 기준일과 지급일), 최대 30종목 — 키 없이(DART_KEY 필요, 2026-11-27 실험실)
   /v1/kospi-daily                코스피 일봉 시, 고, 저, 종 최근 30개 (20거래일 캔들용, 1분 캐시)                  — 키 없이(2026-11-27 실험실)
 
 환경 변수 (/etc/jogan-relay.env)
@@ -39,6 +41,7 @@
   PORT                                 기본 8787
   TOSS_API                             기본 https://openapi.tossinvest.com (시험용으로만 바꾼다)
   KIS_APPKEY, KIS_APPSECRET            한국투자증권 실전 앱 키(야간선물). 없으면 /v1/night 는 503
+  DART_KEY                             금감원 OpenDART 인증키(일정). 없으면 /v1/events 는 503
 """
 import hmac, json, logging, os, re, secrets, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from datetime import date, datetime, timedelta, timezone
@@ -51,12 +54,13 @@ CID = os.environ.get('TOSS_CLIENT_ID', '')
 CSECRET = os.environ.get('TOSS_CLIENT_SECRET', '')
 ROUTINE_KEY = os.environ.get('ROUTINE_KEY', '').strip()
 PUBLIC_VIEW = os.environ.get('PUBLIC_VIEW', '1').strip().lower() not in ('0', 'false', 'no', 'off')
-PUBLIC_PATHS = ('/v1/live', '/v1/intraday', '/v1/night', '/v1/stocks', '/v1/quotes', '/v1/kospi-daily')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
+PUBLIC_PATHS = ('/v1/live', '/v1/intraday', '/v1/night', '/v1/stocks', '/v1/quotes', '/v1/kospi-daily', '/v1/events')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
 ORIGINS = [o.strip() for o in os.environ.get('ALLOW_ORIGINS', 'https://charismak89.github.io').split(',') if o.strip()]
 STATE_DIR = os.environ.get('STATE_DIR', '/var/lib/jogan-relay')
 PORT = int(os.environ.get('PORT', '8787'))
 KIS_AK = os.environ.get('KIS_APPKEY', '').strip().strip('"\'')
 KIS_SK = os.environ.get('KIS_APPSECRET', '').strip().strip('"\'')
+DART_KEY = os.environ.get('DART_KEY', '').strip().strip('"\'')
 
 STOCKS = ['005930', '000660']            # 대시보드 종목
 INDEX = 'KOSPI'
@@ -338,12 +342,14 @@ def hm_ms(d, hm, add_min=0):
 
 # ---------- 관심종목, 코스피 일봉(2026-11-27 실험실, 사용자 결정 "관심종목 계획대로 실험실에, 20거래일 캔들") ----------
 QUOTE_MAX = 20
-SYM_RE = re.compile(r'^[0-9A-Z]{6}$')
+SYM_RE = re.compile(r'^[0-9A-Z][0-9A-Z.\-]{0,9}$')   # 국내 6자리, 미국 티커(BRK.B 등)
+is_kr = lambda x: len(x) == 6 and x[0].isdigit()
+US_MK = ('NYSE', 'NASDAQ', 'AMEX')
 
-def stock_list():
-    """코스피, 코스닥 상장(ACTIVE) 종목. 토스 명세가 하루 1회 받아 캐싱하라고 권한다."""
+def stock_list(mks=('KOSPI', 'KOSDAQ')):
+    """상장(ACTIVE) 종목. 토스 명세가 하루 1회 받아 캐싱하라고 권한다. 미국은 따로 부른다(화면이 미국 검색 때만 받게)."""
     out = []
-    for mk in ('KOSPI', 'KOSDAQ'):
+    for mk in mks:
         for r in toss('/api/v1/stocks/all', {'market': mk}) or []:
             if r.get('symbol') and r.get('name'): out.append([r['symbol'], r['name'], mk])
     if not out: raise ValueError('stocks/all 빈 응답')
@@ -369,13 +375,16 @@ def krx_base(s, ref):
     return val
 
 def quote_one(s):
-    """일봉 3개 → 최근 세션(ref)의 거래량과 그 전 세션 날짜. 전일 대비 기준은 그 전 세션의 KRX 종가."""
+    """일봉 3개 → 최근 세션(ref)의 거래량과 그 전 세션 날짜. 전일 대비 기준은 그 전 세션의 KRX 종가.
+    미국 종목은 그 전 세션 일봉 종가(base_src us-1d). 정규장 종가인지는 실측으로 확인할 것 [검증 필요]."""
     res = toss('/api/v1/candles', {'symbol': s, 'interval': '1d', 'count': 3}) or {}
     cs = res.get('candles') or []   # 최신순
     if not cs: return None
     ref, prev = cs[0], (cs[1] if len(cs) > 1 else None)
     out = {'ref': ref['timestamp'][:10], 'vol': float(ref.get('volume') or 0), 'base': None, 'base_src': None}
-    if prev:
+    if prev and not is_kr(s):
+        out['base'], out['base_src'] = float(prev['closePrice']), 'us-1d'
+    elif prev:
         b = krx_base(s, prev['timestamp'][:10])
         out['base'], out['base_src'] = (b, 'krx') if b is not None else (float(prev['closePrice']), 'nxt-1d')
     return out
@@ -386,12 +395,15 @@ def quotes(syms):
     # 상장 목록에 없는 코드(상장폐지 등)는 빼고 부른다 — 하나가 prices 전체를 실패시키지 않게(검수)
     try:
         listed = {x[0] for x in cached('stocks', 6 * 3600, stock_list)['items']}
+        if any(not is_kr(x) for x in syms): listed |= {x[0] for x in cached('stocks-us', 6 * 3600, lambda: stock_list(US_MK))['items']}
         bad = [x for x in syms if x not in listed]
         if bad: out['errors'].append('목록에 없음 %s' % ','.join(bad)); syms = [x for x in syms if x in listed]
     except Exception as e:
         log.warning('종목 목록 실패: %s', e)
     if not syms: return out
-    px = {r['symbol']: r for r in (toss('/api/v1/prices', {'symbols': ','.join(syms)}) or [])}
+    px = {}
+    for grp in ([x for x in syms if is_kr(x)], [x for x in syms if not is_kr(x)]):   # 국내, 미국을 따로 부른다(섞어 부를 수 있는지 명세에 없다)
+        if grp: px.update({r['symbol']: r for r in (toss('/api/v1/prices', {'symbols': ','.join(grp)}) or [])})
     def one(s):
         try: return s, cached(('q1', s), 30, lambda: quote_one(s), QSTORE), None
         except Exception as e: return s, None, e
@@ -404,11 +416,120 @@ def quotes(syms):
         if not p and not q: continue
         last = float(p['lastPrice']) if p else None
         base = (q or {}).get('base')
-        it = {'last': last, 't': (p or {}).get('timestamp'), 'base': base, 'base_src': (q or {}).get('base_src'),
+        it = {'last': last, 't': (p or {}).get('timestamp'), 'cur': (p or {}).get('currency'), 'base': base, 'base_src': (q or {}).get('base_src'),
               'vol': (q or {}).get('vol'), 'ref': (q or {}).get('ref')}
         if last is not None and base:
             it['chg'] = round(last - base, 4); it['pct'] = round((last / base - 1) * 100, 2)
         out['items'][s] = it
+    return out
+
+# ---------- DART 공시 일정(2026-11-27 실험실, 사용자 결정 "캘린더 1단계 계획대로") ----------
+# 공시 목록(list.json)은 종목마다 6시간, 문서(document.xml)는 접수번호마다 한 번만 받아 STATE_DIR/dart 에 남긴다.
+# 일정 날짜는 문서 본문에서 '일시', '배당기준일', '지급 예정일' 뒤 첫 날짜를 뽑는다. 못 뽑으면 공시일로 두고 approx 를 붙인다.
+DART = 'https://opendart.fss.or.kr/api'
+DATE_RE = re.compile(r'(20\d\d)\s*[.\-년/]\s*(\d{1,2})\s*[.\-월/]\s*(\d{1,2})')
+
+def dart_get(path, params, raw=False):
+    url = DART + path + '?' + urllib.parse.urlencode(dict(params, crtfc_key=DART_KEY))
+    body = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'jogan-relay'}), timeout=20).read()
+    if raw: return body
+    j = json.loads(body.decode('utf-8'))
+    if j.get('status') not in ('000', '013'): raise Upstream(502, 'dart-' + str(j.get('status')), j.get('message', ''))   # 013 = 조회된 데이터 없음
+    return j
+
+def corp_map():
+    """종목코드 → DART 고유번호. corpCode.xml(zip)을 하루 한 번 받는다."""
+    import io, zipfile
+    import xml.etree.ElementTree as ET
+    z = zipfile.ZipFile(io.BytesIO(dart_get('/corpCode.xml', {}, raw=True)))
+    root = ET.fromstring(z.read(z.namelist()[0]))
+    out = {}
+    for el in root.iter('list'):
+        sc = (el.findtext('stock_code') or '').strip()
+        if sc: out[sc] = el.findtext('corp_code').strip()
+    if not out: raise ValueError('corpCode 빈 응답')
+    return out
+
+def _d(m): 
+    try: return date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat()
+    except ValueError: return None
+
+def date_after(text, label, span=120):
+    m = re.search(label, text)
+    if not m: return None
+    d = DATE_RE.search(text[m.end():m.end() + span])
+    return _d(d) if d else None
+
+def doc_text(rno):
+    """공시 문서 본문(태그를 지운 글). 접수번호마다 한 번만 받는다."""
+    import io, zipfile
+    fn = os.path.join(STATE_DIR, 'dart', rno + '.txt')
+    try:
+        with open(fn, encoding='utf-8') as f: return f.read()
+    except OSError: pass
+    body = dart_get('/document.xml', {'rcept_no': rno}, raw=True)
+    if body[:2] != b'PK': raise ValueError('document.xml zip 아님: %r' % body[:80])
+    z = zipfile.ZipFile(io.BytesIO(body))
+    raw = b''.join(z.read(n) for n in z.namelist())
+    for enc in ('utf-8', 'cp949'):
+        try: txt = raw.decode(enc); break
+        except UnicodeDecodeError: txt = raw.decode('utf-8', 'replace')
+    txt = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', txt))
+    try:
+        os.makedirs(os.path.dirname(fn), exist_ok=True)
+        with open(fn, 'w', encoding='utf-8') as f: f.write(txt)
+    except OSError as e: log.warning('DART 문서 저장 실패 %s', e)
+    return txt
+
+KINDS = (('IR', re.compile(r'기업설명회\(IR\)개최')), ('EARN', re.compile(r'영업\(잠정\)실적')),
+         ('DIV', re.compile(r'현금ㆍ현물배당결정|현금배당결정')))
+
+def events_one(code):
+    cm = cached('dart-corp', 24 * 3600, corp_map)
+    cc = cm.get(code)
+    if not cc: return []
+    today = datetime.now(KST).date()
+    j = dart_get('/list.json', {'corp_code': cc, 'bgn_de': (today - timedelta(days=90)).strftime('%Y%m%d'),
+                                'end_de': today.strftime('%Y%m%d'), 'pblntf_ty': 'I', 'page_count': 100})   # I = 거래소공시(IR, 잠정실적, 배당결정이 여기)
+    out, seen = [], set()
+    for r in j.get('list') or []:   # 최신순 — 정정 공시가 먼저 오니 같은 종류, 같은 날짜는 처음 것만 둔다
+        nm, rno = r.get('report_nm', ''), r.get('rcept_no', '')
+        kind = next((k for k, rx in KINDS if rx.search(nm)), None)
+        if not kind: continue
+        rd = '%s-%s-%s' % (r['rcept_dt'][:4], r['rcept_dt'][4:6], r['rcept_dt'][6:8])
+        base = {'code': code, 'name': r.get('stock_name') or r.get('corp_name'), 'rcept_no': rno, 'report': nm.strip()}
+        evs = []
+        if kind == 'EARN':
+            evs.append(dict(base, kind='EARN', date=rd, title='잠정실적 공시'))
+        else:
+            try: t = doc_text(rno)
+            except Exception as e:
+                log.warning('DART 문서 %s 실패: %s', rno, e); t = ''
+            if kind == 'IR':
+                d = date_after(t, r'개최\s*일시|일\s*시')
+                evs.append(dict(base, kind='IR', date=d or rd, approx=not d, title='IR 개최' if d else 'IR 개최 공시'))
+            else:
+                amt = re.search(r'1주당\s*배당금\s*\(원\)\s*보통주식\s*([\d,]+)', t)
+                a = (' 주당 %s원' % amt.group(1)) if amt else ''
+                d1, d2 = date_after(t, r'배당기준일'), date_after(t, r'지급\s*예정\s*일')
+                if d1: evs.append(dict(base, kind='DIV', date=d1, title='배당 기준일' + a))
+                if d2: evs.append(dict(base, kind='DIV', date=d2, title='배당 지급일' + a))
+                if not (d1 or d2): evs.append(dict(base, kind='DIV', date=rd, approx=True, title='배당 결정 공시' + a))
+        for e in evs:
+            k = (e['kind'], e['title'][:5], e['date'])
+            if k not in seen: seen.add(k); out.append(e)
+    return out
+
+def events(syms):
+    out = {'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': [], 'errors': []}
+    def one(s):
+        try: return cached(('ev', s), 6 * 3600, lambda: events_one(s), QSTORE), None
+        except Exception as e: return None, '%s %s' % (s, e)
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        for evs, err in ex.map(one, [x for x in syms if is_kr(x)]):
+            if err: out['errors'].append(err)
+            out['items'].extend(evs or [])
+    out['items'].sort(key=lambda e: (e['date'], e['code']))
     return out
 
 def kospi_daily():
@@ -698,7 +819,14 @@ class Handler(BaseHTTPRequestHandler):
                 if d > today or (today - d).days > 30: return self.send_json(400, {'error': 'date-out-of-range'})
                 return self.send_json(200, cached(('intraday', d), 20 if d == today else 3600, lambda: intraday(d)))
             if u.path == '/v1/stocks':
+                if q.get('mk') == 'us': return self.send_json(200, cached('stocks-us', 6 * 3600, lambda: stock_list(US_MK)), ttl=3600)
                 return self.send_json(200, cached('stocks', 6 * 3600, stock_list), ttl=3600)
+            if u.path == '/v1/events':
+                if not DART_KEY: return self.send_json(503, {'error': 'dart-not-configured'})
+                syms = list(dict.fromkeys(x.strip().upper() for x in q.get('symbols', '').split(',') if x.strip()))
+                if not syms or len(syms) > 30 or not all(SYM_RE.match(x) for x in syms):
+                    return self.send_json(400, {'error': 'bad-symbols', 'max': 30})
+                return self.send_json(200, cached(('events', tuple(sorted(syms))), 300, lambda: events(syms), QSTORE))
             if u.path == '/v1/quotes':
                 syms = list(dict.fromkeys(x.strip().upper() for x in q.get('symbols', '').split(',') if x.strip()))
                 if not syms or len(syms) > QUOTE_MAX or not all(SYM_RE.match(x) for x in syms):
