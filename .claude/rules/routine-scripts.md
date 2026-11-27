@@ -17,6 +17,8 @@ paths:
 - 이 파일들이나 `RUNBOOK.md` 를 바꾼 PR 을 머지하면 다음 평일 08:15 KST 에 결과 확인을 `send_later` 로 건다. 볼 것: `get_trigger trig_017rnKLpNdYfD3c61DqqmLPP` 의 `last_run`, `datalog.json` 마지막 줄, 회차 보고(`list_events`, `kinds=["assistant"]`, `limit` 20 — HANDOFF 2절)의 중계기, 데이터 누락, 경고, GATE 줄, 바꾼 항목 1건 이상을 웹 원값과 대조. 10/22 확인이 위 미국 종가 차이를 잡았다.
   - 예외: 토요일 주간 점검 세션에는 `send_later` 가 없다(루틴에 커넥터를 붙일 수 없음, 2026-10-31). 주말 변경은 매주 월요일 08:15 예약 작업 `trig_01966XhBzHkZbYHr2Pg3ecif` 가 저장소, 웹만으로 확인한다(`WEEKLY.md` 4절 9번). 평일에 관리 세션이 바꾼 것은 그 세션이 `send_later` 를 건다.
 - `WEEKLY.md`, `RUNBOOK.md` 에 조건 규칙(예: "HANDOFF 7절에 X 가 남아 있으면")을 넣으면, 그 문구를 저장소 전체에서 grep 해 이미 걸리는 줄을 정리한다. 직전 회차 기록(`list_events`)을 옆에 두고 다음 회차를 첫 단계부터 따라가 보고, 규칙을 언제 지우는지까지 같은 PR 에 넣는다. 2026-10-28 #41 이 끝난 안건 줄(HANDOFF 9번)과 결정 뒤 정리 단계를 빠뜨려 #44 로 다시 고쳤다.
+- 수집 스크립트(fetch_*.py)를 새로 만들거나 조회 창을 바꾸면 PR 전에 `--date` 로 평일, 월요일, 휴장 다음 날을 한 번씩 `--print` 로 돌려 건수와 시각 분포를 본다. 2026-11-27 fetch_news.py 를 평일로만 돌려 월요일 창 앞부분 누락(검색어당 100건 제한)과 월요일 아침 쏠림을 routine-reviewer 가 찾았다(#103).
+- render.py 의 `esc`, `esc_keep` 은 글자 노드용이다(`& < >` 만 바꾼다). 외부 문자열을 속성(href 등)에 넣으면 따옴표까지 바꾸고 URL 은 `https://` 형식 검사를 한다(2026-11-27 #103 뉴스 링크 속성 주입을 reviewer 가 찾음).
 - 중계기 값과 회차 값의 불일치 경고 기준은 `fetch_relay.merge_into` 의 0.05% 다. 이보다 작은 차이(10/21 NVDA 0.0496%)는 경고 없이 지나가니 대조는 숫자로 직접 한다.
 - `calibration.json` 의 규칙(`rule`, `stock_rule`)만 바꾼 변경은 `regress.py` 로 확인되지 않는다. regress 는 발행 당시 `calibration.json`, `state.json` 을 써서 전, 후가 같게 나온다(+0 −0 줄). 2026-11-09 PR #54 가 이 숫자를 월요일 확장 검증으로 적었다. 새 규칙은 마지막 회차 입력으로 재연한다(저장소 루트에서, 2026-11-09 실측):
   ```bash
