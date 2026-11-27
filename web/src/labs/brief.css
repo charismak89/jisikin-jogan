@@ -97,6 +97,25 @@ summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; bo
 .refs .fv { font-size: 14px; }
 .fc { display: block; font-size: 12px; color: var(--tx2); margin-top: 1px; }
 
+/* 밤사이 뉴스(이슈 카드 안, 접힘) 와 오늘 일정(시나리오 카드 위) — 2026-11-27 앤트위키 장전 브리핑 벤치마킹 */
+details.news { margin-top: 14px; }
+.nl { list-style: none; }
+.nl li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.nl li:first-child { border-top: 0; }
+.nl .nt { color: var(--tx3); font-size: 13px; }
+.nl a { color: var(--tx); text-decoration: none; }
+.nl a:hover { text-decoration: underline; }
+.nl .ns { display: block; font-size: 12px; color: var(--tx3); margin-top: 1px; }
+.nl li.ndt, .nl li.nmk { display: block; font-size: 12px; font-weight: 700; color: var(--tx3); padding: 8px 0 4px; }
+.nl li.nmk { color: var(--tx); }
+.nl li.nmk::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--mt-foreground-cautionary-primary); }
+.nn { font-size: 12px; color: var(--tx3); margin-top: 8px; }
+.agenda { margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; background: var(--card2); }
+.ag { list-style: none; }
+.ag li { display: grid; grid-template-columns: minmax(64px, max-content) minmax(0, 1fr); gap: 10px; font-size: 14px; padding: 2px 0; }
+.ag b { font-size: 13px; color: var(--tx2); white-space: nowrap; }
+@container wrap (min-width: 760px) { #s-scen > .agenda { grid-column: 1 / -1; } }
+
 /* 수급 — 대시보드 '간밤 시장' 타일과 같은 모양 */
 .flow { margin-top: 16px; }
 .fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

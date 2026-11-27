@@ -37,7 +37,7 @@ FIRST_ISSUE = date(2026, 8, 21)
 # 회차가 커밋하는 파일. 이 밖의 변경은 발행 커밋에 넣지 않는다 — 회차(LLM)는 웹 본문을 읽은 뒤 main 에 직접 올리고,
 # main 직접 push 는 PR 검사(check)를 거치지 않는다. 절차 문서나 스크립트가 회차 중에 바뀌어도 사이트·다음 회차로 넘어가지 않게 한다.
 PUBLISH_PATHS = ['calibration.json', 'state.json', 'day.json', 'datalog.json', 'archive/index.html',
-                 'fixtures/last-fill.json', 'fixtures/last-perp.json', 'fixtures/last-relay.json',
+                 'fixtures/last-fill.json', 'fixtures/last-perp.json', 'fixtures/last-relay.json', 'fixtures/last-news.json',
                  'market_hours.json', 'holidays.json']   # 장 시간, 휴장일 자동 기록(render.sync_market_hours, 2026-11-19)
 
 def arch_paths(html):
@@ -140,7 +140,7 @@ def main():
         except Exception as e: changed.append('[경고] datalog.json 이 올바른 JSON 이 아님 — 건너뜀 (%s)' % e)
 
     # 2-1) 회차 입력 보관 — 주간 점검(WEEKLY.md)이 같은 입력으로 렌더 회귀를 돌린다. 화면에 이미 나간 값·문장뿐이다
-    for src, dst in (('fill.json', 'fixtures/last-fill.json'), ('perp.json', 'fixtures/last-perp.json'), ('relay.json', 'fixtures/last-relay.json')):
+    for src, dst in (('fill.json', 'fixtures/last-fill.json'), ('perp.json', 'fixtures/last-perp.json'), ('relay.json', 'fixtures/last-relay.json'), ('news.json', 'fixtures/last-news.json')):
         if os.path.exists(src):
             os.makedirs('fixtures', exist_ok=True); write(dst, read(src)); changed.append(dst)
 

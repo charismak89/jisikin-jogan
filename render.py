@@ -339,6 +339,77 @@ def _sync_hours(d, kr, verbose):
 
 NIGHT_CLOSE = (6, 0)   # KRX 야간 파생상품시장 18:00 ~ 익일 06:00 (2025-06-09 부터. 그 전 유렉스 연계는 05:00)
 
+def news_html(d):
+    """news.json(fetch_news.py) → 브리핑 '밤사이 뉴스' 시각표(접힌 details). 제목은 매체가 단 그대로라
+    금지 표현, 내부 용어 검사와 글자수에서 뺀다(class="news"). 06:00 야간선물 마감과 날짜가 바뀌는 곳에 표시 줄을 끼운다(2026-11-27)"""
+    try: n = json.load(io.open('news.json', encoding='utf-8'))
+    except FileNotFoundError:
+        warn('news.json 없음 — 턴 0 에서 fetch_news.py 를 돌리지 않았다. 밤사이 뉴스 시각표만 빠진다 (게이트 무관)'); return ''
+    except Exception as e:
+        warn('news.json 을 읽지 못함 — %s (게이트 무관)' % e); return ''
+    if n.get('issue_date') != d.isoformat():
+        warn('news.json 이 %s 것 — 오늘 것이 아니라 쓰지 않는다 (fetch_news.py 를 다시 돌릴 것, 게이트 무관)' % n.get('issue_date')); return ''
+    items = [x for x in n.get('items') or [] if x.get('t') and x.get('ms')]
+    if not items:
+        warn('밤사이 뉴스 없음 — %s (게이트 무관)' % ('; '.join(n.get('errors') or []) or '조회 창 안 기사 없음')); return ''
+    try: items = sorted(((datetime.fromtimestamp(int(x['ms']) / 1000, KST), x) for x in items), key=lambda p: p[0])
+    except (TypeError, ValueError, OverflowError) as e:
+        warn('news.json 시각을 읽지 못함 — %s (게이트 무관)' % e); return ''
+    nc = night_close_ms(d)
+    rows, day, marked = [], None, False
+    for t, x in items:
+        if not marked and int(x['ms']) >= nc:
+            nt = datetime.fromtimestamp(nc / 1000, KST)
+            rows.append('<li class="nmk">%d/%d %s 야간선물 마감</li>' % (nt.month, nt.day, nt.strftime('%H:%M'))); marked = True
+            day = nt.date()
+        if t.date() != day:
+            rows.append('<li class="ndt">%d/%d</li>' % (t.month, t.day)); day = t.date()
+        url = str(x.get('url') or '')
+        title = esc(x['t'])
+        # 링크는 https 이고 공백, 따옴표, 꺾쇠가 없을 때만 건다(속성 밖으로 빠져나가지 않게, 2026-11-27 검수). 속성값은 따옴표까지 바꾼다
+        if re.fullmatch(r'https://[^\s"\'<>`]+', url):
+            title = '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>' % (esc(url).replace('"', '&quot;').replace("'", '&#39;'), title)
+        rows.append('<li><span class="nt num">%s</span><span class="nb">%s<span class="ns">%s</span></span></li>' % (t.strftime('%H:%M'), title, esc(x.get('src') or '매체 미상')))
+    span = ('%s 이후' % n['first']) if n.get('first') else '%s~%s' % (n.get('from') or '', (n.get('to') or '')[-5:])   # 창 앞부분을 못 받았으면 실제 시작을 쓴다
+    return ('<details class="news"><summary>밤사이 뉴스 %d건(%s)</summary><div class="dbody"><ol class="nl">%s</ol>'
+            '<p class="nn">Google 뉴스 검색으로 모은 제목입니다. 매체가 단 제목 그대로이고 내용은 확인하지 않았습니다.</p></div></details>') % (
+        len(items), esc(span), ''.join(rows))
+
+def expiry_day(y, m):
+    """코스피200 선물, 옵션 만기일: 그달 둘째 목요일, 휴장이면 앞 영업일"""
+    x = date(y, m, 1)
+    x += timedelta(days=(3 - x.weekday()) % 7 + 7)
+    while x.weekday() >= 5 or holiday_of(x): x -= timedelta(days=1)
+    return x
+
+def agenda_html(d, rel_cal, items_in):
+    """브리핑 '오늘 일정'. 스크립트가 아는 것(만기일, 장 시간 변경, 오늘 밤 미국 휴장)과 회차가 읽은 기사에서 본 일정(fill.agenda, 3건까지)"""
+    DOWK = '월화수목금토일'
+    lab = lambda x: '오늘' if x == d else '%d/%d(%s)' % (x.month, x.day, DOWK[x.weekday()])
+    out = []
+    # 만기: 오늘부터 5영업일 안
+    lim = d
+    for _ in range(5): lim = next_business_day(lim)
+    for y, m in ((d.year, d.month), (d.year + (d.month == 12), d.month % 12 + 1)):
+        e = expiry_day(y, m)
+        if d <= e <= lim:
+            out.append((lab(e), '코스피200 선물, 옵션 동시 만기' if m in (3, 6, 9, 12) else '코스피200 옵션 만기'))
+    for x in (d, next_business_day(d)):
+        s = session_of(x)
+        if s['changed']: out.append((lab(x), '정규장 %s~%s%s' % (s['open_hm'], s['close_hm'], '(%s)' % s['why'] if s['why'] else '')))
+    us = ((rel_cal or {}).get('us') or {}).get('today') or {}
+    if us.get('date') == d.isoformat() and us.get('open') is False: out.append(('오늘 밤', '미국 증시 휴장'))
+    seen = 0
+    for it in items_in or []:
+        if not isinstance(it, dict) or not it.get('t'): continue
+        seen += 1
+        if seen > 3: warn('agenda 는 3건까지 — 나머지는 뺀다'); break
+        check_len('agenda.t', it.get('t'), 40)
+        out.append((str(it.get('when') or '오늘'), str(it['t'])))
+    if not out: return ''
+    return '<div class="agenda"><div class="rh">오늘과 다가오는 일정</div><ul class="ag">%s</ul></div>' % ''.join(
+        '<li><b class="num">%s</b><span>%s</span></li>' % (esc(w), esc_keep(t)) for w, t in out)
+
 def night_close_ms(d):
     """발행일 d 회차가 보는 야간선물 세션이 끝난 시각(ms). 직전 영업일 밤 세션 → 그다음 날 06:00.
     화~금은 발행일 06:00, 월요일은 토 06:00 (일요일 밤 세션은 없다). 2026-11-09 전에는 발행일 05:00 으로 재서
@@ -1007,6 +1078,10 @@ def main():
         V[key] = '<div class="cl">%s</div>%s' % (esc_keep(c.get('lead')), details('근거', c.get('more')))
     src_html, issue_src, _ = issue_sources((chks.get('issue') or {}).get('src'), d)
     V['ISSUE_CHK'] += src_html   # details 안이라 접힘 4,000자에 들지 않는다
+    V['NEWS'] = news_html(d)
+    try: rel_cal = (json.load(io.open('relay.json', encoding='utf-8')) or {}).get('calendar')
+    except Exception: rel_cal = None
+    V['AGENDA'] = agenda_html(d, rel_cal, fill.get('agenda'))
 
     # 지난 회차 링크 — 채점 기록의 날짜(=발행일) 최근 3개. publish 스크립트가 실제 파일 기준으로 다시 쓴다.
     past = [r['date'] for r in recs if r.get('date') and r['date'] < issue_date]
@@ -1270,6 +1345,7 @@ def main():
     body = re.sub(r'<(style|script).*?</\1>', '', out, flags=re.S)
     body = re.sub(r'<div data-panel="dash">.*?<!--/dash-->', '', body, flags=re.S)   # 대시보드는 스크립트가 만든 화면이라 글자수에서 뺀다
     body = re.sub(r'<svg.*?</svg>', '', body, flags=re.S)
+    body = re.sub(r'<details class="news">.*?</details>', '', body, flags=re.S)   # 매체 제목 그대로라 금지 표현, 내부 용어, 글자수에서 뺀다
     body = re.sub(r'<div class="fwide (?:fsig num|fconf)">.*?</div>|<div class="sl">.*?</div>|<div class="pnw">.*?</div>|<div class="legend">.*?</div>', '', body, flags=re.S)  # 스크립트가 만든 문구는 글자수에서 뺀다
     vis = re.sub(r'<details.*?</details>', '', body, flags=re.S)
     txt = lambda x: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', x)).strip()

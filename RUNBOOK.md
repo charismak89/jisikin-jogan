@@ -16,11 +16,11 @@
 `python3 render.py --today` 가 `HOLIDAY` 를 내면 "휴장일 — 발행 생략" 한 줄만 남기고 종료한다. `holidays.json` 에 없어도 토스 장 달력(중계기)이 오늘 휴장이라고 하면 `HOLIDAY 토스 장 달력 휴장…` 이 나온다(2026-11-10) — 그 줄을 그대로 옮기고 종료한다. 첫 줄 뒤에 `휴장일 …`, `장 시간 …` 줄(자동 기록, 불일치)이 나오면 `HOLIDAY` 일 때는 그 한 줄 뒤에 이어 붙여 남기고 종료하고, `OPEN` 이면 9단계 응답에 옮기고 계속한다(2026-11-19).
 
 ## 1. 준비
-루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py fetch_relay.py datacheck.py sources.json holidays.json market_hours.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
+루틴에 저장소가 붙어 있으면 실행 시작 때 이미 체크아웃돼 있다(현재 디렉터리에 `RUNBOOK.md` 가 있으면 여기가 저장소다). 없으면 `git clone --depth 1 https://github.com/charismak89/jisikin-jogan.git repo && cd repo`. clone 이 안 되면 `https://raw.githubusercontent.com/charismak89/jisikin-jogan/main/<파일>` 로 `template-v5.html render.py score.py publish.py fetch_perp.py fetch_relay.py fetch_news.py datacheck.py sources.json holidays.json market_hours.json CONTEXT.md state.json calibration.json` 을 curl 로 받는다.
 모든 작업은 저장소 루트에서 한다. `CONTEXT.md` 를 읽는다 — 종목 사실관계·표기명·소스 우선순위·이슈 수집 범위·금지 표현이 거기 있다. `state.json` 을 읽는다 — 직전 회차 전망(`forecast`)과 직전 영업일 종가(`closes`)가 있다. 둘 중 하나를 못 받아도 발행한다.
 
 ## 2. 시세 — 병렬 3턴
-**턴 0 · `python3 fetch_perp.py ; python3 fetch_relay.py`** — 둘 다 스크립트라 토큰을 쓰지 않고, 실패해도 종료 코드 0 이다.
+**턴 0: `python3 fetch_perp.py ; python3 fetch_relay.py ; python3 fetch_news.py`** — 모두 스크립트라 토큰을 쓰지 않고, 실패해도 종료 코드 0 이다.
 - `fetch_perp.py` — 해외 24시간 추종가(Hyperliquid 코스피200·삼성전자·SK하이닉스) 15분봉을 `perp.json` 에 받는다. 실패하면 render.py 가 경고만 남기고 대시보드는 브라우저가 직접 받는다. 출력 세 줄을 9단계 응답에 옮긴다. 맨 앞에 `휴장일 …`, `장 시간 …` 줄(자동 기록, 불일치, 실패)이 나오면 그 줄도 옮긴다.
   - 마지막 줄은 `뉴스 단서 — …` 또는 `뉴스 단서 없음 — …` 이다(2026-11-09). 야간선물 마감 뒤 코스피200·엔비디아 추종가가 1시간에 1% 넘게 움직인 구간이다. 단서 줄이 나오면 3절 이슈 검색의 첫 1회를 그 시각 뉴스 찾기에 쓴다.
 - `fetch_relay.py` (2026-10-21) — 토스 중계기(`/v1/daily`)에서 직전 영업일의 **국내 6종 종가·시가(KRX 1분봉), 코스피·코스닥 종가·시가, 코스피 투자자별 순매수(외국인·기관·개인·기타법인, 18시 뒤 확정치), 미국 4종 종가, 15:30 환율, 참고 시세 3종(TSMC, DRAM, 앤트로픽. 화면 전용, 회차가 웹에서 받지 않는다)**을 `relay.json` 에 받는다. 환경 변수 `JJ_RELAY_URL`·`JJ_RELAY_TOKEN` 을 쓴다.
@@ -55,6 +55,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
   - `https://sonmul.co.kr/` — 야간 종가·등락률·기준시각·주간선물 종가. 월요일 값은 금요일 밤 세션이다(일요일 밤 세션은 없다).
   - 휴장일 전날 밤에는 세션이 없다. 직전 영업일과 발행일 사이에 `holidays.json` 휴장일이 끼면(예: 10/6·10/12·12/28·2027-01-04) 페이지에 연휴 전 세션 값이 남아 있을 수 있다. `asof` 가 직전 영업일 밤 세션이 아니면 `K200N.close: null` 로 두고 `asof` 에 `연휴 휴장` 이라고 적는다. render.py 가 이 회차는 야간선물 누락을 경고로만 남기고 게이트에서 뺀다.
   - **sonmul 이 막히면(403, 값 없음) 예비 경로** `https://www.prekospi.com/` 의 '지난 밤 기록' 종가를 쓴다(2026-11-14 등록, `sources.json` k200n). 날짜는 세션 시작일로 찍힌다: 발행일 직전 영업일 표기 줄이 맞는 세션이다(금요일 표기 = 월요일 회차 값). 페이지 등락률은 **야간 시가 대비**라 옮기지 않는다. `pct_screen` 은 주간선물 종가 대비로 계산해 적고(종가 ÷ K200F 종가 − 1), `cm` 에 'prekospi 예비 경로'라고 남긴다. sonmul 이 WebFetch 에 403 이면 curl 로 한 번 더 열어 본다(2026-11-14 curl 200 확인).
+- `fetch_news.py` (2026-11-27) — 직전 영업일 장 마감부터 07:45 까지 나온 기사 제목 10건을 시각, 매체와 함께 `news.json` 에 받는다(Google 뉴스 검색, 키 없음). 브리핑 이슈 카드의 '밤사이 뉴스' 시각표에 render.py 가 그대로 넣는다. 회차가 고르거나 고쳐 쓰지 않는다. 출력 목록은 3절 이슈 검색의 제목 목록으로 같이 읽는다(검색 횟수는 그대로, 링크는 Google 뉴스 주소라 열어도 본문이 없다). 월요일과 연휴 뒤에는 날짜를 나눠 받아 1분쯤 걸린다. `밤사이 뉴스 못 받음` 이면 시각표만 빠진다(게이트 무관).
 - **미국 지수선물** `https://kr.investing.com/indices/us-spx-500-futures` (ES) · `https://kr.investing.com/indices/nq-100-futures` (NQ) — 현재가·등락률·전일 종가·표시 시각. 이 등락률의 뜻은 철마다 다르다(2026-11-10 확인). 미국 서머타임 기간(3월 둘째 일요일 ~ 11월 첫 일요일)에는 새 세션이 열린 뒤라 **야간선물 마감 뒤 ~ 회차 시점의 움직임**이다. 미국 표준시 기간에는 07:45 KST 가 CME 일일 휴장(07:00~08:00 KST) 중이라 **방금 끝난 미국장 전체의 등락**이 찍힌다(시각 표기 06:59, 월요일은 금요일 값) — 이때는 본문에서 '야간선물 마감 뒤 움직임'이라고 쓰지 않는다. 어느 쪽인지는 render.py 가 `signals.us_fut_basis` 에 남기니 값은 철과 상관없이 페이지 그대로 적는다. `signals.us_fut` 에 `es_pct`·`nq_pct`(%, 페이지 등락률)·`asof`(KST 표시 시각)를 적는다. 못 받으면 null. curl 은 403 이라 WebFetch 로만 받는다(2026-10-01 확인). 2026-10-01 도입, **기록 전용** — 전망 구간을 이 값으로 옮기지 않는다(CALIBRATION.md 후보 3)
 - 주간 선물: 중계기 야간선물 줄이 있으면 주간선물 종가도 relay.json 으로 들어간다. 없으면 `https://markets.hankyung.com/indices/kospi-future` (기준일 확인) · SOX `https://kr.investing.com/indices/phlx-semiconductor`
 - 미국 4종 `https://stockanalysis.com/` — 1순위. 중계기 미국 종가는 대조용이다. 참고 시세 3종(TSM, DRAM, ANT)은 여기서 받지 않는다(중계기 값만 화면에 나간다).
@@ -74,7 +75,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 ## 3. 이슈
 `CONTEXT.md` 의 "이슈 수집 범위" 를 그대로 따른다 — A 메모리 직접 재료 · B AI 내러티브(캐펙스·규제·CEO 발언과 **누가 동조했는가**, 핵심 고객사 경영진·지배구조 이슈) · C 매크로. 조회 창과 검색 상한도 거기 있다. 화~금은 검색 4회·본문 4건, 월요일과 연휴 뒤는 검색 6회·본문 5건. 가장 최근 재료가 몇 시 것인지 `sums.issue` 에 밝힌다.
 - 검색 순서(2026-11-09, `CONTEXT.md` "검색 배분과 읽는 법"): ① `뉴스 단서` 줄이 있으면 그 시각·대상으로 1회 ② 월요일·연휴 뒤는 기업 이름과 날짜만 넣은 열린 검색 1회 ③ 남은 횟수로 A·B·C. 시세·종가는 검색하지 않는다. 휴장일 시세도 찾지 않는다.
-- 검색 결과는 요약문이 아니라 **제목 목록**을 읽는다. 조회 창 안 기사 중 핵심 기업 이름이 제목에 있으면 그중 1건은 본문을 연다.
+- 검색 결과는 요약문이 아니라 **제목 목록**을 읽는다. 턴 0 `fetch_news.py` 출력(시각, 매체, 제목)도 같은 제목 목록이다. 검색 횟수는 그대로이고, 거기서 쓸 재료는 검색 상한 안에서 본문을 열어 확인한다(제목만 보고 원인으로 쓰지 않는다). 조회 창 안 기사 중 핵심 기업 이름이 제목에 있으면 그중 1건은 본문을 연다.
 - 추종가가 크게 움직였는데 그 시각 뉴스를 못 찾았으면 `checks.scenario` 에 "원인 미확인" 이라고 그대로 쓴다. 이미 아는 다른 뉴스를 원인으로 끌어다 쓰지 않는다.
 
 이슈마다 `checks.issue.src` 에 출처를 적는다(2026-10-31). `t` 이슈 이름 · `origin` 회차가 실제로 읽은 기사의 매체 · `at` 그 기사 시각(KST `M/D HH:mm`) · `momentum` 확산(다른 매체·SNS, 없으면 null) · `verify` 확인 출처(공시·회사 발표·공식 통계, 없으면 null) · `first` 그 재료의 첫 보도가 더 이르다는 걸 알 때만(예: `"11/9 05:12 CNBC"`, 모르면 뺀다).
@@ -128,6 +129,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
  "points":[{"t":"확인할 것 25자","d":"판단 기준 60자"}, ×3],
  "checks":{"global":{"lead":"90자 — 이 영역에서 오늘 전망을 아래로 깰 수 있는 것 한 가지(화면 제목이 '하방 체크'다. 요약을 되풀이하지 않는다. 없으면 없다고 쓰고 근거를 댄다)","more":[".."]},"domestic":{..같은 뜻},"scenario":{"lead":"오늘 전망의 가장 약한 고리","more":[".."]},
            "issue":{"lead":"..","more":[".."],"src":[{"t":"이슈 20자","origin":"읽은 기사의 매체","at":"10/29 21:10","momentum":"로이터·블룸버그 또는 null","verify":"알파벳 실적 발표문 또는 null","first":"더 이른 첫 보도를 알 때만"}]}},   ← 3절. 접힘 글자수에 들지 않는다
+ "agenda":[{"when":"11/27 16:00","t":"일정 40자"}],   ← 선택. 이번 회차가 읽은 기사, 페이지에서 본 오늘~5영업일 일정(실적 발표, 지표, 회의)만, 3건까지. 일정을 찾으려고 검색하지 않는다. 만기일, 장 시간 변경, 미국 휴장은 render.py 가 넣으니 적지 않는다. 없으면 빈 배열
  "score":{"open_source":"Google Finance","actual_open":null,"actual_open_date":null,     ← KOSPI.open 의 날짜가 전망 날짜와 다를 때만 채움
           "lead":"무엇이 맞고 틀렸는지 + 실제 시가 숫자, 110자","more":["맞은 것 150자","놓친 것 150자","반복 패턴 150자"]},   ← 숫자로 확인되는 것만(구간 안·밖, 시초가, 종목 구간, 누적 횟수). 왜 그렇게 열렸는지는 쓰지 않는다 — 아래 설명
  "sources":"출처 — 매체·대상·기준일. 종목별로 어느 두 소스를 대조했는지",
@@ -140,6 +142,7 @@ KOSPI 의 **Open** 은 직전 영업일 시초가다. 채점에 쓰므로 반드
 ```
 python3 fetch_perp.py # 해외 24시간 추종가 → perp.json (턴 0 에서 이미 돌렸으면 생략)
 python3 fetch_relay.py # 토스 중계기 → relay.json (턴 0 에서 이미 돌렸으면 생략)
+python3 fetch_news.py  # 밤사이 뉴스 제목 → news.json (턴 0 에서 이미 돌렸으면 생략)
 python3 score.py      # 직전 전망 채점 → calibration.json append (같은 날짜는 두 번 기록하지 않는다). 종목 채점은 stock_records 에
 python3 render.py     # fill.json → out/index.html · out/state.json · out/calibration.json
 ```
@@ -174,7 +177,7 @@ python3 render.py     # fill.json → out/index.html · out/state.json · out/ca
 - 종목 예측 한 줄(render.py 의 `종목 예측 —` 줄) · 추종가 확보 여부(fetch_perp.py 출력)
 - 직전 회차 채점 한 줄 (실제 시가 숫자, hit/miss 근거) · 누적 커버리지 한 줄
 - 오늘 가장 중요한 리스크 1건
-- 중계기 — fetch_relay.py 첫 줄(OK·실패 사유)과 render.py 의 `중계기 보완 n건` 줄
+- 중계기 — fetch_relay.py 첫 줄(OK 또는 실패 사유)과 render.py 의 `중계기 보완 n건` 줄, fetch_news.py 첫 줄(`밤사이 뉴스 n건` 또는 못 받음)
 - 종가 대조 결과 — 일치했는지, 갈린 종목
 - render.py 출력 요약(접힘 글자수·경고 건수·경고 제목) / 두 폭 가로 스크롤·높이
 - 못 구한 데이터·못 받은 파일 — render.py `데이터 누락` 줄, 연속 누락으로 더 시도한 경로와 결과
