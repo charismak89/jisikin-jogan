@@ -37,6 +37,9 @@ NAMES = {
     'EWY':    ('MSCI 한국 ETF', 'EWY'),
     'SKHY':   ('SK하이닉스 ADR', 'SKHY'),
     'K200F':  ('코스피200 선물', 'K200F · 주간'),
+    'TSM':    ('TSMC', 'TSM'),
+    'DRAM':   ('DRAM', '메모리 ETF'),
+    'ANT':    ('앤트로픽', 'ANT'),
     'USDKRW': ('원달러', 'USD/KRW'),
     '005930': ('삼성전자', '005930'),
     '000660': ('SK하이닉스', '000660'),
@@ -47,7 +50,14 @@ NAMES = {
     'KOSPI':  ('KOSPI', 'KRX'),
     'KOSDAQ': ('KOSDAQ', 'KRX'),
 }
-GLOBAL_ORDER = ['K200N', 'SOX', 'NVDA', 'MU', 'EWY', 'SKHY', 'K200F', 'USDKRW']
+# 간밤 표(해설 cm 이 붙는 줄). 2026-11-27 사용자 결정: 주간선물(K200F)은 야간선물 등락률 기준이라 줄에서 빼고 야간선물 줄에 적는다.
+# EWY 는 시사 갭 오차가 야간선물의 두 배가 넘어(47회차 MAE 2.12 vs 0.92) 해설 없는 참고 시세로 내렸다. 두 값 모두 수집은 그대로다
+GLOBAL_ORDER = ['K200N', 'SOX', 'NVDA', 'MU', 'SKHY', 'USDKRW']
+# 참고 시세(해설 없음). EWY 를 뺀 셋은 중계기 일봉(fetch_relay.py REF)으로만 채운다 — 회차가 받지 않는다
+REF_ORDER = ['TSM', 'DRAM', 'ANT', 'EWY']
+REF_RELAY = ['TSM', 'DRAM', 'ANT']
+# 대시보드 '간밤 시장'(3×3)과 지난 회차 화면 타일
+MARKET_ORDER = ['K200N', 'SOX', 'USDKRW', 'NVDA', 'MU', 'TSM', 'DRAM', 'ANT', 'EWY']
 DOMESTIC_ORDER = ['005930', '000660', '402340', '009150', '0167A0', '442580']
 KPI_ORDER = ['KOSPI', 'SOX', '005930', '000660']
 STATE_KEYS = ['KOSPI', 'KOSDAQ', 'SOX', 'NVDA', 'MU', 'EWY', 'SKHY', 'K200F', 'USDKRW',
@@ -657,17 +667,45 @@ def main():
         check_len('%s.cm' % k, cm, LIMITS['cm'])
         if k == 'K200N' and p.get('asof'):
             cd = '야간 · %s' % esc(p.get('asof'))
+        cd2 = ''   # 야간선물 기준(주간선물 종가)은 둘째 줄 — 한 줄이면 360px 에서 등락 칸이 밀린다(2026-11-27)
+        if k == 'K200N' and close.get('K200F') is not None:
+            cd2 = '<span class="cd">주간 %s 대비</span>' % num(close['K200F'], 2)
         if c is None:
             pr = '<td class="pr num">—</td><td class="ch na">미확보</td>'
         else:
             cc = cls(q)
             pr = '<td class="pr num%s">%s</td><td class="ch %snum">%s</td>' % (
                 (' ' + cc) if cc else '', num(c, DECIMALS.get(k, 2)), (cc + ' ') if cc else '', pct_str(q))
-        return ('<tbody class="st"><tr><td class="nm">%s<span class="cd">%s</span></td>%s</tr>'
+        return ('<tbody class="st"><tr><td class="nm">%s<span class="cd">%s</span>%s</td>%s</tr>'
                 '<tr><td class="cm" colspan="3">%s%s</td></tr></tbody>' % (
-                    esc(nm), esc_keep(cd), pr, esc_keep(cm), details('근거', p.get('more'))))
+                    esc(nm), esc_keep(cd), cd2, pr, esc_keep(cm), details('근거', p.get('more'))))
 
     V['GLOBAL_ROWS'] = ''.join(row(k) for k in GLOBAL_ORDER)
+
+    # 참고 시세 — 중계기 일봉(마지막 봉과 그 앞 봉). 마지막 봉이 직전 미국 거래일보다 이르면(미국 휴장, 중계기 지연) 등락률을 비운다
+    us_exp = d - timedelta(days=1)
+    while us_exp.weekday() >= 5: us_exp -= timedelta(days=1)
+    ref_at = {}
+    for k in REF_RELAY:
+        r = (fill.get('ref') or {}).get(k) or {}
+        c = as_num(r.get('close'), 'ref.%s.close' % k)
+        if c is None: continue
+        close[k] = c
+        stale = str(r.get('date') or '') < us_exp.isoformat()
+        pct[k] = None if stale else as_num(r.get('pct'), 'ref.%s.pct' % k)
+        if stale:
+            try: rd = date.fromisoformat(str(r.get('date'))[:10]); ref_at[k] = '%d/%d 종가' % (rd.month, rd.day)
+            except ValueError: ref_at[k] = '지난 종가'
+    def mlabel_ref(k):
+        return 'EWY' if k == 'EWY' else names[k][0]
+    def refcell(k):
+        c, q = close.get(k), pct.get(k)
+        cc = cls(q) if (c is not None and q is not None) else 'na'
+        return ('<div><span class="fk">%s</span><span class="fv num %s">%s</span><span class="fc num">%s</span></div>' % (
+            esc(mlabel_ref(k)), cc, pct_str(q).replace('▲ ', '').replace('▼ ', '') if q is not None else (ref_at.get(k) or '미확보'), num(c, 2)))   # 좁은 칸이라 화살표 없이 부호만
+    got = [k for k in REF_ORDER if close.get(k) is not None]
+    V['GLOBAL_REF'] = ('<div class="refs"><div class="rh">참고 시세</div><div class="fgrid">%s</div></div>' % ''.join(refcell(k) for k in got)) if got else ''
+    if not any(k in got for k in REF_RELAY): warn('참고 시세(TSMC, DRAM, 앤트로픽) 없음 — 중계기 일봉을 못 받았다(VM 갱신 전이면 정상, 게이트 무관)')
     V['DOMESTIC_ROWS'] = ''.join(row(k) for k in DOMESTIC_ORDER)
 
     def kpi(k):
@@ -745,7 +783,7 @@ def main():
         if p is None: return '<span class="na">%s 미확보</span>' % label
         return '<span class="%s">%s %s%s</span>' % (cls(p) or '', label, pct_str(p), ('<small>%s</small>' % esc(note)) if note else '')
     V['SIGNAL_STRIP'] = (chip('야간선물', signals['k200n_pct'], signals['k200n_asof'] or '') +
-                         chip('EWY 시사', signals['ewy_implied_pct']) +
+                         (chip('EWY 시사', signals['ewy_implied_pct']) if signals['k200n_pct'] is None else '') +   # 2026-11-27 야간선물이 없는 날만
                          chip('ADR 시사', signals['adr_implied_pct']) +
                          (chip('미국선물 ES', es_pct, uf.get('asof') or '') if (es_pct is not None and signals['us_fut_basis'] != 'prev_session') else ''))
 
@@ -781,7 +819,7 @@ def main():
         ticks = ''.join('<text x="%.1f" y="41" font-size="10" text-anchor="middle" style="fill:var(--tx3)">%+d%%</text>' % (x(t), t)
                         for t in range(-int(R), int(R) + 1, 2) if t != 0)
         sig_marks = ''
-        for key, lab in (('k200n_pct', '야간'), ('ewy_implied_pct', 'EWY')):
+        for key, lab in (('k200n_pct', '야간'),) + ((('ewy_implied_pct', 'EWY'),) if signals['k200n_pct'] is None else ()):
             p = signals.get(key)
             if p is not None and abs(p) <= R:
                 sig_marks += ('<line x1="%.1f" x2="%.1f" y1="8" y2="26" style="stroke:var(--tx3)" stroke-width="1.5" stroke-dasharray="2 2"/>'
@@ -1180,13 +1218,14 @@ def main():
     l10 = scored[-10:]
     V['K20_CAP'] = ('최근 %d회 구간 안 %d' % (len(l10), sum(1 for r in l10 if r['in_range']))) if l10 else '채점 기록 없음'
 
+    def mlabel(k):
+        return {'K200N': 'K200 야간', 'SOX': 'SOX', 'EWY': 'EWY'}.get(k) or names[k][0]
     def mtile(k, label):
         c, q = close.get(k), pct.get(k)
         sub = ('<small>%s</small>' % esc((prices.get(k) or {}).get('asof') or '')) if k == 'K200N' and (prices.get(k) or {}).get('asof') else ''
         return '<div class="t5"><div class="t5n">%s%s</div><div class="t5v num">%s</div><div class="t5c num %s">%s</div></div>' % (
             esc(label), sub, num(c, DECIMALS.get(k, 2)) if c is not None else '—', cls(q) if c is not None else 'na', pct_str(q) if c is not None else '미확보')
-    V['MKT_TILES'] = ''.join(mtile(k, lab) for k, lab in (('K200N', 'K200 야간'), ('SOX', 'SOX'), ('NVDA', names['NVDA'][0]),
-                                                          ('MU', names['MU'][0]), ('EWY', 'EWY'), ('USDKRW', names['USDKRW'][0])))
+    V['MKT_TILES'] = ''.join(mtile(k, mlabel(k)) for k in MARKET_ORDER)
     hw_txt = ' · '.join('%s ±%.2f%%' % (names[c][0], float(hws.get(c, 1.5))) for c in STOCK_KEYS)
     V['STOCK_NOTE'] = ('종목 예측 구간 = 야간선물과 해외 24시간 추종가(%s)의 평균 ± 최근 오차 80%% 범위(%s). 해외 추종가는 해외 코인거래소의 한국 종목 무기한선물 가격이라 실제 체결가와 다릅니다.' % (
         signals['perp_asof'] or '미확보', hw_txt)) + ('' if pitems else ' 오늘은 추종가를 받지 못해 야간선물만으로 구간을 잡았습니다.')
@@ -1210,8 +1249,8 @@ def main():
             'concl': [{'h': plain(t.get('h')), 'b': plain(t.get('b'))} for t in tl[:3]],
             'signals': {k: signals.get(k) for k in ('k200n_pct', 'k200n_asof', 'ewy_implied_pct', 'adr_implied_pct', 'es_pct', 'nq_pct', 'perp_asof')},
             'day': day, 'k20': {'rows': k20_rows, 'close': kospi_close, 'pct': pct.get('KOSPI'), 'cap': plain(V['K20_CAP'])},
-            'market': [{'key': k, 'label': lab, 'close': close.get(k), 'pct': pct.get(k), 'asof': (prices.get(k) or {}).get('asof') if k == 'K200N' else None}
-                       for k, lab in (('K200N', 'K200 야간'), ('SOX', 'SOX'), ('NVDA', names['NVDA'][0]), ('MU', names['MU'][0]), ('EWY', 'EWY'), ('USDKRW', names['USDKRW'][0]))],
+            'market': [{'key': k, 'label': mlabel(k), 'close': close.get(k), 'pct': pct.get(k),
+                        'asof': (prices.get(k) or {}).get('asof') if k == 'K200N' else ref_at.get(k)} for k in MARKET_ORDER],
             'issue_src': issue_src, 'post_note': post_note,
             'global_tag': plain(tags.get('global')), 'stock_note': V['STOCK_NOTE'],
             'brief_html': '', 'footer': {'sources': plain(src), 'data_note': plain(dn.get('lead'))}}

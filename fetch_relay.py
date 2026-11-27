@@ -29,6 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)) or '.'
 OUT = 'relay.json'
 KR = ['005930', '000660', '402340', '009150', '0167A0', '442580']
 US = ['NVDA', 'MU', 'EWY', 'SKHY']
+REF = ['TSM', 'DRAM', 'ANT']   # 참고 시세(2026-11-27): 회차가 받거나 해설을 쓰지 않는다. 중계기 일봉 마지막 두 개로 종가와 등락률을 낸다
 OPEN_KEYS = ['KOSPI', '005930', '000660']   # 채점에 쓰는 시가
 NIGHT_KEYS = ('K200N', 'K200F')            # 야간선물, 주간선물 종가(한국투자증권 /v1/night)
 FLOW_KEYS = ['foreign', 'inst', 'retail', 'other']
@@ -65,6 +66,13 @@ def normalize(daily, cal, issue, p):
         if rows:
             r = max(rows, key=lambda r: r['date'])
             P[k] = {'close': r['close'], 'date': r['date'][:10], 'src': 'toss-1d'}
+    for k in REF:   # 참고 시세 — 마지막 봉과 그 앞 봉. 미국 휴장 뒤에는 마지막 봉이 휴장 전날이라 date 를 같이 둔다
+        rows = sorted((r for r in (daily.get('us') or {}).get(k) or [] if str(r.get('date', ''))[:10] < issue.isoformat()), key=lambda r: r['date'])
+        if rows:
+            last = rows[-1]
+            prev = rows[-2]['close'] if len(rows) > 1 else None
+            out.setdefault('ref', {})[k] = {'close': last['close'], 'date': last['date'][:10], 'prev_close': prev,
+                                            'pct': round((last['close'] / prev - 1) * 100, 2) if prev else None, 'src': 'toss-1d'}
     fc = daily.get('fx_close')
     if fc and fc.get('mid'):
         P['USDKRW'] = {'close': fc['mid'], 'asof': (fc.get('from') or '')[:16], 'src': 'toss-fx-1530', 'approx': True}
@@ -178,6 +186,16 @@ def fmt(v, dec=2):
     if v is None: return '—'
     return '{:,.0f}'.format(v) if dec == 0 else '{:,.{d}f}'.format(v, d=dec)
 
+def ref_text(k, r, issue):
+    """참고 시세 한 종목 → 'TSM 297.13 +1.22%(11/26)'. 마지막 봉이 직전 미국 거래일보다 이르면(미국 휴장) 등락률 대신 'M/D 종가' — render.py 와 같은 판단"""
+    exp = issue - timedelta(days=1)
+    while exp.weekday() >= 5: exp -= timedelta(days=1)
+    d = str(r.get('date') or '')
+    try: dd = date.fromisoformat(d[:10]); lab = '%d/%d' % (dd.month, dd.day)
+    except ValueError: lab = d or '?'
+    if d < exp.isoformat() or r.get('pct') is None: return '%s %s(%s 종가, 등락률 없음)' % (k, fmt(r.get('close')), lab)
+    return '%s %s %+.2f%%(%s)' % (k, fmt(r.get('close')), r['pct'], lab)
+
 def report(rel):
     if not rel.get('ok'):
         print('중계기 실패 — %s. RUNBOOK 2단계 기존 경로(웹)로 받는다' % rel.get('reason'))
@@ -193,6 +211,9 @@ def report(rel):
     us = ['%s %s' % (k, fmt(P[k]['close'])) for k in US if k in P]
     if us: print('  미국(%s) ' % P[[k for k in US if k in P][0]]['date'] + ' · '.join(us) +
                  '  — 대조용. 1순위는 stockanalysis 정규장 종가(토스 일봉 종가는 공식 종가와 소수점 차이가 난다 — 10/21 NVDA 221.86 vs 221.97)')
+    rf = rel.get('ref') or {}
+    if rf: print('  참고 시세 ' + ', '.join(ref_text(k, rf[k], date.fromisoformat(rel['issue_date'])) for k in REF if k in rf) +
+                 '  — 화면에 자동으로 들어간다. 회차가 받거나 해설을 쓰지 않는다. 본문에 인용할 때만 이 숫자를 쓴다')
     if 'USDKRW' in P: print('  환율 %s (%s 매매기준율 — 서울 종가 근사, 웹 종가가 있으면 그쪽)' % (fmt(P['USDKRW']['close']), P['USDKRW']['asof'][11:16] or '15:30'))
     f = rel.get('flow')
     if f: print('  수급(억원) 외국인 %s · 기관 %s · 개인 %s · 기타법인 %s — %s %s' % (
@@ -207,8 +228,10 @@ def report(rel):
             fmt(n['close']), n['pct_screen'], n['asof'], fmt(P['K200F']['close'])))
     else:
         print('  야간선물 못 받음 — %s. RUNBOOK 2단계 sonmul 로 받는다' % rel.get('night_reason', '알 수 없음'))
-    for e in rel.get('errors') or []: print('  일부 실패 — %s' % e)
-    print('  → 국내 종가·시가·지수·수급은 1순위로 fill.json 에 쓴다. 미국 종가·환율은 웹 값이 1순위이고 못 구했을 때만 이 값을 쓴다. 빈칸은 score.py·render.py 가 채운다.')
+    for e in rel.get('errors') or []:
+        ref_err = str(e).split(' ')[0] in REF
+        print('  일부 실패 — %s%s' % (e, '  (참고 시세 — 웹에서 받지 않는다. 9단계 못 구한 데이터에 옮기기만 한다)' if ref_err else ''))
+    print('  → 국내 종가·시가·지수·수급은 1순위로 fill.json 에 쓴다. 미국 종가·환율은 웹 값이 1순위이고 못 구했을 때만 이 값을 쓴다(참고 시세 TSM, DRAM, ANT 는 제외 — 중계기 값만 쓴다). 빈칸은 score.py·render.py 가 채운다.')
 
 def covered(rel):
     """중계기가 이번에 받은 필드 (datalog 의 필드 이름)"""
@@ -257,6 +280,7 @@ def merge_into(fill, rel=None):
                 use = official and k != 'USDKRW'
                 diff.append('prices.%s.%s 회차 %s / 중계기 %s → %s' % (k, fld, fv, rv, '중계기' if use else '회차 값 유지'))
                 if use: p[fld] = rv
+    if rel.get('ref') and not fill.get('ref'): fill['ref'] = rel['ref']   # 참고 시세는 중계기 값만 쓴다
     f = rel.get('flow')
     if f:
         fl = fill.setdefault('flow', {})

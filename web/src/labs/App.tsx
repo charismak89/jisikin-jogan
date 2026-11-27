@@ -45,7 +45,8 @@ function ThemeButton() {
 /** 기존 전망 카드의 나머지(결론 3줄, 신호 칩, 브리핑 링크) */
 function Summary({ data, onBrief }: { data: DayData; onBrief: () => void }) {
   const s = data.signals
-  const chips: [string, number | null][] = [['야간선물', s.k200n_pct], ['EWY 시사', s.ewy_implied_pct], ['ADR 시사', s.adr_implied_pct]]
+  // EWY 시사는 야간선물이 없는 날(휴장 뒤)에만 보인다 — 47회차 오차가 야간선물의 두 배가 넘었다(2026-11-27)
+  const chips: [string, number | null][] = [['야간선물', s.k200n_pct], ...(s.k200n_pct == null ? [['EWY 시사', s.ewy_implied_pct] as [string, number | null]] : []), ['ADR 시사', s.adr_implied_pct]]
   return (
     <Card aria-label="오늘 브리핑 요약">
       <div className="mb-2 flex items-baseline justify-between gap-2">
