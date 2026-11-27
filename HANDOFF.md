@@ -9,7 +9,7 @@
 - 관심 탭: 4열 유지(종목명, 현재가, 등락과 대비, 거래대금). 거래량 대신 거래대금(조, 억, 만 / 미국은 $B, $M). 글자 한 단계 줄이고 종목명 칸 37%. 중계기 `/v1/quotes` 에 `amt` 를 더했다 — 토스 일봉의 거래대금 필드 이름을 몰라 후보(amount, tradingValue 등)를 본다 [검증 필요]. 없거나 거래량 × 현재가와 3배 넘게 다르면 화면이 거래량 × 현재가로 어림하고 칸 제목에 `*`.
 - 일정 탭: '주 | 월' 전환(기본 주). 월간은 달력 칸에 분류 점, 날짜를 누르면 그날 일정. 캡션은 지웠다.
 - 글자 줄이기: 관심, 일정 캡션, 20거래일 범례, 간밤 시장 캡션, 맨 아래 면책 문구, 종목 전망 구간 기준(접어 둠).
-- **VM 갱신 필요(사용자)**: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh`. 확인 ① `curl -s https://129-225-146-153.sslip.io/v1/flow` 에 `"foreign"` 이 보이면 된다(갱신 전 404). 장중에 두 번 불러 `updatedAt` 이 바뀌는지로 장중 갱신 여부를 본다. ② `sudo journalctl -u jogan-relay --since today | grep '토스 일봉 필드'` 로 거래대금 필드 이름을 확인한다(관심 탭을 한 번 연 뒤). 후보에 없으면 다음 세션이 이름을 고친다.
+- **VM 갱신 필요(사용자)**: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh`. 확인 ① `curl -s https://129-225-146-153.sslip.io/v1/flow` 에 `"foreign"` 이 보이면 된다(갱신 전 404). 장중에 두 번 불러 `updatedAt` 이 바뀌는지로 장중 갱신 여부를 본다. ② `sudo journalctl -u jogan-relay --since today | grep '토스 일봉 필드'` 로 거래대금 필드 이름을 확인한다(관심 탭을 한 번 연 뒤). 후보에 없으면 다음 세션이 이름을 고친다. 확인(11/27 16:14, 사용자): 토스 일봉 필드는 `closePrice, currency, highPrice, lowPrice, openPrice, timestamp, volume` 뿐이라 거래대금 필드가 없다. 관심 탭 거래대금은 계속 거래량 × 현재가 어림(`*`)이다. 정확한 값이 필요하면 한국투자증권 현재가 API 의 누적거래대금(KRX 만, NXT 제외 [검증 필요])이 후보다. `quote_one` 의 후보 필드 검사는 해롭지 않아 그대로 둔다.
 - 사진: `python3 uishots.py --page labs/ --watch --intraday --clock 15:41 --width 360`(가짜 수급, 가짜 거래대금, 월간 사진 `schedule-month`).
 - 남은 일: 사용자가 `/labs/` 를 보고 메인 전환 여부 결정. 되돌리기: 이 PR revert(중계기는 경로와 필드만 더해 VM 은 그대로 둬도 된다).
 
