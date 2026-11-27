@@ -5,13 +5,12 @@ import { Card, CardHeader, Cap } from './ui/card'
 import { tone } from '../lib/tone'
 import { ChartSheet } from './ChartSheet'
 import { ZoomButton } from './ui/zoom-button'
-import { LAB } from '../lab'
 
-/** 코스피 일봉(중계기 /v1/kospi-daily, 2026-11-27 실험실). 오늘 봉이 장중에 바뀌니 화면이 보일 때 1분마다 다시 받는다 */
+/** 코스피 일봉(중계기 /v1/kospi-daily, 2026-11-27, 같은 날 메인 전환). 오늘 봉이 장중에 바뀌니 화면이 보일 때 1분마다 다시 받는다 */
 function useKospiDaily(relay: string | null) {
   const [m, setM] = useState<Record<string, DayOhlc>>({})
   useEffect(() => {
-    if (!LAB || !relay) return
+    if (!relay) return
     let dead = false
     const get = () => {
       if (document.hidden) return

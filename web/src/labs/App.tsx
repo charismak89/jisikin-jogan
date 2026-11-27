@@ -14,7 +14,6 @@ import { BriefTab } from './components/BriefTab'
 import { Feedback } from './components/Feedback'
 import { Card } from './components/ui/card'
 import { site, versions, vlabel } from '../lib/site'
-import { LAB } from './lab'
 import { Watch } from './Watch'
 import { Schedule } from './Schedule'
 
@@ -76,8 +75,8 @@ function Summary({ data, onBrief }: { data: DayData; onBrief: () => void }) {
 export default function App() {
   const [data, setData] = useState<DayData | null>(null)
   const [err, setErr] = useState('')
-  // 관심 탭은 실험실에만(LAB). #watch 나 목록 링크(#w=)로 열면 바로 관심 탭
-  const [tab, setTab] = useState(() => (location.hash === '#brief' ? 'brief' : LAB && /^#(watch|w=)/.test(location.hash) ? 'watch' : LAB && location.hash === '#schedule' ? 'schedule' : 'dash'))
+  // 관심, 일정 탭(2026-11-27 메인 전환). #watch 나 목록 링크(#w=)로 열면 바로 관심 탭
+  const [tab, setTab] = useState(() => (location.hash === '#brief' ? 'brief' : /^#(watch|w=)/.test(location.hash) ? 'watch' : location.hash === '#schedule' ? 'schedule' : 'dash'))
 
   useEffect(() => {
     fetch(site('day.json'), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
@@ -122,14 +121,14 @@ export default function App() {
           <Tabs value={tab} onValueChange={go}>
             <div className="mb-3 flex items-center gap-2">
               <TabsList aria-label="보기 전환">
-                {/* 실험실은 탭이 넷이라 360px 에 맞게 '브리핑 전문'을 '브리핑'으로 줄인다 */}
-                {[['dash', '대시보드'], ...(LAB ? [['watch', '관심'], ['schedule', '일정']] : []), ['brief', LAB ? '브리핑' : '브리핑 전문']].map(([v, l]) => (
+                {/* 탭이 넷이라 360px 에 맞게 '브리핑 전문'을 '브리핑'으로 줄였다(2026-11-27) */}
+                {[['dash', '대시보드'], ['watch', '관심'], ['schedule', '일정'], ['brief', '브리핑']].map(([v, l]) => (
                   <TabsTrigger key={v} value={v}>{l}</TabsTrigger>
                 ))}
               </TabsList>
               {IS_LABS
                 ? <Button asChild variant="assistive" size="small" className="ml-auto shrink-0"><a href={site('')}>메인으로</a></Button>
-                : <Button asChild variant="assistive" size="small" className="ml-auto shrink-0"><a href={site('labs/')}>실험실<span className="ml-1 rounded bg-inverse px-1 py-px text-caption1 font-bold leading-none text-fg-inverse">BETA</span></a></Button>}
+                : <Button asChild variant="assistive" size="small" className="ml-auto shrink-0"><a href={site('labs/')}>실험실<span className="ml-1 hidden rounded bg-inverse px-1 py-px text-caption1 font-bold leading-none text-fg-inverse sm:inline">BETA</span></a></Button>}
             </div>
             <TabsContent value="dash">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
@@ -144,8 +143,8 @@ export default function App() {
                 </div>
               </div>
             </TabsContent>
-            {LAB && <TabsContent value="watch"><Watch data={data} /></TabsContent>}
-            {LAB && <TabsContent value="schedule"><Schedule data={data} /></TabsContent>}
+            <TabsContent value="watch"><Watch data={data} /></TabsContent>
+            <TabsContent value="schedule"><Schedule data={data} /></TabsContent>
             <TabsContent value="brief"><BriefTab data={data} /></TabsContent>
             {past && <p className="mt-4 px-2 text-center text-caption1 text-fg-2">{md(data.issue)} 회차가 마지막 발행입니다.</p>}
             <p className="mt-6 px-2 text-center text-caption1 leading-relaxed text-fg-2">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a> · {IS_LABS ? '실험실' : '화면'} {vlabel(IS_LABS ? versions.labs : versions.main)}</p>
