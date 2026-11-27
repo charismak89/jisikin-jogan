@@ -157,8 +157,9 @@ def cached(key, ttl, fn, store=None):
                 except Exception as e: hit = (time.time(), None, e)
                 with _clock:
                     _cache[key] = hit
-                    if len(_cache) > (CACHE_MAX if store is None else 2000):   # 오래된 것부터 버린다(루틴 키 요청은 날짜가 제각각이라 끝없이 쌓일 수 있다)
-                        for k, _ in sorted(_cache.items(), key=lambda kv: kv[1][0])[:len(_cache) - CACHE_MAX]:
+                    lim = CACHE_MAX if store is None else 2000
+                    if len(_cache) > lim:   # 오래된 것부터 버린다(루틴 키 요청은 날짜가 제각각이라 끝없이 쌓일 수 있다)
+                        for k, _ in sorted(_cache.items(), key=lambda kv: kv[1][0])[:len(_cache) - lim]:
                             _cache.pop(k, None); _klocks.pop(k, None)
     if hit[2] is not None: raise hit[2]
     return hit[1]
@@ -398,8 +399,9 @@ def quotes(syms):
         if any(not is_kr(x) for x in syms): listed |= {x[0] for x in cached('stocks-us', 6 * 3600, lambda: stock_list(US_MK))['items']}
         bad = [x for x in syms if x not in listed]
         if bad: out['errors'].append('목록에 없음 %s' % ','.join(bad)); syms = [x for x in syms if x in listed]
-    except Exception as e:
+    except Exception as e:   # 목록을 못 받으면 국내 6자리 코드만 부른다(검증 안 된 티커가 prices 를 통째로 실패시키지 않게)
         log.warning('종목 목록 실패: %s', e)
+        syms = [x for x in syms if re.fullmatch(r'\d{5}[0-9A-Z]', x)]
     if not syms: return out
     px = {}
     for grp in ([x for x in syms if is_kr(x)], [x for x in syms if not is_kr(x)]):   # 국내, 미국을 따로 부른다(섞어 부를 수 있는지 명세에 없다)
@@ -494,6 +496,7 @@ def events_one(code):
     out, seen = [], set()
     for r in j.get('list') or []:   # 최신순 — 정정 공시가 먼저 오니 같은 종류, 같은 날짜는 처음 것만 둔다
         nm, rno = r.get('report_nm', ''), r.get('rcept_no', '')
+        if not re.fullmatch(r'\d{14}', rno or '') or not re.fullmatch(r'\d{8}', r.get('rcept_dt') or ''): continue   # 파일 이름, 링크에 쓰니 형식을 확인한다
         kind = next((k for k, rx in KINDS if rx.search(nm)), None)
         if not kind: continue
         rd = '%s-%s-%s' % (r['rcept_dt'][:4], r['rcept_dt'][4:6], r['rcept_dt'][6:8])
@@ -506,7 +509,9 @@ def events_one(code):
             except Exception as e:
                 log.warning('DART 문서 %s 실패: %s', rno, e); t = ''
             if kind == 'IR':
-                d = date_after(t, r'개최\s*일시|일\s*시')
+                # '일시적', '일 시작' 같은 낱말에 걸리지 않게 뒤에 한글이 오지 않는 '일시'만. 접수일 앞이거나 1년 넘게 뒤면 버린다
+                d = date_after(t, r'개최\s*일\s*시(?![가-힣])') or date_after(t, r'일\s*시(?![가-힣])')
+                if d and not (rd <= d <= (date.fromisoformat(rd) + timedelta(days=365)).isoformat()): d = None
                 evs.append(dict(base, kind='IR', date=d or rd, approx=not d, title='IR 개최' if d else 'IR 개최 공시'))
             else:
                 amt = re.search(r'1주당\s*배당금\s*\(원\)\s*보통주식\s*([\d,]+)', t)
@@ -522,6 +527,9 @@ def events_one(code):
 
 def events(syms):
     out = {'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': [], 'errors': []}
+    # 국내 상장 목록에 있는 종목만 DART 를 부른다(공개 경로라 아무 코드나 돌려 부르면 하루 2만 회 한도를 쓴다)
+    listed = {x[0] for x in cached('stocks', 6 * 3600, stock_list)['items']}
+    syms = [x for x in syms if x in listed]
     def one(s):
         try: return cached(('ev', s), 6 * 3600, lambda: events_one(s), QSTORE), None
         except Exception as e: return None, '%s %s' % (s, e)
