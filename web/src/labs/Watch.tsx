@@ -13,6 +13,7 @@ import { tone } from './lib/tone'
 import { Card, Cap } from './components/ui/card'
 import { Button } from './components/ui/button'
 import { cn } from './lib/cn'
+import { LAB } from './lab'
 
 export const WATCH_MAX = 20
 export const GROUP_MAX = 10
@@ -23,7 +24,7 @@ type Item = [string, string, string?]   // [코드, 이름, 시장]
 type Stock = [string, string, string]   // [코드, 이름, 시장]
 interface Group { n: string; items: Item[] }
 interface Store { g: Group[]; cur: number }
-interface Quote { last: number | null; t?: string; cur?: string | null; base: number | null; base_src: string | null; vol: number | null; ref: string | null; chg?: number; pct?: number }
+interface Quote { last: number | null; t?: string; cur?: string | null; base: number | null; base_src: string | null; vol: number | null; amt?: number | null; ref: string | null; chg?: number; pct?: number }
 
 const items0 = (v: unknown): Item[] => (Array.isArray(v) ? v.filter((x) => Array.isArray(x) && typeof x[0] === 'string').slice(0, WATCH_MAX) : [])
 /** 저장된 그룹. 옛 단일 목록(jj-watch)은 '관심 1' 로 옮긴다 */
@@ -49,6 +50,19 @@ const MK_L: Record<string, string> = { KOSPI: '코스피', KOSDAQ: '코스닥', 
 const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase()
 const two = (n: number) => String(n).padStart(2, '0')
 const hms = (t: number) => { const d = new Date(t + 9 * 3600e3); return `${two(d.getUTCHours())}:${two(d.getUTCMinutes())}:${two(d.getUTCSeconds())}` }
+/** 거래대금(2026-11-27 실험실). 중계기 amt 가 없거나 거래량 × 현재가와 3배 넘게 어긋나면 어림값(approx) */
+const amtOf = (k: Quote | undefined): { v: number; approx: boolean } | null => {
+  if (!k || k.vol == null || k.last == null) return k?.amt != null ? { v: k.amt, approx: false } : null
+  const est = k.vol * k.last
+  if (k.amt != null && (!(est > 0) || (k.amt / est > 1 / 3 && k.amt / est < 3))) return { v: k.amt, approx: false }
+  return est > 0 ? { v: est, approx: true } : null
+}
+/** 원은 조, 억, 만. 달러는 B, M, K */
+const money = (v: number, kr: boolean) => {
+  const a = Math.abs(v)
+  if (kr) return a >= 1e12 ? `${nf(a / 1e12, a >= 1e13 ? 0 : 1)}조` : a >= 1e8 ? `${nf(Math.round(a / 1e8))}억` : `${nf(Math.round(a / 1e4))}만`
+  return a >= 1e9 ? `$${nf(a / 1e9, 1)}B` : a >= 1e6 ? `$${nf(Math.round(a / 1e6))}M` : `$${nf(Math.round(a / 1e3))}K`
+}
 const sgn = (v: number, s: string) => (v > 0 ? '+' : v < 0 ? '−' : '') + s
 
 export function Watch({ data }: { data: DayData }) {
@@ -166,6 +180,7 @@ export function Watch({ data }: { data: DayData }) {
 
   if (!relay) return <Card className="text-center text-body2 text-fg-2">이 회차는 KRX 중계기 주소가 없어 관심종목 시세를 받을 수 없습니다.</Card>
 
+  const anyApprox = items.some(([c]) => amtOf(quotes[c])?.approx)
   const status = fail ? `시세를 못 받음${okAt ? ` · 마지막 ${hms(okAt)}` : ''}` : okAt ? `${hms(okAt)} 기준 · 10초마다 갱신` : '시세 받는 중…'
   return (
     <div className="space-y-4">
@@ -197,11 +212,11 @@ export function Watch({ data }: { data: DayData }) {
           <table className="w-full table-fixed text-right">
             <thead>
               <tr className="border-y border-line text-caption1 text-fg-2">
-                <th scope="col" className="w-[30%] py-2 pl-4 text-left font-semibold sm:pl-6">종목명</th>
+                <th scope="col" className={cn(LAB ? 'w-[37%]' : 'w-[30%]', 'py-2 pl-4 text-left font-semibold sm:pl-6')}>종목명</th>
                 {edit ? <th scope="col" className="py-2 pr-4 font-semibold sm:pr-6">순서, 삭제</th> : <>
-                  <th scope="col" className="w-[24%] py-2 font-semibold">현재가</th>
-                  <th scope="col" className="w-[21%] py-2 font-semibold">등락(대비)</th>
-                  <th scope="col" className="py-2 pr-4 font-semibold sm:pr-6">거래량</th></>}
+                  <th scope="col" className={cn(LAB ? 'w-[20%]' : 'w-[24%]', 'py-2 font-semibold')}>현재가</th>
+                  <th scope="col" className={cn(LAB ? "w-[19%]" : "w-[21%]", "py-2 font-semibold")}>{LAB ? "등락" : "등락(대비)"}</th>
+                  <th scope="col" className={cn("py-2 pr-4 font-semibold sm:pr-6", LAB && !edit && "whitespace-nowrap pl-2")}>{LAB ? <>거래대금{anyApprox && '*'}</> : '거래량'}</th></>}
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -210,23 +225,23 @@ export function Watch({ data }: { data: DayData }) {
                 return (
                   <tr key={c}>
                     <th scope="row" className="py-2.5 pl-4 text-left font-normal sm:pl-6">
-                      <div className="truncate text-label1 font-semibold text-fg sm:text-body2">{n}</div>
+                      <div className={cn('font-semibold text-fg sm:text-body2', LAB ? 'line-clamp-2 break-all text-label2 leading-tight' : 'truncate text-label1')}>{n}</div>
                       <div className="num text-caption1 text-fg-2">{c}{!kr && ` · ${MK_L[mk || ''] || '미국'}`}</div>
                     </th>
                     {!edit && <>
-                      <td className={cn('num py-2.5 text-label2 font-semibold sm:text-body2', tone(p))}>{k?.last != null ? nf(k.last, dp) : '—'}</td>
+                      <td className={cn('num py-2.5 font-semibold sm:text-body2', LAB ? 'text-caption1' : 'text-label2', tone(p))}>{k?.last != null ? nf(k.last, dp) : '—'}</td>
                       <td className={cn('num py-2.5', tone(p))}>
-                        <div className="text-label2 font-semibold sm:text-body2">{p != null ? sgn(p, Math.abs(p).toFixed(2) + '%') : '—'}</div>
+                        <div className={cn('font-semibold sm:text-body2', LAB ? 'text-caption1' : 'text-label2')}>{p != null ? sgn(p, Math.abs(p).toFixed(2) + '%') : '—'}</div>
                         <div className="text-caption1">{k?.chg != null ? sgn(k.chg, nf(Math.abs(k.chg), dp)) : ''}</div>
                       </td></>}
-                    <td className="num py-2.5 pr-4 text-label2 text-fg sm:pr-6 sm:text-body2">
+                    <td className={cn('num py-2.5 pr-4 sm:pr-6 sm:text-body2', LAB && !edit ? 'pl-2 text-caption1 text-fg-2' : 'text-label2 text-fg')}>
                       {edit ? (
                         <span className="inline-flex gap-1.5">
                           <button type="button" aria-label={`${n} 위로`} disabled={i === 0} onClick={() => move(i, -1)} className="size-9 rounded-sm bg-fill text-fg disabled:opacity-40">↑</button>
                           <button type="button" aria-label={`${n} 아래로`} disabled={i === items.length - 1} onClick={() => move(i, 1)} className="size-9 rounded-sm bg-fill text-fg disabled:opacity-40">↓</button>
                           <button type="button" aria-label={`${n} 삭제`} onClick={() => del(c)} className="size-9 rounded-sm bg-fill font-bold text-negative">×</button>
                         </span>
-                      ) : k?.vol != null ? nf(k.vol) : '—'}
+                      ) : LAB ? (() => { const a = amtOf(k); return a ? money(a.v, kr) : '—' })() : k?.vol != null ? nf(k.vol) : '—'}
                     </td>
                   </tr>
                 )
@@ -235,12 +250,12 @@ export function Watch({ data }: { data: DayData }) {
           </table>
         ) : (
           <div className="border-t border-line px-4 pt-6 text-center sm:px-6">
-            <p className="text-body2 text-fg-2">이 그룹은 비어 있습니다. 위 '+ 추가'로 종목을 넣으면 현재가와 등락을 한눈에 봅니다.</p>
+            <p className="text-body2 text-fg-2">{LAB ? "'+ 추가'로 종목을 넣으세요." : "이 그룹은 비어 있습니다. 위 '+ 추가'로 종목을 넣으면 현재가와 등락을 한눈에 봅니다."}</p>
           </div>
         )}
         <div className="border-t border-line px-4 sm:px-6">
           {items.length > 0 && <p className={cn('mt-3 text-caption1 font-semibold', fail ? 'text-negative' : 'text-fg-2')}>{status}</p>}
-          <Cap>국내 종목의 현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '링크 복사'로 지금 그룹을 옮기세요. 미국 종목은 달러이고 등락은 직전 정규장 종가 대비입니다. 한국 낮 시간의 현재가와 거래량은 토스 미국주식 주간거래 값입니다.</Cap>
+          {LAB ? <Cap>KRX+NXT 통합 · 등락은 전일 KRX 종가 대비{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(일부 통합 종가)' : ''}{anyApprox ? ' · * 거래량×현재가 어림' : ''}</Cap> : <Cap>국내 종목의 현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '링크 복사'로 지금 그룹을 옮기세요. 미국 종목은 달러이고 등락은 직전 정규장 종가 대비입니다. 한국 낮 시간의 현재가와 거래량은 토스 미국주식 주간거래 값입니다.</Cap>}
         </div>
       </Card>
 

@@ -40,7 +40,7 @@ def fake_intraday(day):
     return json.dumps({'items': items})
 
 WATCH = [['005930', '삼성전자', 'KOSPI'], ['000660', 'SK하이닉스', 'KOSPI'], ['066570', 'LG전자', 'KOSPI'], ['010120', 'LS ELECTRIC', 'KOSPI'],
-         ['035420', 'NAVER', 'KOSPI'], ['247540', '에코프로비엠', 'KOSDAQ'], ['034730', 'SK', 'KOSPI'], ['016360', '삼성증권', 'KOSPI']]
+         ['035420', 'NAVER', 'KOSPI'], ['247540', '에코프로비엠', 'KOSDAQ'], ['012450', '한화에어로스페이스', 'KOSPI'], ['016360', '삼성증권', 'KOSPI']]
 
 US = [['NVDA', '엔비디아', 'NASDAQ'], ['AAPL', '애플', 'NASDAQ'], ['BRK.B', '버크셔 해서웨이 B', 'NYSE']]
 
@@ -58,6 +58,7 @@ def fake_watch(path, dj, query=''):
     """관심종목, 코스피 일봉, 일정 가짜 응답(2026-11-27). 실제 값이 아니다"""
     if path == '/v1/stocks': return json.dumps({'items': US if 'mk=us' in query else WATCH})
     if path == '/v1/events': return fake_events(dj)
+    if path == '/v1/flow': return json.dumps({'date': dj['issue'], 'foreign': 14373, 'inst': 1777, 'retail': -20119, 'other': 3969})   # 2026-11-27 수급 줄
     if path == '/v1/quotes':
         items = {}
         for i, (c, n, m) in enumerate(WATCH):
@@ -66,6 +67,7 @@ def fake_watch(path, dj, query=''):
             last = round(base * (1 + pct / 100), -2)
             items[c] = {'last': last, 'base': base, 'base_src': 'krx', 'vol': [12553942, 2745141, 818664, 470942, 345292, 1204331, 66792, 378369][i],
                         'ref': dj['issue'], 'chg': last - base, 'pct': round((last / base - 1) * 100, 2)}
+            if i < 2: items[c]['amt'] = round(items[c]['vol'] * last * 0.99)   # 중계기 amt 가 있는 종목과 없는 종목(어림)을 같이 본다
         items['NVDA'] = {'last': 182.35, 'cur': 'USD', 'base': 179.9, 'base_src': 'us-1d', 'vol': 154302112, 'ref': dj['issue'], 'chg': 2.45, 'pct': 1.36}
         return json.dumps({'items': items})
     if path == '/v1/kospi-daily':
@@ -177,6 +179,8 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         p.get_by_role('textbox').fill('하이'); p.wait_for_timeout(200); snap('watch-search', False)
         p.keyboard.press('Escape'); p.wait_for_timeout(200)
         p.get_by_role('tab', name='일정').click(); p.wait_for_timeout(800); snap('schedule', True)
+        mb = p.get_by_role('button', name='월', exact=True)
+        if mb.count(): mb.click(); p.wait_for_timeout(300); snap('schedule-month', True)   # 실험실 월간 보기(2026-11-27)
         p.evaluate("localStorage.removeItem('jj-watch2')")
     p.get_by_role('tab', name=re.compile('^브리핑')).click(); p.wait_for_timeout(800)   # 실험실은 '브리핑'(2026-11-27 탭 넷)
     p.get_by_role('button', name='전부 펼치기').click(); p.wait_for_timeout(300)

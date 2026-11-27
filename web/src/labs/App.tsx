@@ -23,6 +23,7 @@ import { kstDay, md, sg } from '../lib/fmt'
 import { NowCard } from './NowCard'
 import { NightFeed } from './night'
 import { frame } from './clock'
+import { LAB } from './lab'
 
 type Mode = 'system' | 'light' | 'dark'
 const MODES: Mode[] = ['system', 'light', 'dark']
@@ -139,7 +140,8 @@ export default function App() {
                 <div className="space-y-4">
                   <K20Chart data={data} />
                   <Market data={data} />
-                  <p className="px-2 text-caption1 leading-relaxed text-fg-2">{data.stock_note}</p>
+                  {LAB ? (data.stock_note && <details className="px-2 text-caption1 leading-relaxed text-fg-2"><summary className="cursor-pointer font-semibold">종목 전망 구간 기준</summary><p className="mt-1">{data.stock_note}</p></details>)
+                    : <p className="px-2 text-caption1 leading-relaxed text-fg-2">{data.stock_note}</p>}
                 </div>
               </div>
             </TabsContent>
@@ -147,7 +149,7 @@ export default function App() {
             <TabsContent value="schedule"><Schedule data={data} /></TabsContent>
             <TabsContent value="brief"><BriefTab data={data} /></TabsContent>
             {past && <p className="mt-4 px-2 text-center text-caption1 text-fg-2">{md(data.issue)} 회차가 마지막 발행입니다.</p>}
-            <p className="mt-6 px-2 text-center text-caption1 leading-relaxed text-fg-2">개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다. · <a className="underline" href={site('archive/')}>지난 회차</a> · {IS_LABS ? '실험실' : '화면'} {vlabel(IS_LABS ? versions.labs : versions.main)}</p>
+            <p className="mt-6 px-2 text-center text-caption1 leading-relaxed text-fg-2">{LAB ? '개인 학습용 기록 · 투자 권유 아님' : '개인 학습용 기록입니다. 투자 자문이나 매매 권유가 아니며, 모든 판단과 책임은 열람자 본인에게 있습니다.'} · <a className="underline" href={site('archive/')}>지난 회차</a> · {IS_LABS ? '실험실' : '화면'} {vlabel(IS_LABS ? versions.labs : versions.main)}</p>
           </Tabs>
         )}
       </div>

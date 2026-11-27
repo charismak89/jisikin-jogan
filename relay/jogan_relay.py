@@ -54,7 +54,7 @@ CID = os.environ.get('TOSS_CLIENT_ID', '')
 CSECRET = os.environ.get('TOSS_CLIENT_SECRET', '')
 ROUTINE_KEY = os.environ.get('ROUTINE_KEY', '').strip()
 PUBLIC_VIEW = os.environ.get('PUBLIC_VIEW', '1').strip().lower() not in ('0', 'false', 'no', 'off')
-PUBLIC_PATHS = ('/v1/live', '/v1/intraday', '/v1/night', '/v1/stocks', '/v1/quotes', '/v1/kospi-daily', '/v1/events')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
+PUBLIC_PATHS = ('/v1/live', '/v1/intraday', '/v1/night', '/v1/stocks', '/v1/quotes', '/v1/kospi-daily', '/v1/events', '/v1/flow')   # 화면용 조회. /v1/daily·의견 읽기는 언제나 루틴 키
 ORIGINS = [o.strip() for o in os.environ.get('ALLOW_ORIGINS', 'https://charismak89.github.io').split(',') if o.strip()]
 STATE_DIR = os.environ.get('STATE_DIR', '/var/lib/jogan-relay')
 PORT = int(os.environ.get('PORT', '8787'))
@@ -177,6 +177,16 @@ def live():
         out['items'][r['symbol']] = {'last': float(r['lastPrice']), 't': r.get('timestamp')}
     for r in toss('/api/v1/market-indicators/prices', {'symbols': INDEX}) or []:
         out['items'][r['symbol']] = {'last': float(r['lastPrice']), 't': r.get('timestamp')}
+    return out
+
+def flow_now():
+    """코스피 투자자별 순매수(억원) 최신 1건 — 첫 카드 수급 줄(2026-11-27 실험실). 장중 갱신 여부는 [검증 필요]: updatedAt 으로 본다."""
+    out = {'asof': datetime.now(KST).isoformat(timespec='seconds')}
+    res = toss('/api/v1/market-indicators/KOSPI/investor-trading', {'interval': '1d', 'count': 1}) or {}
+    for r in (res.get('records') or [])[:1]:
+        net = lambda x: None if not x else round((float(x['buyAmount']) - float(x['sellAmount'])) / 1e8)   # 억원
+        out.update(date=r.get('date'), foreign=net(r.get('foreigner')), inst=net(r.get('institution')), retail=net(r.get('individual')),
+                   other=net(r.get('otherCorporation')), updatedAt=r.get('updatedAt'))
     return out
 
 def candles_1m(path, params, start_ms, end_ms):
@@ -375,6 +385,7 @@ def krx_base(s, ref):
         _base[k] = val
     return val
 
+_ckeys_logged = False
 def quote_one(s):
     """일봉 3개 → 최근 세션(ref)의 거래량과 그 전 세션 날짜. 전일 대비 기준은 그 전 세션의 KRX 종가.
     미국 종목은 그 전 세션 일봉 종가(base_src us-1d). 정규장 종가인지는 실측으로 확인할 것 [검증 필요]."""
@@ -382,7 +393,14 @@ def quote_one(s):
     cs = res.get('candles') or []   # 최신순
     if not cs: return None
     ref, prev = cs[0], (cs[1] if len(cs) > 1 else None)
-    out = {'ref': ref['timestamp'][:10], 'vol': float(ref.get('volume') or 0), 'base': None, 'base_src': None}
+    out = {'ref': ref['timestamp'][:10], 'vol': float(ref.get('volume') or 0), 'base': None, 'base_src': None, 'amt': None}
+    # 거래대금(2026-11-27 실험실). 토스 일봉의 필드 이름을 확인하지 못해 후보를 차례로 본다 [검증 필요]. 없으면 화면이 거래량 × 현재가로 어림한다
+    global _ckeys_logged
+    if not _ckeys_logged: _ckeys_logged = True; log.info('토스 일봉 필드: %s', sorted(ref))   # VM 에서 거래대금 필드 이름 확인용
+    for k in ('amount', 'tradingValue', 'tradeAmount', 'tradingAmount', 'accTradePrice'):
+        try:
+            if ref.get(k) is not None: out['amt'] = float(ref[k]); break
+        except (TypeError, ValueError): pass
     if prev and not is_kr(s):
         out['base'], out['base_src'] = float(prev['closePrice']), 'us-1d'
     elif prev:
@@ -419,7 +437,7 @@ def quotes(syms):
         last = float(p['lastPrice']) if p else None
         base = (q or {}).get('base')
         it = {'last': last, 't': (p or {}).get('timestamp'), 'cur': (p or {}).get('currency'), 'base': base, 'base_src': (q or {}).get('base_src'),
-              'vol': (q or {}).get('vol'), 'ref': (q or {}).get('ref')}
+              'vol': (q or {}).get('vol'), 'amt': (q or {}).get('amt'), 'ref': (q or {}).get('ref')}
         if last is not None and base:
             it['chg'] = round(last - base, 4); it['pct'] = round((last / base - 1) * 100, 2)
         out['items'][s] = it
@@ -848,6 +866,8 @@ class Handler(BaseHTTPRequestHandler):
                 if not syms or len(syms) > QUOTE_MAX or not all(SYM_RE.match(x) for x in syms):
                     return self.send_json(400, {'error': 'bad-symbols', 'max': QUOTE_MAX})
                 return self.send_json(200, cached(('quotes', tuple(sorted(syms))), 5, lambda: quotes(syms), QSTORE))
+            if u.path == '/v1/flow':
+                return self.send_json(200, cached('flow', 60, flow_now))
             if u.path == '/v1/kospi-daily':
                 return self.send_json(200, cached('kospi-daily', 60, kospi_daily))
             if u.path == '/v1/daily':
