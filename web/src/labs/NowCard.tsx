@@ -11,7 +11,6 @@ import { tone } from './lib/tone'
 import { Button } from './components/ui/button'
 import { ChartSheet } from './components/ChartSheet'
 import { ZoomButton } from './components/ui/zoom-button'
-import { LAB } from './lab'
 
 type View = 'session' | 'overnight' | 'proxy'
 type Sky = 'dawn' | 'day' | 'dusk' | 'night'
@@ -204,7 +203,7 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
       <Chart M={M} now={now} />
       {big && <ChartSheet onClose={closeBig} spec={{ kind: 'line', title: M.label, note: [M.note, M.fresh].filter(Boolean).join(', ') || null,
         pts: M.lines, x0: M.x0, x1: M.x1, band: M.band ? { lo: M.band.lo, hi: M.band.hi } : null, pin: M.pin ?? null,
-        level: view === 'session' ? (p: number) => lvl(E, E.prev, p, false) : undefined, candles: LAB ? M.cand ?? null : null }} />}
+        level: view === 'session' ? (p: number) => lvl(E, E.prev, p, false) : undefined, candles: M.cand ?? null }} />}
 
       <div role="group" aria-label="차트 종목 고르기" className="mt-3 grid grid-cols-3 gap-1.5">
         {M.tiles.map((t) => (

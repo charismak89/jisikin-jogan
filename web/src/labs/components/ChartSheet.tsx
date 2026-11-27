@@ -2,7 +2,7 @@
 // 앤트위키처럼 TradingView 의 오픈소스 Lightweight Charts(Apache-2.0)에 우리 데이터를 넣는다. 유료 위젯이 아니다.
 // 라이브러리는 이 창을 열 때만 불러온다(첫 화면 번들에 넣지 않는다). 출처 표기는 차트 안 TradingView 로고(attributionLogo)로 한다.
 // 2단계(2026-11-27, 실험실): spec.candles 가 있으면 '선/봉', '1분/5분'을 고른다. 캔들은 중계기가 준 1분봉 시, 고, 저, 종(장중, 야간선물)과
-// Hyperliquid 봉(밤 추종가)이다. 메인은 candles 를 넘기지 않아(LAB 플래그) 1단계 그대로다.
+// Hyperliquid 봉(밤 추종가)이다. 2026-11-27 메인 전환(사용자 승인)으로 메인에도 나온다.
 // 차트는 창을 열 때 한 번 만들고, 15초 실시간 갱신은 데이터만 바꾼다(확대, 이동 상태를 지키려고. 2026-11-27 검수)
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'

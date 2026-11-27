@@ -8,7 +8,8 @@
 - 절차: 새 화면 기능은 `web/src/labs/lab.ts` 의 `LAB` 뒤에 두고 versions.json labs 만 올린다. 사용자가 `/labs/` 를 보고 승인하면 메인 전환 PR(`LAB` 조건 삭제, main = labs). `CLAUDE.md` 작업 규칙, `.claude/rules/web.md`, `versioncheck.py`(web/src/labs 변경은 labs 만 요구), `.claude/agents/reviewer.md`(LAB 밖 메인 변경은 반드시 수정)에 넣었다. 브리핑 본문(render.py)과 day.json 공용 필드는 메인과 같이 바뀌어 구현 전에 사용자에게 묻는다.
 - 캔들(실험실만): 크게 보기 창에 '봉/선', '1분/5분'. 장중(코스피, 삼전, 하닉)은 중계기 `/v1/intraday` 의 새 `ohlc`(토스 1분봉 시, 고, 저, 종), 야간선물은 `/v1/night` 의 새 `ohlc`(10초 값으로 중계기가 만든 1분봉, 갱신 뒤 세션부터), 밤 추종가는 Hyperliquid 봉. 오르면 빨강, 내리면 파랑. 밤사이(07:45 전망) 보기와 20거래일은 캔들 없음.
 - **VM 갱신 필요(사용자)**: `cd ~/jisikin-jogan && git pull && sudo bash relay/install.sh`. 확인: `curl -s "https://129-225-146-153.sslip.io/v1/intraday?date=2026-11-27" | head -c 400` 에 `"ohlc"` 가 보이면 된다(갱신 전에는 `bars` 만). 갱신 전에는 실험실 장중, 야간선물 크게 보기가 선만 보인다(봉/선 단추 없음). VM 갱신 완료(11/27, 사용자). 같은 날 관리 세션이 `/v1/intraday?date=2026-11-27` 에서 ohlc 를 확인했다(삼전, 하닉 355봉, 코스피 295봉, bars 와 개수 같음). `/v1/night` 는 `ohlc` 키가 있고 11/26 세션은 0개(갱신 전 세션), 11/27 18:00 세션부터 쌓인다.
-- 남은 일: 사용자가 `/labs/` 에서 캔들을 보고 승인하면 메인 전환 PR. 20거래일 일봉 캔들은 코스피 일봉 시, 고, 저를 day.json 에 넣어야 해 브리핑 데이터(render.py) 변경이라 따로 묻는다.
+- 메인 전환 완료(11/27, 사용자 "메인 전환"): NowCard 의 `LAB` 조건을 지우고 main, labs 모두 7.5. `lab.ts` 는 다음 실험용으로 남긴다.
+- 남은 일: 20거래일 일봉 캔들은 코스피 일봉 시, 고, 저를 day.json 에 넣어야 해 브리핑 데이터(render.py) 변경이라 따로 묻는다.
 - 되돌리기: 이 PR revert(중계기는 필드만 더해서 VM 은 그대로 둬도 된다).
 
 ## 0-18. 2026-11-27 브리핑 밤사이 뉴스 시각표와 오늘 일정(사용자 결정 "앤트위키 장전 브리핑 벤치마킹, 추천대로")
