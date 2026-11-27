@@ -5,7 +5,6 @@ import { Card, CardHeader, Cap } from './ui/card'
 import { tone } from '../lib/tone'
 import { ChartSheet } from './ChartSheet'
 import { ZoomButton } from './ui/zoom-button'
-import { LAB } from '../lab'
 
 /** 코스피 일봉(중계기 /v1/kospi-daily, 2026-11-27, 같은 날 메인 전환). 오늘 봉이 장중에 바뀌니 화면이 보일 때 1분마다 다시 받는다 */
 function useKospiDaily(relay: string | null) {
@@ -90,7 +89,7 @@ export function K20Chart({ data }: { data: DayData }) {
           </div>
         )}
       </div>
-      {LAB ? <Cap>{useC ? '봉 일봉' : '선 종가'} · 막대 아침 전망(노랑 오늘) · 점 시초가(속 찬 점 적중) · {data.k20.cap}</Cap> : <Cap>{useC ? '봉 — 코스피 일봉(오르면 빨강, 내리면 파랑)' : '선 — 종가'} · 막대 — 그날 아침 예상 구간(노란색이 오늘) · 점 — 실제 시초가(채움: 구간 안, 테두리: 구간 밖) · {data.k20.cap}</Cap>}
+      <Cap>{useC ? '봉 일봉' : '선 종가'} · 막대 아침 전망(노랑 오늘) · 점 시초가(속 찬 점 적중) · {data.k20.cap}</Cap>
     </Card>
   )
 }

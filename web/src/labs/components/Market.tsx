@@ -2,7 +2,6 @@ import type { DayData } from '../../types'
 import { nf, sg } from '../../lib/fmt'
 import { Card, CardHeader } from './ui/card'
 import { tone } from '../lib/tone'
-import { LAB } from '../lab'
 
 // 간밤 시장(2026-11-27 압축): 큰 숫자 타일 6개 → 3×3 작은 칸. 이름, 등락률(굵게), 종가 순.
 // 순서는 render.py MARKET_ORDER(야간선물, SOX, 원달러 / 엔비디아, 마이크론, TSMC / DRAM, 앤트로픽, EWY).
@@ -23,7 +22,7 @@ export function Market({ data }: { data: DayData }) {
           )
         })}
       </div>
-      {data.market.some((m) => m.key === 'K200N' && m.asof) && <p className="mt-2 text-caption1 text-fg-2">{LAB ? `야간 ${data.market.find((m) => m.key === 'K200N')?.asof} 마감 · 미국 전일 종가` : `K200 야간은 ${data.market.find((m) => m.key === 'K200N')?.asof} 마감, 미국 종목은 직전 미국장 종가`}</p>}
+      {data.market.some((m) => m.key === 'K200N' && m.asof) && <p className="mt-2 text-caption1 text-fg-2">야간 {data.market.find((m) => m.key === 'K200N')?.asof} 마감 · 미국 전일 종가</p>}
     </Card>
   )
 }
