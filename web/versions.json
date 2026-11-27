@@ -1,5 +1,5 @@
 {
   "_note": "화면 버전. 메인(web/index.html)과 실험실(web/labs.html)이 모두 web/src/labs 앱을 빌드한다. 2026-11-27 사용자 결정 '실험실 먼저': 새 기능은 LAB(web/src/labs/lab.ts) 뒤에 두고 labs 만 올린다. 승인 뒤 메인 전환 PR 에서 LAB 조건을 지우고 main 을 labs 와 같게 둔다(같으면 실험실 띠에 '메인과 같은 화면'). versioncheck.py 가 PR 에서 확인한다.",
-  "main": "7.5",
-  "labs": "7.7-beta.2"
+  "main": "7.7",
+  "labs": "7.7"
 }
