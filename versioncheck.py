@@ -6,16 +6,17 @@
   python3 versioncheck.py --base <커밋>    비교 기준을 바꾼다
 
 규칙
-  메인: web/index.html, web/src/labs/, web/src/styles/(2026-11-27 메인 전환 뒤 메인도 실험실 앱을 빌드), 옛 web/src/App.tsx, main.tsx → main 을 올린다
-  실험실만: web/src/labs/, web/labs.html                               → labs 를 올린다
-  공용: web/src/components/, web/src/lib/, web/src/types.ts, web/src/index.css, web/src/brief.css → 둘 다 올린다(두 화면이 같이 바뀐다)
+  실험실 먼저(2026-11-27 사용자 결정): web/src/labs/, web/src/styles/, web/labs.html 과 공용(web/src/components/, lib/, types.ts, index.css, brief.css) → labs 를 올린다.
+    메인도 같은 앱을 빌드하지만 새 기능은 LAB 플래그 뒤에 두므로 main 은 올리지 않는다. main 은 메인 전환 PR 에서 labs 와 같게 올린다
+    (LAB 밖에서 메인이 바뀌는지는 reviewer 가 본다).
+  메인만: web/index.html, 옛 web/src/App.tsx, main.tsx → main 을 올린다
 '올린다'는 기준 커밋의 값과 다르면 된다. 기준 커밋에 versions.json 이 없으면 통과한다.
 결과: VERSIONCHECK PASS / FAIL 한 줄과 이유. FAIL 이면 종료 코드 1. 저장소 파일을 바꾸지 않는다.
 """
 import json, subprocess, sys
 
 VF = 'web/versions.json'
-MAIN = ('web/src/App.tsx', 'web/src/main.tsx', 'web/index.html', 'web/src/labs/', 'web/src/styles/')   # 2026-11-27 메인 전환: 메인도 web/src/labs 를 빌드한다
+MAIN = ('web/src/App.tsx', 'web/src/main.tsx', 'web/index.html')   # 2026-11-27 실험실 먼저: web/src/labs 변경은 labs 만 올린다(메인 전환 PR 에서 main)
 LABS = ('web/src/labs/', 'web/labs.html', 'web/src/styles/')
 SHARED = ('web/src/components/', 'web/src/lib/', 'web/src/types.ts', 'web/src/index.css', 'web/src/brief.css')
 
@@ -35,7 +36,7 @@ def main():
     if old.returncode != 0:
         print('VERSIONCHECK PASS — 기준 커밋에 %s 가 없음(처음 도입)' % VF); return 0
     o, n = json.loads(old.stdout), json.load(open(VF, encoding='utf-8'))
-    need = {'main': hit(files, MAIN + SHARED), 'labs': hit(files, LABS + SHARED)}
+    need = {'main': hit(files, MAIN), 'labs': hit(files, LABS + SHARED)}
     bad = []
     for k, fs in need.items():
         if fs and o.get(k) == n.get(k):

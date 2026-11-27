@@ -2,9 +2,9 @@
 //  - 2026-10-19 부터 실시간은 토스(KRX·NXT) 시세만 쓴다. 키 없이 중계기를 부른다(중계기 PUBLIC_VIEW). 지인 키는 2026-11-10 없앴다.
 //  - 토스 시세를 받는 동안에는 해외 24시간 추종가(Hyperliquid)를 부르지 않는다. 밤사이 선은 07:45 회차가 남긴 기록(day.json)이다.
 //  - 중계기가 끊기면 그때만 추종가를 15초마다 받아 대신 그린다(화면에 'KRX 연결 실패 · 추종가').
-import type { Bar, DayCfg, Ent, Pt } from '../types'
+import type { Bar, DayCfg, Ent, Ohlc, Pt } from '../types'
 
-interface Krx { pts: Bar[]; open: number | null; last?: number }
+interface Krx { pts: Bar[]; open: number | null; last?: number; ohlc?: Ohlc[] }   // ohlc: 중계기 2026-11-27 부터(그 전 VM 은 없음)
 interface St { pts: Bar[]; openPx: number | null; openT?: number; base: number | null; path: Pt[]; krx: Krx | null }
 type Iv = [string, number] | null
 
@@ -99,6 +99,8 @@ export class Live {
           const k = this.S[e.key].krx || (this.S[e.key].krx = { pts: [], open: null })
           k.pts = (it.bars || []).map((b: number[]) => [b[0], (b[1] / e.prev - 1) * 100, b[0]] as Bar)
           k.open = it.open != null ? (it.open / e.prev - 1) * 100 : null
+          const P = (v: number) => (v / e.prev - 1) * 100
+          k.ohlc = Array.isArray(it.ohlc) ? it.ohlc.filter((b: unknown) => Array.isArray(b) && b.length >= 5).map((b: number[]) => [b[0], P(b[1]), P(b[2]), P(b[3]), P(b[4])] as Ohlc) : undefined
         })
       }))
     }
@@ -146,6 +148,13 @@ export class Live {
     const k = this.krxOf(e), D = this.D
     if (k) { const a = k.pts.filter((p) => p[0] > D.t_open && p[0] <= D.t_close + 6e4); if (a.length) return a }
     return this.S[e.key].pts.filter((p) => p[2] >= D.t_open && p[2] < D.t_close)
+  }
+  /** 정규장 1분봉 캔들(%). 토스 시세가 없거나 중계기가 아직 ohlc 를 주지 않으면 null */
+  sessOhlc(e: Ent): Ohlc[] | null {
+    const k = this.krxOf(e), D = this.D
+    if (!k || !k.ohlc) return null
+    const a = k.ohlc.filter((b) => b[0] > D.t_open && b[0] <= D.t_close + 6e4)
+    return a.length ? a : null
   }
   tailPts(e: Ent): (Bar | Pt)[] {
     const D = this.D

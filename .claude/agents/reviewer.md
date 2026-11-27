@@ -19,7 +19,8 @@ model: sonnet
 3. 실행하면 깨질 부분(오타, 빠진 import, 잘못된 경로)
 4. .env가 .gitignore에 있는지. .env 파일을 쓰지 않는 프로젝트면 "해당 없음"으로 적는다
 5. 화면(`template-v5.html`, `web/`, `style*.css`)이 바뀌었으면 `python3 uicheck.py` 를 돌려 결과를 적는다(사진은 임시 폴더에 저장된다). playwright 가 없으면 `python3 -m pip install playwright` 가 필요하다고만 적는다
-6. 회차 경로(`fetch_*.py`, `score.py`, `render.py`, `datacheck.py`, `analyze.py`, `sources.json`, `calibration.json`, `RUNBOOK.md`, `WEEKLY.md`)가 바뀌었으면 [반드시 수정]에 "routine-reviewer 검토 필요"를 적는다
+6. `web/src/` 가 바뀌었으면 `LAB`(`web/src/labs/lab.ts`) 밖에서 메인 화면이 달라지는지 본다. 메인 전환 PR(main 버전을 labs 와 같게 올린 PR)이 아닌데 달라지면 [반드시 수정]이다(사용자 승인 전 메인 반영, 2026-11-27 결정). 버그 수정처럼 사용자가 메인에 바로 내라고 한 것은 위임 메시지에 적힌 대로 본다
+7. 회차 경로(`fetch_*.py`, `score.py`, `render.py`, `datacheck.py`, `analyze.py`, `sources.json`, `calibration.json`, `RUNBOOK.md`, `WEEKLY.md`)가 바뀌었으면 [반드시 수정]에 "routine-reviewer 검토 필요"를 적는다
 
 결과는 [반드시 수정], [권장], [문제 없음]으로 나눠 보고하고, 항목마다 파일 경로와 줄 번호를 붙인다.
 맨 끝에 "사용한 diff 명령: ..."과 "테스트 결과: ..."를 한 줄씩 적는다.

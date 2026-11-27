@@ -1,5 +1,6 @@
 export type Pt = [number, number]            // [시각 ms, 전일 종가 대비 %]
 export type Bar = [number, number, number]   // [표시 시각 ms, %, 봉 시작 ms]
+export type Ohlc = [number, number, number, number, number]   // [봉 끝 ms, 시, 고, 저, 종 %] — 캔들(2026-11-27, 실험실)
 
 export interface Ent {
   key: string; name: string; coin: string; unit: string; approx: boolean; tick: number; dec: number
