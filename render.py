@@ -776,7 +776,7 @@ def main():
             esc(mlabel_ref(k)), cc, pct_str(q).replace('▲ ', '').replace('▼ ', '') if q is not None else (ref_at.get(k) or '미확보'), num(c, 2)))   # 좁은 칸이라 화살표 없이 부호만
     got = [k for k in REF_ORDER if close.get(k) is not None]
     V['GLOBAL_REF'] = ('<div class="refs"><div class="rh">참고 시세</div><div class="fgrid">%s</div></div>' % ''.join(refcell(k) for k in got)) if got else ''
-    if not any(k in got for k in REF_RELAY): warn('참고 시세(TSMC, DRAM, 앤트로픽) 없음 — 중계기 일봉을 못 받았다(VM 갱신 전이면 정상, 게이트 무관)')
+    if not any(k in got for k in REF_RELAY): warn('참고 시세(TSMC, DRAM, 앤트로픽) 없음 — 중계기 일봉을 못 받았다. fetch_relay.py 의 일부 실패 줄을, 없으면 이 경고 줄을 9단계 못 구한 데이터에 옮긴다(웹에서 받지 않는다, 게이트 무관)')
     V['DOMESTIC_ROWS'] = ''.join(row(k) for k in DOMESTIC_ORDER)
 
     def kpi(k):
