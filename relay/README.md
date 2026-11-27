@@ -37,6 +37,8 @@ sudo journalctl -u jogan-relay -n 50 --no-pager          # 로그 (키는 남기
 | `/v1/feedback?since=YYYY-MM-DD` | 루틴 | 그날부터 쌓인 의견 (토요일 주간 점검용) | — |
 | `/v1/stocks` | 없음 | 코스피, 코스닥 상장 종목 `[코드, 이름, 시장]` — 실험실 관심종목 검색(2026-11-27) | 6시간 |
 | `/v1/quotes?symbols=A,B` | 없음 | 관심종목 시세(최대 20종목): `last`(통합 현재가), `base`(직전 세션 KRX 종가, 못 받으면 통합 일봉 종가 `base_src: nxt-1d`), `chg`, `pct`, `vol`(최근 세션 통합 거래량), `ref`(최근 세션 날짜) | 5초 · 종목별 일봉 30초 · KRX 종가는 종목, 날짜마다 한 번 |
+| `/v1/stocks?mk=us` | 없음 | 미국(NYSE, NASDAQ, AMEX) 종목 `[티커, 이름, 거래소]` — 관심종목 미국 검색(2026-11-27) | 6시간 |
+| `/v1/events?symbols=A,B` | 없음 | 국내 종목 DART 공시 일정(최대 30종목): IR 개최(본문의 일시), 잠정실적(공시일), 배당 기준일, 지급일(본문). 날짜를 못 읽으면 공시일에 `approx: true`. `DART_KEY` 없으면 503 | 종목별 6시간 · 문서는 접수번호마다 한 번(`STATE_DIR/dart/`) |
 | `/v1/kospi-daily` | 없음 | 코스피 일봉 `[날짜, 시, 고, 저, 종]` 최근 30개 — 실험실 20거래일 캔들(2026-11-27) | 1분 |
 
 루틴 키는 `?k=` 또는 `X-Relay-Key` 헤더. 화면용 경로에는 키가 없다. IP 당 분당 120회 제한. CORS 는 `ALLOW_ORIGINS`(기본 GitHub Pages 주소)만.

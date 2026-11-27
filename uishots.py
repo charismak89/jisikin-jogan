@@ -22,7 +22,7 @@ web/ 을 고쳤으면 먼저 `cd web && npm run build`. 커밋될 산출물(루�
 로컬에서는 중계기가 Pages 주소만 받아서 장중 선이 그려지지 않는다. --intraday 는 그 응답을 가짜로 채운다:
 day.json 의 종목마다 09:01~15:31 5분 봉, 전일 종가 −1.2% ± 0.6% 사인파. 실제 값이 아니다.
 """
-import datetime as dt, functools, http.server, json, math, os, sys, tempfile, threading
+import datetime as dt, functools, re, http.server, json, math, os, sys, tempfile, threading
 from uicheck import ALLOW, BASE, CHROMIUM, Handler, args
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -42,9 +42,22 @@ def fake_intraday(day):
 WATCH = [['005930', '삼성전자', 'KOSPI'], ['000660', 'SK하이닉스', 'KOSPI'], ['066570', 'LG전자', 'KOSPI'], ['010120', 'LS ELECTRIC', 'KOSPI'],
          ['035420', 'NAVER', 'KOSPI'], ['247540', '에코프로비엠', 'KOSDAQ'], ['034730', 'SK', 'KOSPI'], ['016360', '삼성증권', 'KOSPI']]
 
-def fake_watch(path, dj):
-    """관심종목, 코스피 일봉 가짜 응답(2026-11-27). 실제 값이 아니다"""
-    if path == '/v1/stocks': return json.dumps({'items': WATCH})
+US = [['NVDA', '엔비디아', 'NASDAQ'], ['AAPL', '애플', 'NASDAQ'], ['BRK.B', '버크셔 해서웨이 B', 'NYSE']]
+
+def fake_events(dj):
+    """/v1/events 가짜(DART 일정). 발행일 기준 이번 주와 다음 주에 흩어 둔다"""
+    d0 = dt.date.fromisoformat(dj['issue']); mon = d0 - dt.timedelta(days=d0.weekday())
+    f = lambda n: (mon + dt.timedelta(days=n)).isoformat()
+    return json.dumps({'items': [
+        {'date': f(1), 'kind': 'EARN', 'code': '066570', 'name': 'LG전자', 'title': '잠정실적 공시', 'rcept_no': '20261124000001'},
+        {'date': f(3), 'kind': 'IR', 'code': '005930', 'name': '삼성전자', 'title': 'IR 개최', 'rcept_no': '20261120000002'},
+        {'date': f(4), 'kind': 'DIV', 'code': '005930', 'name': '삼성전자', 'title': '배당 기준일 주당 361원', 'rcept_no': '20261120000003'},
+        {'date': f(8), 'kind': 'IR', 'code': '000660', 'name': 'SK하이닉스', 'title': 'IR 개최 공시', 'approx': True, 'rcept_no': '20261126000004'}], 'errors': []})
+
+def fake_watch(path, dj, query=''):
+    """관심종목, 코스피 일봉, 일정 가짜 응답(2026-11-27). 실제 값이 아니다"""
+    if path == '/v1/stocks': return json.dumps({'items': US if 'mk=us' in query else WATCH})
+    if path == '/v1/events': return fake_events(dj)
     if path == '/v1/quotes':
         items = {}
         for i, (c, n, m) in enumerate(WATCH):
@@ -53,6 +66,7 @@ def fake_watch(path, dj):
             last = round(base * (1 + pct / 100), -2)
             items[c] = {'last': last, 'base': base, 'base_src': 'krx', 'vol': [12553942, 2745141, 818664, 470942, 345292, 1204331, 66792, 378369][i],
                         'ref': dj['issue'], 'chg': last - base, 'pct': round((last / base - 1) * 100, 2)}
+        items['NVDA'] = {'last': 182.35, 'cur': 'USD', 'base': 179.9, 'base_src': 'us-1d', 'vol': 154302112, 'ref': dj['issue'], 'chg': 2.45, 'pct': 1.36}
         return json.dumps({'items': items})
     if path == '/v1/kospi-daily':
         out, prev = [], None
@@ -119,7 +133,8 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         if perp and u.startswith(perp[0]) and r.request.method == 'POST':
             return r.fulfill(status=200, content_type='application/json', body=fake_perp(perp[1], r.request.post_data), headers={'Access-Control-Allow-Origin': '*'})
         if watch and relay and u.startswith(relay):
-            wb = fake_watch(u[len(relay):].split('?')[0], watch)
+            rest = u[len(relay):]
+            wb = fake_watch(rest.split('?')[0], watch, rest.partition('?')[2])
             if wb: return r.fulfill(status=200, content_type='application/json', body=wb, headers={'Access-Control-Allow-Origin': '*'})
         if body and relay and u.startswith(relay):
             return r.fulfill(status=200, content_type='application/json', body=body, headers={'Access-Control-Allow-Origin': '*'})
@@ -154,15 +169,16 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         fb.click(); p.wait_for_timeout(500)
         snap('feedback', False); p.keyboard.press('Escape'); p.wait_for_timeout(200)
     if watch and p.get_by_role('tab', name='관심').count():   # 실험실 관심 탭: 링크(#w=)로 목록을 넣고 찍는다
-        p.goto(origin + BASE + page + '#w=' + ','.join(x[0] for x in WATCH), wait_until='load'); p.reload(wait_until='load'); p.wait_for_timeout(1500)   # 해시만 바뀌면 다시 읽지 않아 reload
+        p.goto(origin + BASE + page + '#w=' + ','.join([x[0] for x in WATCH] + ['NVDA']), wait_until='load'); p.reload(wait_until='load'); p.wait_for_timeout(1500)   # 해시만 바뀌면 다시 읽지 않아 reload
         snap('watch', True)
         p.get_by_role('button', name='편집').click(); p.wait_for_timeout(200); snap('watch-edit', False)
         p.get_by_role('button', name='완료').click()
         p.get_by_role('button', name='+ 추가').click(); p.wait_for_timeout(200)
         p.get_by_role('textbox').fill('하이'); p.wait_for_timeout(200); snap('watch-search', False)
         p.keyboard.press('Escape'); p.wait_for_timeout(200)
-        p.evaluate("localStorage.removeItem('jj-watch')")
-    p.get_by_role('tab', name='브리핑 전문').click(); p.wait_for_timeout(800)
+        p.get_by_role('tab', name='일정').click(); p.wait_for_timeout(800); snap('schedule', True)
+        p.evaluate("localStorage.removeItem('jj-watch2')")
+    p.get_by_role('tab', name=re.compile('^브리핑')).click(); p.wait_for_timeout(800)   # 실험실은 '브리핑'(2026-11-27 탭 넷)
     p.get_by_role('button', name='전부 펼치기').click(); p.wait_for_timeout(300)
     snap('brief-open', True)
     ctx.close()
