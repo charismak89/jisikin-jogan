@@ -10,6 +10,7 @@
   python3 uishots.py --hash '#brief'     주소 뒤에 붙인다 (옛 지인 링크 '#k=…' 가 정리되는지 볼 때 등)
   python3 uishots.py --out <폴더>        사진을 둘 곳 (기본: 임시 폴더, 경로를 출력한다)
   python3 uishots.py --perp              해외 추종가(Hyperliquid candleSnapshot)와 중계기 /v1/night(야간선물) 응답을 가짜 봉으로 채운다 — 밤 카드를 볼 때. 실제 값이 아니다.
+  python3 uishots.py --watch             중계기 /v1/stocks, /v1/quotes, /v1/kospi-daily 를 가짜로 채우고 관심 탭(#w=)도 찍는다 — 실험실 관심종목, 20거래일 캔들(2026-11-27). 실제 값이 아니다.
   python3 uishots.py --top               첫 화면(스크롤 전)만 찍는다. 시간대별 첫 카드를 빨리 볼 때
   python3 uishots.py --tap 삼성전자        찍기 전에 그 이름의 탭이나 버튼을 누른다(첫 카드 종목 선택 등). 파일 이름에 붙는다
   python3 uishots.py --page labs/        루트 대신 그 주소를 연다 (실험실 labs/ 등)
@@ -37,6 +38,31 @@ def fake_intraday(day):
             ohlc.append([t, o, max(o, c) * 1.0004, min(o, c) * 0.9996, c]); bars.append([t, c]); t += 60000; i += 1
         items[e['key']] = {'bars': bars, 'ohlc': ohlc, 'open': bars[0][1], 'last': bars[-1][1]}
     return json.dumps({'items': items})
+
+WATCH = [['005930', '삼성전자', 'KOSPI'], ['000660', 'SK하이닉스', 'KOSPI'], ['066570', 'LG전자', 'KOSPI'], ['010120', 'LS ELECTRIC', 'KOSPI'],
+         ['035420', 'NAVER', 'KOSPI'], ['247540', '에코프로비엠', 'KOSDAQ'], ['034730', 'SK', 'KOSPI'], ['016360', '삼성증권', 'KOSPI']]
+
+def fake_watch(path, dj):
+    """관심종목, 코스피 일봉 가짜 응답(2026-11-27). 실제 값이 아니다"""
+    if path == '/v1/stocks': return json.dumps({'items': WATCH})
+    if path == '/v1/quotes':
+        items = {}
+        for i, (c, n, m) in enumerate(WATCH):
+            base = [171300, 1053000, 135200, 113400, 160200, 98700, 430000, 69400][i]
+            pct = [4.14, 4.65, 5.77, 6.44, 1.62, -2.31, 8.84, 0.0][i]
+            last = round(base * (1 + pct / 100), -2)
+            items[c] = {'last': last, 'base': base, 'base_src': 'krx', 'vol': [12553942, 2745141, 818664, 470942, 345292, 1204331, 66792, 378369][i],
+                        'ref': dj['issue'], 'chg': last - base, 'pct': round((last / base - 1) * 100, 2)}
+        return json.dumps({'items': items})
+    if path == '/v1/kospi-daily':
+        out, prev = [], None
+        for r in dj['k20']['rows']:
+            c = r.get('close')
+            if c is None: continue
+            o = r.get('open') or prev or c
+            out.append([r['date'], o, max(o, c) * 1.006, min(o, c) * 0.994, c]); prev = c
+        return json.dumps({'items': out})
+    return None
 
 KST = dt.timezone(dt.timedelta(hours=9))
 
@@ -80,7 +106,7 @@ def fake_night(day, issue, clock):
     return json.dumps({'session': issue, 'code': 'A01612', 'name': 'F 202612', 'state': st, 'base': base, 'last': last,
                        'pct': round((last / base - 1) * 100, 2) if last else None, 'asof': bars[-1][0] if bars else None, 'bars': bars, 'ohlc': ohlc, 'error': None})
 
-def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None, perp=None, issue=None):
+def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page='', clock=None, perp=None, issue=None, watch=None):
     ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme='dark' if dark else 'light', timezone_id='Asia/Seoul', locale='ko-KR')
     p = ctx.new_page()
     if clock: p.clock.install(time=clock)
@@ -92,6 +118,9 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
             return r.fulfill(status=200, content_type='application/json', body=fake_night(perp[1], issue, clock), headers={'Access-Control-Allow-Origin': '*'})
         if perp and u.startswith(perp[0]) and r.request.method == 'POST':
             return r.fulfill(status=200, content_type='application/json', body=fake_perp(perp[1], r.request.post_data), headers={'Access-Control-Allow-Origin': '*'})
+        if watch and relay and u.startswith(relay):
+            wb = fake_watch(u[len(relay):].split('?')[0], watch)
+            if wb: return r.fulfill(status=200, content_type='application/json', body=wb, headers={'Access-Control-Allow-Origin': '*'})
         if body and relay and u.startswith(relay):
             return r.fulfill(status=200, content_type='application/json', body=body, headers={'Access-Control-Allow-Origin': '*'})
         if u.startswith((origin,) + ALLOW): return r.continue_()
@@ -124,6 +153,12 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
     if fb.count():
         fb.click(); p.wait_for_timeout(500)
         snap('feedback', False); p.keyboard.press('Escape'); p.wait_for_timeout(200)
+    if watch and p.get_by_role('tab', name='관심').count():   # 실험실 관심 탭: 링크(#w=)로 목록을 넣고 찍는다
+        p.goto(origin + BASE + page + '#w=' + ','.join(x[0] for x in WATCH), wait_until='load'); p.reload(wait_until='load'); p.wait_for_timeout(1500)   # 해시만 바뀌면 다시 읽지 않아 reload
+        snap('watch', True)
+        p.get_by_role('button', name='편집').click(); p.wait_for_timeout(200); snap('watch-edit', False)
+        p.get_by_role('textbox').fill('하이'); p.wait_for_timeout(200); snap('watch-search', False)
+        p.evaluate("localStorage.removeItem('jj-watch')")
     p.get_by_role('tab', name='브리핑 전문').click(); p.wait_for_timeout(800)
     p.get_by_role('button', name='전부 펼치기').click(); p.wait_for_timeout(300)
     snap('brief-open', True)
@@ -158,7 +193,7 @@ def main():
             b = pw.chromium.launch(**({'executable_path': CHROMIUM} if os.path.exists(CHROMIUM) else {}))
             for w, h in widths:
                 for clock in clocks:
-                    for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag, page, clock, perp, dj['issue'])
+                    for dark in (False, True): shoot(b, origin, w, h, dark, out, relay, body, day_body, frag, page, clock, perp, dj['issue'], dj if '--watch' in sys.argv else None)
             b.close()
     finally:
         srv.shutdown(); srv.server_close()

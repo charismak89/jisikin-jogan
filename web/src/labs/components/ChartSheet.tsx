@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { IChartApi, IPriceLine, ISeriesApi, ISeriesMarkersPluginApi, SeriesType, Time } from 'lightweight-charts'
-import type { K20Row, Ohlc, Pt } from '../../types'
+import type { DayOhlc, K20Row, Ohlc, Pt } from '../../types'
 import { md, nf, sg } from '../../lib/fmt'
 import { Button } from './ui/button'
 import { cn } from '../lib/cn'
@@ -18,7 +18,7 @@ export type BigSpec =
       band?: { lo: number; hi: number } | null; pin?: { t: number; p: number; label: string } | null
       level?: (p: number) => string   // % → 지수나 원(없으면 % 만)
       candles?: Ohlc[] | null }       // 1분봉 캔들(%, 봉 끝 시각). 있으면 선/봉을 고른다
-  | { kind: 'k20'; title: string; note?: string | null; rows: K20Row[] }
+  | { kind: 'k20'; title: string; note?: string | null; rows: K20Row[]; ohlc?: DayOhlc[] | null }   // ohlc: 코스피 일봉(2026-11-27 실험실). 있으면 선/봉을 고른다
 
 type LC = typeof import('lightweight-charts')
 type Mode = 'line' | 'candle'
@@ -107,7 +107,7 @@ export function ChartSheet({ spec, onClose }: { spec: BigSpec; onClose: () => vo
   const panel = useRef<HTMLDivElement>(null)
   const live = useRef<Live | null>(null)
   const specRef = useRef(spec); specRef.current = spec
-  const hasCandles = spec.kind === 'line' && !!spec.candles?.length
+  const hasCandles = spec.kind === 'line' ? !!spec.candles?.length : !!spec.ohlc?.length
   const [mode, setMode] = useState<Mode>('candle')
   const [iv, setIv] = useState<1 | 5>(1)
   const viewRef = useRef({ mode: (hasCandles ? 'candle' : 'line') as Mode, iv: 1 as 1 | 5 })
@@ -150,9 +150,12 @@ export function ChartSheet({ spec, onClose }: { spec: BigSpec; onClose: () => vo
     const s = specRef.current, lv = s.kind === 'line' && s.level ? `  ${s.level(k.close)}` : ''
     return `${hhmm(time)}  시 ${sg(k.open)} 고 ${sg(k.high)} 저 ${sg(k.low)} 종 ${sg(k.close)}${lv}`
   }
-  const k20Text = (r: K20Row) => [md(r.date), r.close != null ? `종가 ${nf(r.close, 2)}` : null,
+  const k20Text = (r: K20Row) => {
+    const s = specRef.current, k = s.kind === 'k20' ? s.ohlc?.find((x) => x[0] === r.date) : undefined
+    return [md(r.date), k ? `시 ${nf(k[1], 2)} 고 ${nf(k[2], 2)} 저 ${nf(k[3], 2)} 종 ${nf(k[4], 2)}` : r.close != null ? `종가 ${nf(r.close, 2)}` : null,
     r.low != null && r.high != null ? `${r.today ? '오늘 전망' : '전망'} ${nf(r.low)}~${nf(r.high)}` : null,
     r.open != null ? `시초가 ${nf(r.open, 2)} ${r.in_range ? '적중' : '구간 밖'}` : null].filter(Boolean).join('  ')
+  }
 
   // 데이터만 바꾼다. 처음과 선/봉, 분 단위를 바꿨을 때만 전체 범위를 잡는다(그 뒤에는 사용자가 확대, 이동한 상태를 둔다)
   const update = () => {
@@ -193,7 +196,14 @@ export function ChartSheet({ spec, onClose }: { spec: BigSpec; onClose: () => vo
         time: r.date as Time, open: r.high as number, high: r.high as number, low: r.low as number, close: r.low as number,
         ...(r.today ? { color: col.bandFill, borderColor: col.bandLine } : {}),
       })))
-      L.main.setData(rows.filter((r) => r.close != null).map((r) => ({ time: r.date as Time, value: r.close as number })))
+      const useC = viewRef.current.mode === 'candle' && !!L.cand && !!s.ohlc?.length
+      L.main.applyOptions({ visible: !useC })
+      L.main.setData(useC ? [] : rows.filter((r) => r.close != null).map((r) => ({ time: r.date as Time, value: r.close as number })))
+      if (L.cand) {
+        L.cand.applyOptions({ visible: useC })
+        L.cand.setData(useC ? [...new Map((s.ohlc || []).map((k) => [k[0], k])).values()].sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([time, open, high, low, close]) => ({ time: time as Time, open, high, low, close })) : [])
+      }
       // 시초가 점은 구간 막대에 붙인다(종가가 없는 날도 찍히게)
       L.markers.setMarkers(rows.filter((r) => r.open != null && r.low != null && r.high != null).map((r) => ({
         time: r.date as Time, position: 'atPriceMiddle' as const, price: r.open as number, shape: 'circle' as const,
@@ -264,7 +274,12 @@ export function ChartSheet({ spec, onClose }: { spec: BigSpec; onClose: () => vo
           })
           const main = chart.addSeries(lc.LineSeries, { color: col.fg, lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
             priceFormat: { type: 'price', precision: 2, minMove: 0.01 } })
-          L = { lc, chart, main, box: bx, markers: lc.createSeriesMarkers(bx, []), lines: [], col, framed: '' }
+          // 코스피 일봉 캔들(실험실). 구간 막대 위에 그린다. 국내 관례대로 오르면 빨강, 내리면 파랑
+          const cand = s0.ohlc?.length ? chart.addSeries(lc.CandlestickSeries, {
+            upColor: col.up, downColor: col.down, borderUpColor: col.up, borderDownColor: col.down, wickUpColor: col.up, wickDownColor: col.down,
+            priceLineVisible: false, lastValueVisible: true, priceFormat: { type: 'price', precision: 2, minMove: 0.01 }, visible: false,
+          }) : undefined
+          L = { lc, chart, main, box: bx, cand, markers: lc.createSeriesMarkers(bx, []), lines: [], col, framed: '' }
           chart.subscribeCrosshairMove((pr) => {
             const s = specRef.current
             if (s.kind !== 'k20') return
@@ -286,7 +301,7 @@ export function ChartSheet({ spec, onClose }: { spec: BigSpec; onClose: () => vo
   // 실시간 갱신과 선/봉, 분 단위 전환 — 데이터만 바꾼다
   const dataKey = spec.kind === 'line'
     ? JSON.stringify([spec.pts.length, spec.pts[spec.pts.length - 1], spec.band, spec.pin, spec.x0, spec.x1, spec.candles?.length, spec.candles?.[spec.candles.length - 1], mode, iv])
-    : String(spec.rows.length)
+    : JSON.stringify([spec.rows.length, spec.ohlc?.length, spec.ohlc?.[spec.ohlc.length - 1], mode])
   useEffect(() => {
     try { update() } catch (e) { console.error(e); setErr('차트를 새로 그리지 못했습니다. 창을 닫고 다시 열어 주세요.') }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -306,7 +321,7 @@ export function ChartSheet({ spec, onClose }: { spec: BigSpec; onClose: () => vo
         {hasCandles && (
           <div className="flex flex-wrap items-center gap-2 px-4 pb-2 sm:px-6">
             <Seg label="차트 모양" value={mode} onChange={setMode} items={[['candle', '봉'], ['line', '선']]} />
-            {mode === 'candle' && <Seg label="봉 단위" value={iv} onChange={setIv} items={[[1, '1분'], [5, '5분']]} />}
+            {mode === 'candle' && spec.kind === 'line' && <Seg label="봉 단위" value={iv} onChange={setIv} items={[[1, '1분'], [5, '5분']]} />}
           </div>
         )}
         <div className="relative min-h-0 flex-1 px-2 sm:px-4">

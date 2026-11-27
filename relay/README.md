@@ -35,6 +35,9 @@ sudo journalctl -u jogan-relay -n 50 --no-pager          # 로그 (키는 남기
 | `/v1/calendar?date=YYYY-MM-DD` | 루틴 | 국내·미국 장 운영(전·당·익 영업일, `open`) — holidays.json 대조용 | 1시간 |
 | `POST /v1/feedback` | 없음 | 대시보드 "의견" 버튼. JSON `{cat, text, nick, ctx}` → `feedback.jsonl` (1,000자, 전체 하루 30건, IP 당 분당 10회·하루 5건). 요청의 `Origin` 이 `ALLOW_ORIGINS` 일 때만 받는다 | — |
 | `/v1/feedback?since=YYYY-MM-DD` | 루틴 | 그날부터 쌓인 의견 (토요일 주간 점검용) | — |
+| `/v1/stocks` | 없음 | 코스피, 코스닥 상장 종목 `[코드, 이름, 시장]` — 실험실 관심종목 검색(2026-11-27) | 6시간 |
+| `/v1/quotes?symbols=A,B` | 없음 | 관심종목 시세(최대 20종목): `last`(통합 현재가), `base`(직전 세션 KRX 종가, 못 받으면 통합 일봉 종가 `base_src: nxt-1d`), `chg`, `pct`, `vol`(최근 세션 통합 거래량), `ref`(최근 세션 날짜) | 5초 · 종목별 일봉 30초 · KRX 종가는 종목, 날짜마다 한 번 |
+| `/v1/kospi-daily` | 없음 | 코스피 일봉 `[날짜, 시, 고, 저, 종]` 최근 30개 — 실험실 20거래일 캔들(2026-11-27) | 1분 |
 
 루틴 키는 `?k=` 또는 `X-Relay-Key` 헤더. 화면용 경로에는 키가 없다. IP 당 분당 120회 제한. CORS 는 `ALLOW_ORIGINS`(기본 GitHub Pages 주소)만.
 
