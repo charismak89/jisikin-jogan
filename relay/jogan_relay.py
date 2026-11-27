@@ -55,7 +55,7 @@ KIS_SK = os.environ.get('KIS_APPSECRET', '').strip().strip('"\'')
 STOCKS = ['005930', '000660']            # 대시보드 종목
 INDEX = 'KOSPI'
 DAILY_KR = ['005930', '000660', '402340', '009150', '0167A0', '442580']   # 루틴 국내 6종
-DAILY_US = ['NVDA', 'MU', 'EWY', 'SKHY']                                  # 루틴 미국 4종
+DAILY_US = ['NVDA', 'MU', 'EWY', 'SKHY', 'TSM', 'DRAM', 'ANT']             # 루틴 미국 4종 + 참고 시세 3종(2026-11-27, TSMC ADR, Roundhill 메모리 ETF, 앤트로픽)
 DAILY_IDX = ['KOSPI', 'KOSDAQ']
 
 log = logging.getLogger('jogan-relay')

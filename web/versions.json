@@ -1,5 +1,5 @@
 {
   "_note": "화면 버전. 2026-11-27 메인 전환 뒤 메인(web/index.html)과 실험실(web/labs.html)이 모두 web/src/labs 앱을 빌드한다. web/src/labs, web/src/styles 를 바꾸면 main 과 labs 를 같이 올린다(같은 화면이면 같은 값, 실험실 띠에 '메인과 같은 화면'). 다음 실험을 새 폴더에서 시작하면 labs 만 올린다. versioncheck.py 가 PR 에서 확인한다.",
-  "main": "7.1",
-  "labs": "7.1"
+  "main": "7.2",
+  "labs": "7.2"
 }

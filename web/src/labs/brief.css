@@ -53,13 +53,13 @@ h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
 table.q { width: 100%; border-collapse: collapse; }
 table.q th { font-size: 12px; font-weight: 500; color: var(--tx3); text-align: left; padding: 0 0 6px; }
 table.q th.r { text-align: right; }
-table.q td { padding: 12px 0 0; vertical-align: baseline; }
+table.q td { padding: 10px 0 0; vertical-align: baseline; }
 tbody.st { border-top: 1px solid var(--line); }
 td.nm { font-size: 15px; font-weight: 600; padding-right: 10px; overflow-wrap: anywhere; }
 td.nm .cd { display: block; font-size: 12px; font-weight: 400; color: var(--tx3); margin-top: 1px; white-space: nowrap; }
-td.pr { text-align: right; font-size: 15px; font-weight: 700; color: var(--tx); white-space: nowrap; padding: 12px 12px 0 10px; }
+td.pr { text-align: right; font-size: 15px; font-weight: 700; color: var(--tx); white-space: nowrap; padding: 10px 12px 0 10px; }
 td.ch { text-align: right; font-size: 14px; font-weight: 600; white-space: nowrap; min-width: 76px; }
-td.cm { font-size: 14px; color: var(--tx2); padding: 2px 0 12px; }
+td.cm { font-size: 14px; color: var(--tx2); padding: 2px 0 10px; }
 
 /* 접힘 — '더 보기'·'근거' */
 details { margin-top: 6px; }
@@ -87,6 +87,15 @@ summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; bo
 .chk.soft .cl { color: var(--tx2); font-weight: 500; }
 .chk.soft summary { color: var(--tx3); }
 .chk.soft .dbody { color: var(--tx2); background: var(--card); }
+
+/* 참고 시세(간밤 글로벌 표 아래, 2026-11-27) — 해설 없이 등락률과 종가만. 칸은 수급 칸(.fgrid)과 같은 모양 */
+.refs { margin-top: 14px; }
+.rh { font-size: 13px; font-weight: 600; color: var(--tx3); margin-bottom: 8px; }
+.refs .fgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.refs .fgrid > div { padding: 8px 10px; border-radius: 12px; min-width: 0; }
+.refs .fk { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.refs .fv { font-size: 14px; }
+.fc { display: block; font-size: 12px; color: var(--tx2); margin-top: 1px; }
 
 /* 수급 — 대시보드 '간밤 시장' 타일과 같은 모양 */
 .flow { margin-top: 16px; }
