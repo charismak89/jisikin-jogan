@@ -4,13 +4,14 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { DayData, Ent, Ohlc, Pt } from '../types'
 import type { Live } from '../lib/live'
 import { band } from '../lib/live'
-import { arrow, hm, md, nf, sg, tk } from '../lib/fmt'
+import { arrow, hm, kstDay, md, nf, sg, tk } from '../lib/fmt'
 import { dayLabel, frame, inMin, minsTo, type Frame, type Phase } from './clock'
 import type { NightFeed } from './night'
 import { tone } from './lib/tone'
 import { Button } from './components/ui/button'
 import { ChartSheet } from './components/ChartSheet'
 import { ZoomButton } from './components/ui/zoom-button'
+import { LAB } from './lab'
 
 type View = 'session' | 'overnight' | 'proxy'
 type Sky = 'dawn' | 'day' | 'dusk' | 'night'
@@ -56,8 +57,8 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
   const status = {
     pre: `${S.open} 개장까지 ${inMin(minsTo(D.t_open, now))}${S.why ? ` · ${S.why}` : ''}`,
     live: `정규장 · ${S.close}까지`,
-    closed: `오늘 정규장 마감 · 야간선물 ${inMin(minsTo(F.nightStart, now))} 뒤 시작`,
-    night: futOK ? '야간선물 거래 중 · 06:00까지' : '밤 · 해외 추종가로 보는 중',
+    closed: LAB ? `정규장 마감 · 야간선물 ${inMin(minsTo(F.nightStart, now))} 뒤` : `오늘 정규장 마감 · 야간선물 ${inMin(minsTo(F.nightStart, now))} 뒤 시작`,
+    night: futOK ? '야간선물 거래 중 · 06:00까지' : LAB ? '밤 · 해외 추종가' : '밤 · 해외 추종가로 보는 중',
     dawn: now < F.nextBrief ? `야간선물 마감 · ${hm(F.nextBrief)} 전망 준비 중` : `${hm(F.nextBrief)} 전망 올리는 중`,
     weekend: `주말 · ${dayLabel(F.nextBrief)} ${hm(F.nextBrief)} 전망`,
     late: '오늘 전망 없음 · 발행 전이거나 휴장일',
@@ -102,7 +103,7 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
       label: `${E.name} · ${done ? `${md(data.issue)} 마감` : '실시간'}`, big: p == null ? '—' : sg(p), bigDir: p,
       level: p == null ? undefined : lvl(E, E.prev, p, !krx),
       note: o != null && E.lo != null ? `시가 ${sg(o)} · 07:45 전망 구간 ${band(E, o)}` : `07:45 전망 ${E.lo != null && E.hi != null ? `${sg(E.lo)} ~ ${sg(E.hi)}` : '없음'}`,
-      foot: krx ? null : '토스 시세 연결 전 · 해외 추종가로 대신 그림',
+      foot: krx ? null : LAB ? '시세 연결 전 · 추종가' : '토스 시세 연결 전 · 해외 추종가로 대신 그림',
       lines: live.sessPts(E).map((b) => [b[0], b[1]] as Pt), x0: D.t_open, x1: D.t_close,
       band: E.lo != null && E.hi != null ? { lo: E.lo, hi: E.hi, from: D.t_open, to: D.t_open + (D.t_close - D.t_open) * 0.1 } : null,
       marks: [{ t: D.t_open, label: `${S.open} 개장` }, { t: D.t_open + 3 * 3600e3, label: '정오' }, { t: D.t_close, label: `${S.close} 마감` }],
@@ -120,10 +121,10 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
     const postP = feed!.S[E.key].last, at6 = feed!.at(E.key, F.nightEnd)
     const post = done && postP != null && at6 != null ? postP - at6 : null
     return { ...base,
-      label: done ? `코스피200 야간선물 · ${endLabel}` : `코스피200 야간선물 · 주간 종가 ${nf(fu.base as number, 2)} 대비`, badge: '야간선물',
+      label: done ? `코스피200 야간선물 · ${endLabel}` : LAB ? '코스피200 야간선물' : `코스피200 야간선물 · 주간 종가 ${nf(fu.base as number, 2)} 대비`, badge: '야간선물',
       big: sg(fu.pct as number), bigDir: fu.pct, level: nf(fu.last as number, 2),
-      note: post != null ? `마감 뒤 해외 추종가 ${sg(post)}p` : done ? `${endLabel}값` : fu.state === 'closed' ? '야간선물 거래가 끝났습니다' : `${fu.name} · 한국거래소 야간시장`,
-      foot: ph === 'night' ? `${dayLabel(F.nextBrief)} 07:45 전망은 이 야간선물 마감값으로 시작합니다. 삼성전자, SK하이닉스는 야간시장이 없어 해외 추종가입니다` : null,
+      note: post != null ? `마감 뒤 해외 추종가 ${sg(post)}p` : done ? `${endLabel}값` : fu.state === 'closed' ? '야간선물 거래가 끝났습니다' : LAB ? `주간 종가 ${nf(fu.base as number, 2)} 대비` : `${fu.name} · 한국거래소 야간시장`,
+      foot: ph === 'night' && !LAB ? `${dayLabel(F.nextBrief)} 07:45 전망은 이 야간선물 마감값으로 시작합니다. 삼성전자, SK하이닉스는 야간시장이 없어 해외 추종가입니다` : null,
       lines: fu.pts, x0: F.nightStart, x1,
       band: null,
       marks: [{ t: F.nightStart, label: '18:00' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '06:00' }],
@@ -143,8 +144,8 @@ function build(view: View, ph: Phase, F: Frame, data: DayData, live: Live, feed:
     label: `${isK ? '코스피200' : E.name} 추종가 · ${md(data.issue)} ${S.close} 대비`, badge: '추종가', big: q == null ? (feed?.ok === false ? '미확보' : '—') : sg(q), bigDir: q,
     level: q != null && cl != null ? lvl(E, E.prev * (1 + cl / 100), q, true) : undefined,
     note: post != null ? `야간선물 마감(${now - F.nightEnd > 864e5 / 2 ? dayLabel(F.nightEnd) + ' ' : ''}${hm(F.nightEnd)}) 뒤 ${sg(post)}p`
-      : !isK ? `${E.name}는 야간시장이 없어 해외 24시간 추종가입니다` : waiting ? '야간선물 첫 체결 기다리는 중 · 그동안 해외 추종가' : '실제 야간선물 시세가 아닙니다',
-    foot: ph === 'night' && isK ? `야간선물(18:00~06:00)과 06:00 마감 대조 평균 0.36%p 차이(29회). ${dayLabel(F.nextBrief)} 07:45 전망에는 실제 야간선물을 씁니다` : null,
+      : !isK ? (LAB ? '야간시장 없음 · 해외 추종가' : `${E.name}는 야간시장이 없어 해외 24시간 추종가입니다`) : waiting ? (LAB ? '야간선물 첫 체결 전' : '야간선물 첫 체결 기다리는 중 · 그동안 해외 추종가') : LAB ? null : '실제 야간선물 시세가 아닙니다',
+    foot: ph === 'night' && isK && !LAB ? `야간선물(18:00~06:00)과 06:00 마감 대조 평균 0.36%p 차이(29회). ${dayLabel(F.nextBrief)} 07:45 전망에는 실제 야간선물을 씁니다` : null,
     lines: st?.pts ?? [], x0: F.base, x1,
     band: null,
     marks: [{ t: F.base, label: `${S.close} 마감` }, { t: F.nightStart, label: '18:00' }, { t: F.usOpen, label: `미국장 ${hm(F.usOpen)}` }, { t: F.nightEnd, label: '06:00' },
@@ -177,9 +178,9 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
   return (
     <section aria-label="지금 시장" data-sky={M.sky} className="sky relative overflow-hidden rounded-lg p-4 shadow-xs ring-1 ring-line-2 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-label2 font-semibold text-fg-2">
+        <div className={`flex min-w-0 items-center gap-1.5 font-semibold text-fg-2 ${LAB ? 'text-label2 max-[380px]:text-caption1' : 'text-label2'}`}>
           <span aria-hidden className={`sky-dot sky-dot-${M.dot} size-2 shrink-0 rounded-full`} />
-          <span className="truncate">{M.status}</span>
+          <span className={LAB ? 'min-w-0 leading-snug' : 'truncate'}>{M.status}</span>
         </div>
         {alt && (
           <Button variant="assistive" size="small" onClick={() => setFlip((v) => !v)} aria-pressed={flip}
@@ -215,6 +216,7 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
         ))}
       </div>
 
+      {LAB && <FlowRow relay={data.day.relay} issue={data.issue} live={ph === 'live'} show={now >= data.day.t_open} />}
       {M.foot && <p className="mt-2 text-caption1 leading-snug text-fg-2">{M.foot}</p>}
       <div className="mt-3 flex items-center justify-between gap-2">
         <span className="text-caption1 text-fg-2">{M.fresh ?? ''}</span>
@@ -286,6 +288,38 @@ function Chart({ M, now }: { M: Model; now: number }) {
           <span key={i} className={`absolute whitespace-nowrap ${i === 0 && t.x < 30 ? '' : t.x > W - 60 ? '-translate-x-full' : '-translate-x-1/2'}`} style={{ left: t.x }}>{t.label}</span>
         ))}
       </div>
+    </div>
+  )
+}
+
+// 코스피 수급 줄(2026-11-27 실험실, 사용자 요청 '토스처럼 차트 밑에 가볍게'). 중계기 /v1/flow(토스 투자자별 매매, 억원).
+// 발행일 것만 보인다(개장 전에는 숨김). 장중에는 60초마다, 그 밖에는 처음 한 번만 받는다.
+interface Flow { date?: string; foreign?: number | null; inst?: number | null; retail?: number | null }
+function FlowRow({ relay, issue, live, show }: { relay?: string | null; issue: string; live: boolean; show: boolean }) {
+  const [f, setF] = useState<Flow | null>(null)
+  useEffect(() => {
+    if (!relay || !show) return
+    let dead = false, timer: number | undefined
+    const get = () => {
+      if (!document.hidden) fetch(relay + '/v1/flow', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (!dead && j) setF(j) }, () => {})
+      if (live) timer = window.setTimeout(get, 60e3)
+    }
+    get()
+    return () => { dead = true; window.clearTimeout(timer) }
+  }, [relay, live, show])
+  if (!show || !f || f.date !== issue) return null
+  const cells: [string, number | null | undefined][] = [['외국인', f.foreign], ['기관', f.inst], ['개인', f.retail]]
+  const max = Math.max(1, ...cells.map(([, v]) => Math.abs(v ?? 0)))
+  return (
+    <div className="mt-2 grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-1.5" role="group" aria-label={`코스피 ${issue === kstDay(Date.now()) ? '오늘' : md(issue)} 수급, 억원`}>
+      <span className="pr-0.5 text-caption1 font-semibold leading-tight text-fg-2">{issue === kstDay(Date.now()) ? '오늘' : md(issue)}<br />수급</span>
+      {cells.map(([n, v]) => (
+        <div key={n} className="relative min-w-0 overflow-hidden rounded-sm bg-card px-1.5 py-1 ring-1 ring-line-2">
+          {v != null && v !== 0 && <span aria-hidden className={`absolute inset-y-0 left-0 ${v > 0 ? 'bg-up/15' : 'bg-down/15'}`} style={{ width: `${(Math.abs(v) / max) * 100}%` }} />}
+          <span className="relative block truncate text-caption1 text-fg-2">{n}</span>
+          <b className={`num relative block truncate text-label2 ${tone(v)}`}>{v == null ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v))}</b>
+        </div>
+      ))}
     </div>
   )
 }
