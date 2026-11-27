@@ -76,16 +76,19 @@ export function Watch({ data }: { data: DayData }) {
   const codes = items.map((i) => i[0]).join(',')
   useEffect(() => {
     if (!relay || !codes) return
-    let dead = false, timer: number | undefined
+    let dead = false, busy = false, timer: number | undefined
     const tick = () => {
+      window.clearTimeout(timer)
+      if (busy) return   // 받는 중이면 끝난 뒤 다음 타이머가 건다(창을 다시 볼 때 루프가 둘이 되지 않게)
       if (document.hidden) { timer = window.setTimeout(tick, POLL); return }
+      busy = true
       fetch(relay + '/v1/quotes?symbols=' + codes, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
         .then((j: { items: Record<string, Quote> }) => { if (dead) return; setQuotes((o) => ({ ...o, ...j.items })); setOkAt(Date.now()); setFail(false) },
           () => { if (!dead) setFail(true) })
-        .finally(() => { if (!dead) timer = window.setTimeout(tick, POLL) })
+        .finally(() => { busy = false; if (!dead) timer = window.setTimeout(tick, POLL) })
     }
     tick()
-    const vis = () => { if (!document.hidden) { window.clearTimeout(timer); tick() } }
+    const vis = () => { if (!document.hidden) tick() }
     document.addEventListener('visibilitychange', vis)
     return () => { dead = true; window.clearTimeout(timer); document.removeEventListener('visibilitychange', vis) }
   }, [relay, codes])
@@ -193,7 +196,7 @@ export function Watch({ data }: { data: DayData }) {
             </tbody>
           </table>
           <div className="px-4 sm:px-6">
-            <Cap>현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준입니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '목록 링크 복사'로 옮기세요.</Cap>
+            <Cap>현재가와 거래량은 KRX와 NXT 통합 값입니다. 등락(대비)은 직전 거래일 KRX 종가 기준이고, 08:00 전에는 전 거래일 값을 그대로 둡니다{Object.values(quotes).some((x) => x.base_src === 'nxt-1d') ? '(* 일부 종목은 KRX 종가를 못 받아 통합 종가 기준)' : ''}. 목록은 이 브라우저에만 저장됩니다. 다른 기기에서는 '목록 링크 복사'로 옮기세요.</Cap>
           </div>
         </Card>
       )}

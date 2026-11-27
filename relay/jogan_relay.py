@@ -42,6 +42,7 @@
 """
 import hmac, json, logging, os, re, secrets, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from datetime import date, datetime, timedelta, timezone
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 KST = timezone(timedelta(hours=9))
@@ -134,7 +135,10 @@ def toss(path, params=None, retry=True):
 # 실패도 ERR_TTL 초 동안 기억한다 — 업스트림이 죽었을 때 줄 선 요청이 차례로 10초씩 기다리지 않게.
 _cache, _clock, _klocks = {}, threading.Lock(), {}
 ERR_TTL, CACHE_MAX = 3, 300
-def cached(key, ttl, fn):
+# 관심종목 시세(2026-11-27)는 종목 조합마다 키가 생겨서 따로 둔다 — 공용 캐시의 intraday, stocks 를 밀어내지 않게(검수)
+_qcache, _qklocks = {}, {}
+def cached(key, ttl, fn, store=None):
+    _cache, _klocks = store or (globals()['_cache'], globals()['_klocks'])
     def fresh():
         hit = _cache.get(key)
         return hit if hit and time.time() - hit[0] < (ttl if hit[2] is None else min(ttl, ERR_TTL)) else None
@@ -149,7 +153,7 @@ def cached(key, ttl, fn):
                 except Exception as e: hit = (time.time(), None, e)
                 with _clock:
                     _cache[key] = hit
-                    if len(_cache) > CACHE_MAX:   # 오래된 것부터 버린다(루틴 키 요청은 날짜가 제각각이라 끝없이 쌓일 수 있다)
+                    if len(_cache) > (CACHE_MAX if store is None else 2000):   # 오래된 것부터 버린다(루틴 키 요청은 날짜가 제각각이라 끝없이 쌓일 수 있다)
                         for k, _ in sorted(_cache.items(), key=lambda kv: kv[1][0])[:len(_cache) - CACHE_MAX]:
                             _cache.pop(k, None); _klocks.pop(k, None)
     if hit[2] is not None: raise hit[2]
@@ -358,6 +362,7 @@ def krx_base(s, ref):
         val = v['close'] if v else None
     except Exception as e:
         log.warning('KRX 종가 %s %s 실패: %s', s, ref, e); return None
+    if val is None: return None   # 빈 응답은 기억하지 않는다(일시적일 수 있다)
     with _blk:
         if len(_base) > 3000: _base.clear()
         _base[k] = val
@@ -375,12 +380,26 @@ def quote_one(s):
         out['base'], out['base_src'] = (b, 'krx') if b is not None else (float(prev['closePrice']), 'nxt-1d')
     return out
 
+QSTORE = (_qcache, _qklocks)
 def quotes(syms):
     out = {'asof': datetime.now(KST).isoformat(timespec='seconds'), 'items': {}, 'errors': []}
+    # 상장 목록에 없는 코드(상장폐지 등)는 빼고 부른다 — 하나가 prices 전체를 실패시키지 않게(검수)
+    try:
+        listed = {x[0] for x in cached('stocks', 6 * 3600, stock_list)['items']}
+        bad = [x for x in syms if x not in listed]
+        if bad: out['errors'].append('목록에 없음 %s' % ','.join(bad)); syms = [x for x in syms if x in listed]
+    except Exception as e:
+        log.warning('종목 목록 실패: %s', e)
+    if not syms: return out
     px = {r['symbol']: r for r in (toss('/api/v1/prices', {'symbols': ','.join(syms)}) or [])}
+    def one(s):
+        try: return s, cached(('q1', s), 30, lambda: quote_one(s), QSTORE), None
+        except Exception as e: return s, None, e
+    with ThreadPoolExecutor(max_workers=5) as ex:   # 처음 보는 종목은 1분봉을 몇 쪽 읽어 순서대로면 수십 초 걸린다(검수)
+        qs = {s: (q, e) for s, q, e in ex.map(one, syms)}
     for s in syms:
-        try: q = cached(('q1', s), 30, lambda s=s: quote_one(s))
-        except Exception as e: out['errors'].append('%s %s' % (s, e)); q = None
+        q, e = qs[s]
+        if e is not None: out['errors'].append('%s %s' % (s, e))
         p = px.get(s)
         if not p and not q: continue
         last = float(p['lastPrice']) if p else None
@@ -684,7 +703,7 @@ class Handler(BaseHTTPRequestHandler):
                 syms = list(dict.fromkeys(x.strip().upper() for x in q.get('symbols', '').split(',') if x.strip()))
                 if not syms or len(syms) > QUOTE_MAX or not all(SYM_RE.match(x) for x in syms):
                     return self.send_json(400, {'error': 'bad-symbols', 'max': QUOTE_MAX})
-                return self.send_json(200, cached(('quotes', tuple(sorted(syms))), 5, lambda: quotes(syms)))
+                return self.send_json(200, cached(('quotes', tuple(sorted(syms))), 5, lambda: quotes(syms), QSTORE))
             if u.path == '/v1/kospi-daily':
                 return self.send_json(200, cached('kospi-daily', 60, kospi_daily))
             if u.path == '/v1/daily':
