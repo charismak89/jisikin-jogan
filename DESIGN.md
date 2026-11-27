@@ -100,6 +100,7 @@
 | 작은 등락 숫자, 다크 칸 위 `down` | 4.50 | 4.5 (경계값) |
 
 - 옛 화면의 캡션색(`--tx3`) 자리는 모두 `text-fg-2` 다. 몽타주 `fg-3`(3.67:1)은 입력 칸 안내 글자(placeholder)와 진행 막대처럼 없어도 되는 표시에만 썼다.
+- 차트 크게 보기(`web/src/labs/components/ChartSheet.tsx`, 2026-11-27): TradingView Lightweight Charts 5.2.1(Apache-2.0)을 창을 열 때만 불러온다(gzip 약 64kB, 첫 화면 번들에 넣지 않는다). 색은 몽타주 토큰을 캔버스에 칠해 rgba 로 바꿔 넘긴다(토큰이 #RRGGBBAA 라서). 출처 표기는 차트 안 TradingView 로고(`attributionLogo`)라 끄지 않는다. 모바일은 전체 화면, 1024px 부터 가운데 창. 닫기 단추, Esc, 뒤로 가기로 닫힌다. 카드의 단추 이름(aria-label)은 '차트 크게 보기'다(uishots.py 가 누른다).
 - 브리핑 전문(`web/src/labs/brief.css`, Shadow DOM): 본문 HTML 의 인라인 SVG 가 옛 이름(`--tx2`, `--tx3`, `--line`, `--line2`, `--ok`, `--panel`)을 쓰므로 `:host` 에서 그 이름을 몽타주 토큰으로 잇는다. 초록, 주황 글자는 4.5:1 이 안 나와 글자는 본문색으로 두고 색은 바탕과 점으로만 쓴다. 카드 왼쪽에 색 띠(left border accent)를 두지 않는다(2026-11-27 하방 체크에서 뺐다).
 
 ### 2-2. 메인 v6 (옛 토스풍, 전환 PR 에서 지움)

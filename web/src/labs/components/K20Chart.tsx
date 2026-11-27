@@ -1,8 +1,10 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { DayData } from '../../types'
 import { md, nf, sg } from '../../lib/fmt'
 import { Card, CardHeader, Cap } from './ui/card'
 import { tone } from '../lib/tone'
+import { ChartSheet } from './ChartSheet'
+import { ZoomButton } from '../NowCard'
 
 // 오른쪽 여백은 마지막 막대와 날짜 글자만큼만 — 그래프가 카드 폭 끝까지 닿게(2026-10-22). '오늘' 글자는 마지막 막대 위에 둔다
 const W = 360, H = 210, L = 40, R = 14, T = 14, B = 24
@@ -12,6 +14,8 @@ export function K20Chart({ data }: { data: DayData }) {
   const closes = rows.filter((r) => r.close != null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [tip, setTip] = useState<number | null>(null)
+  const [big, setBig] = useState(false)
+  const closeBig = useCallback(() => setBig(false), [])
   if (closes.length < 2) return null
   const vals: number[] = closes.map((r) => r.close as number)
   rows.forEach((r) => { if (r.low != null && r.high != null) vals.push(r.low, r.high); if (r.open != null) vals.push(r.open) })
@@ -31,7 +35,9 @@ export function K20Chart({ data }: { data: DayData }) {
   }
   return (
     <Card aria-label="코스피 최근 20거래일과 예측 기록">
-      <CardHeader title="코스피 20거래일 · 예측 기록" aside={data.k20.close != null && <span className="num">{nf(data.k20.close, 2)} <b className={tone(data.k20.pct)}>{data.k20.pct != null ? sg(data.k20.pct) : ''}</b></span>} />
+      <CardHeader title="코스피 20거래일 · 예측 기록" aside={<span className="inline-flex items-center gap-2">{data.k20.close != null && <span className="num">{nf(data.k20.close, 2)} <b className={tone(data.k20.pct)}>{data.k20.pct != null ? sg(data.k20.pct) : ''}</b></span>}<ZoomButton onClick={() => setBig(true)} /></span>} />
+      {big && <ChartSheet onClose={closeBig} spec={{ kind: 'k20', title: '코스피 20거래일 · 예측 기록', rows,
+        note: '선은 종가, 회색 막대는 그날 아침 예상 구간(띠 색이 오늘), 점은 실제 시초가(초록: 구간 안)' }} />}
       <div className="relative">
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="viz block w-full touch-pan-y" role="img" onPointerMove={onMove} onPointerLeave={() => setTip(null)}
           aria-label={`코스피 최근 ${closes.length}거래일 종가와 회차별 예상 구간, 실제 시초가`}>
