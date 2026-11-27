@@ -444,11 +444,14 @@ def corp_map():
     import io, zipfile
     import xml.etree.ElementTree as ET
     z = zipfile.ZipFile(io.BytesIO(dart_get('/corpCode.xml', {}, raw=True)))
-    root = ET.fromstring(z.read(z.namelist()[0]))
     out = {}
-    for el in root.iter('list'):
-        sc = (el.findtext('stock_code') or '').strip()
-        if sc: out[sc] = el.findtext('corp_code').strip()
+    # 풀면 수십 MB 라 통째로 읽지 않고 흘려 읽는다(무료 VM 메모리)
+    with z.open(z.namelist()[0]) as f:
+        for _, el in ET.iterparse(f):
+            if el.tag != 'list': continue
+            sc = (el.findtext('stock_code') or '').strip()
+            if sc: out[sc] = (el.findtext('corp_code') or '').strip()
+            el.clear()
     if not out: raise ValueError('corpCode 빈 응답')
     return out
 
@@ -457,9 +460,13 @@ def _d(m):
     except ValueError: return None
 
 def date_after(text, label, span=120):
+    """label 뒤 첫 날짜. 다음 번호 항목('7. ', '10. ') 앞에서 멈춘다 — 칸이 '-'(미정)이면 다음 항목의 날짜를 잡았다
+    (2026-11-27 SK하이닉스 배당 공시: 지급 예정일자 '-' 뒤 '10. 이사회결의일 2026-10-28' 을 지급일로 읽음)"""
     m = re.search(label, text)
     if not m: return None
-    d = DATE_RE.search(text[m.end():m.end() + span])
+    seg = text[m.end():m.end() + span]
+    nx = re.search(r'\s\d{1,2}\.\s', seg)
+    d = DATE_RE.search(seg[:nx.start()] if nx else seg)
     return _d(d) if d else None
 
 def doc_text(rno):
@@ -503,7 +510,7 @@ def events_one(code):
         base = {'code': code, 'name': r.get('stock_name') or r.get('corp_name'), 'rcept_no': rno, 'report': nm.strip()}
         evs = []
         if kind == 'EARN':
-            evs.append(dict(base, kind='EARN', date=rd, title='잠정실적 공시'))
+            evs.append(dict(base, kind='EARN', date=rd, title='잠정실적 정정 공시' if '정정' in nm else '잠정실적 공시'))
         else:
             try: t = doc_text(rno)
             except Exception as e:
@@ -517,6 +524,7 @@ def events_one(code):
                 amt = re.search(r'1주당\s*배당금\s*\(원\)\s*보통주식\s*([\d,]+)', t)
                 a = (' 주당 %s원' % amt.group(1)) if amt else ''
                 d1, d2 = date_after(t, r'배당기준일'), date_after(t, r'지급\s*예정\s*일')
+                if d1 and d2 and d2 < d1: d2 = None   # 지급일이 기준일보다 앞이면 잘못 읽은 것
                 if d1: evs.append(dict(base, kind='DIV', date=d1, title='배당 기준일' + a))
                 if d2: evs.append(dict(base, kind='DIV', date=d2, title='배당 지급일' + a))
                 if not (d1 or d2): evs.append(dict(base, kind='DIV', date=rd, approx=True, title='배당 결정 공시' + a))
