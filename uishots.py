@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""uishots.py — 화면 상태별 사진. uicheck.py 가 열지 않는 상태(브리핑 전부 펼치기·의견 창·차트 크게 보기·다크·장중 선)를 찍는다.
+"""uishots.py — 화면 상태별 사진. uicheck.py 가 열지 않는 상태(브리핑 전부 펼치기·의견 창·차트 크게 보기(첫 카드, 20거래일)·다크·장중 선)를 찍는다.
 
   python3 uishots.py                     대시보드·차트 크게 보기·의견 창·브리핑(전부 펼치기)을 390·1440px, 라이트·다크로
   python3 uishots.py --intraday          + 중계기 /v1/intraday·/v1/live 응답을 가짜 장중 봉으로 바꿔 장중 선을 그린다
@@ -105,10 +105,12 @@ def shoot(b, origin, w, h, dark, out, relay, body, day_body=None, frag='', page=
         snap('top', False); ctx.close()
         print('%5dpx %-5s %s%s' % (w, 'dark' if dark else 'light', (clock.strftime('%m/%d %H:%M ') if clock else ''), ' · '.join(shots))); return
     snap('dash', True)
-    live = p.locator('section[aria-label="예측과 실시간"]')
-    if live.count():
-        live.get_by_role('button', name='차트 크게 보기').click(); p.wait_for_timeout(400)
-        snap('chart-exp', False); p.keyboard.press('Escape'); p.wait_for_timeout(200)
+    # 차트 크게 보기(2026-11-27 Lightweight Charts): 첫 카드와 20거래일 카드. 라이브러리를 열 때 불러오니 조금 기다린다
+    for nm, sel in (('chart-exp', 'section[aria-label="지금 시장"]'), ('chart-exp-k20', '[aria-label="코스피 최근 20거래일과 예측 기록"]')):
+        box = p.locator(sel).first
+        if box.count() and box.get_by_role('button', name='차트 크게 보기').count():
+            box.get_by_role('button', name='차트 크게 보기').click(); p.wait_for_timeout(1200)
+            snap(nm, False); p.keyboard.press('Escape'); p.wait_for_timeout(300)
     fb = p.get_by_role('button', name='의견')
     if fb.count():
         fb.click(); p.wait_for_timeout(500)

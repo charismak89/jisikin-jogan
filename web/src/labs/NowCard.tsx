@@ -1,6 +1,6 @@
 // 첫 카드(시험 화면, 2026-11-26). 앤트위키 홈 첫 카드처럼 시간대마다 문구, 배경, 차트가 바뀐다.
 // 앤트위키에 없는 것: 07:45 예측 구간 띠, 시가 채점, 야간선물 마감(06:00) 뒤 움직임, 주말 추종가.
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { DayData, Ent, Pt } from '../types'
 import type { Live } from '../lib/live'
 import { band } from '../lib/live'
@@ -9,6 +9,8 @@ import { dayLabel, frame, inMin, minsTo, type Frame, type Phase } from './clock'
 import type { NightFeed } from './night'
 import { tone } from './lib/tone'
 import { Button } from './components/ui/button'
+import { ChartSheet } from './components/ChartSheet'
+import { ZoomButton } from './components/ui/zoom-button'
 
 type View = 'session' | 'overnight' | 'proxy'
 type Sky = 'dawn' | 'day' | 'dusk' | 'night'
@@ -165,6 +167,8 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
   const M = build(view, ph, F, data, live, feed, now, E)
   const name = (v: View) => (v === 'overnight' ? '밤사이' : v === 'proxy' ? '밤 추종가' : ph === 'live' ? '코스피' : '낮 코스피')
   const otherLabel = alt ? name(flip ? primary : alt) : ''
+  const [big, setBig] = useState(false)
+  const closeBig = useCallback(() => setBig(false), [])
 
   return (
     <section aria-label="지금 시장" data-sky={M.sky} className="sky relative overflow-hidden rounded-lg p-4 shadow-xs ring-1 ring-line-2 sm:p-5">
@@ -179,7 +183,10 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
         )}
       </div>
 
-      <div className="mt-2 text-caption1 font-semibold text-fg-2">{M.label}</div>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="min-w-0 truncate text-caption1 font-semibold text-fg-2">{M.label}</div>
+        <ZoomButton onClick={() => setBig(true)} />
+      </div>
       <div className="flex flex-wrap items-baseline gap-x-2">
         <span className={`num text-title1 font-bold leading-tight tracking-tight ${M.bigDir == null ? 'text-fg' : tone(M.bigDir)}`}>
           {M.bigDir != null && view !== 'overnight' && <span className="text-headline1">{arrow(M.bigDir)}</span>}{M.big}
@@ -190,6 +197,9 @@ export function NowCard({ data, live, feed, onBrief }: { data: DayData; live: Li
       {M.note && <div className="text-label2 font-semibold text-fg-2">{M.note}</div>}
 
       <Chart M={M} now={now} />
+      {big && <ChartSheet onClose={closeBig} spec={{ kind: 'line', title: M.label, note: [M.note, M.fresh].filter(Boolean).join(', ') || null,
+        pts: M.lines, x0: M.x0, x1: M.x1, band: M.band ? { lo: M.band.lo, hi: M.band.hi } : null, pin: M.pin ?? null,
+        level: view === 'session' ? (p: number) => lvl(E, E.prev, p, false) : undefined }} />}
 
       <div role="group" aria-label="차트 종목 고르기" className="mt-3 grid grid-cols-3 gap-1.5">
         {M.tiles.map((t) => (
